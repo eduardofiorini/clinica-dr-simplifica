@@ -9,6 +9,7 @@ export interface ITestCategory extends Document {
   icon: string;
   testCount: number;
   commonTests: string[];
+  clinic_id: mongoose.Types.ObjectId;
   isActive: boolean;
   sortOrder: number;
   created_at: Date;
@@ -20,16 +21,14 @@ const TestCategorySchema: Schema = new Schema({
     type: String,
     required: [true, 'Category name is required'],
     trim: true,
-    maxlength: [100, 'Category name cannot exceed 100 characters'],
-    unique: true
+    maxlength: [100, 'Category name cannot exceed 100 characters']
   },
   code: {
     type: String,
     required: [true, 'Category code is required'],
     trim: true,
     uppercase: true,
-    maxlength: [20, 'Category code cannot exceed 20 characters'],
-    unique: true
+    maxlength: [20, 'Category code cannot exceed 20 characters']
   },
   description: {
     type: String,
@@ -63,6 +62,11 @@ const TestCategorySchema: Schema = new Schema({
     type: String,
     trim: true
   }],
+  clinic_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Clinic',
+    required: [true, 'Clinic ID is required']
+  },
   isActive: {
     type: Boolean,
     default: true
@@ -80,6 +84,14 @@ TestCategorySchema.index({ name: 'text', code: 'text', description: 'text' });
 TestCategorySchema.index({ department: 1 });
 TestCategorySchema.index({ isActive: 1 });
 TestCategorySchema.index({ sortOrder: 1 });
+TestCategorySchema.index({ clinic_id: 1 });
+
+// Compound indexes for clinic-based queries
+TestCategorySchema.index({ clinic_id: 1, name: 1 }, { unique: true });
+TestCategorySchema.index({ clinic_id: 1, code: 1 }, { unique: true });
+TestCategorySchema.index({ clinic_id: 1, department: 1 });
+TestCategorySchema.index({ clinic_id: 1, isActive: 1 });
+TestCategorySchema.index({ clinic_id: 1, sortOrder: 1 });
 
 // Pre-save middleware to ensure code is uppercase
 TestCategorySchema.pre('save', function(this: ITestCategory, next) {

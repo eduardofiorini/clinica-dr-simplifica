@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface ILabVendor extends Document {
+  clinic_id: mongoose.Types.ObjectId;
   name: string;
   code: string;
   type: 'diagnostic_lab' | 'pathology_lab' | 'imaging_center' | 'reference_lab' | 'specialty_lab';
@@ -29,6 +30,11 @@ export interface ILabVendor extends Document {
 }
 
 const LabVendorSchema: Schema = new Schema({
+  clinic_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Clinic',
+    required: true
+  },
   name: {
     type: String,
     required: [true, 'Lab vendor name is required'],
@@ -38,7 +44,6 @@ const LabVendorSchema: Schema = new Schema({
   code: {
     type: String,
     required: [true, 'Lab vendor code is required'],
-    unique: true,
     trim: true,
     uppercase: true,
     maxlength: [10, 'Lab vendor code cannot exceed 10 characters'],
@@ -172,22 +177,20 @@ const LabVendorSchema: Schema = new Schema({
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 
-// Create index for better search performance
+// Create clinic-aware indexes for better query performance
+LabVendorSchema.index({ clinic_id: 1 });
+LabVendorSchema.index({ clinic_id: 1, code: 1 }, { unique: true }); // Unique code per clinic
+LabVendorSchema.index({ clinic_id: 1, status: 1 });
+LabVendorSchema.index({ clinic_id: 1, type: 1 });
+LabVendorSchema.index({ clinic_id: 1, contractStart: 1, contractEnd: 1 });
 LabVendorSchema.index({ 
+  clinic_id: 1,
   name: 'text', 
   code: 'text', 
   contactPerson: 'text',
   specialties: 'text',
   city: 'text',
   state: 'text'
-});
-
-// Note: unique index on code already created by field definition
-
-// Index for filtering by type and status
-LabVendorSchema.index({ type: 1, status: 1 });
-
-// Index for contract dates
-LabVendorSchema.index({ contractStart: 1, contractEnd: 1 });
+}); // Text search within clinic
 
 export default mongoose.model<ILabVendor>('LabVendor', LabVendorSchema); 

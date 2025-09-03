@@ -8,7 +8,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { usePatients, useAppointments, useInvoices, useInventory, useLeads } from "@/hooks/useApi";
 import { useAdminDashboardStats, useRevenueAnalytics } from "@/hooks/useDashboard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";

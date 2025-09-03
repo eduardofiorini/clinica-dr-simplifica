@@ -1,16 +1,18 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { Patient, Appointment, Invoice, Inventory, User, Lead, Expense } from '../models';
+import { AuthRequest } from '../types/express';
 
 export class DashboardController {
-  static async getAdminDashboardStats(req: Request, res: Response): Promise<void> {
+  static async getAdminDashboardStats(req: AuthRequest, res: Response): Promise<void> {
     try {
+      const clinicId = req.clinic_id;
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const startOfYear = new Date(now.getFullYear(), 0, 1);
 
-      // Basic counts
+      // Basic counts - filtered by clinic
       const [
         totalPatients,
         todayAppointments,
@@ -19,8 +21,9 @@ export class DashboardController {
         totalDoctors,
         totalStaff
       ] = await Promise.all([
-        Patient.countDocuments(),
+        Patient.countDocuments({ clinic_id: clinicId }),
         Appointment.countDocuments({
+          clinic_id: clinicId,
           appointment_date: {
             $gte: today,
             $lt: tomorrow
@@ -29,6 +32,7 @@ export class DashboardController {
         Invoice.aggregate([
           {
             $match: {
+              clinic_id: clinicId,
               status: 'paid',
               paid_at: {
                 $gte: startOfMonth,
@@ -44,14 +48,18 @@ export class DashboardController {
           }
         ]),
         Inventory.countDocuments({
+          clinic_id: clinicId,
           $expr: { $lte: ['$current_stock', '$minimum_stock'] }
         }),
-        User.countDocuments({ role: 'doctor', is_active: true }),
-        User.countDocuments({ is_active: true })
+        User.countDocuments({ role: 'doctor', is_active: true, clinic_id: clinicId }),
+        User.countDocuments({ is_active: true, clinic_id: clinicId })
       ]);
 
-      // Appointment statistics
+      // Appointment statistics - filtered by clinic
       const appointmentStats = await Appointment.aggregate([
+        {
+          $match: { clinic_id: clinicId }
+        },
         {
           $group: {
             _id: '$status',
@@ -60,13 +68,14 @@ export class DashboardController {
         }
       ]);
 
-      // Revenue trends (last 6 months)
+      // Revenue trends (last 6 months) - filtered by clinic
       const sixMonthsAgo = new Date();
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
       const revenueData = await Invoice.aggregate([
         {
           $match: {
+            clinic_id: clinicId,
             status: 'paid',
             paid_at: { $gte: sixMonthsAgo }
           }
@@ -86,20 +95,21 @@ export class DashboardController {
         }
       ]);
 
-      // Low stock items details
+      // Low stock items details - filtered by clinic
       const lowStockItems = await Inventory.find({
+        clinic_id: clinicId,
         $expr: { $lte: ['$current_stock', '$minimum_stock'] }
       }).limit(10);
 
-      // Recent appointments
-      const recentAppointments = await Appointment.find()
+      // Recent appointments - filtered by clinic
+      const recentAppointments = await Appointment.find({ clinic_id: clinicId })
         .populate('patient_id', 'first_name last_name')
         .populate('doctor_id', 'first_name last_name')
         .sort({ created_at: -1 })
         .limit(10);
 
-      // Recent leads
-      const recentLeads = await Lead.find()
+      // Recent leads - filtered by clinic
+      const recentLeads = await Lead.find({ clinic_id: clinicId })
         .sort({ created_at: -1 })
         .limit(10);
 
@@ -112,6 +122,7 @@ export class DashboardController {
         Invoice.aggregate([
           {
             $match: {
+              clinic_id: clinicId,
               status: 'paid',
               paid_at: {
                 $gte: startOfLastMonth,
@@ -127,12 +138,14 @@ export class DashboardController {
           }
         ]),
         Patient.countDocuments({
+          clinic_id: clinicId,
           created_at: {
             $gte: startOfLastMonth,
             $lt: startOfMonth
           }
         }),
         Appointment.countDocuments({
+          clinic_id: clinicId,
           created_at: {
             $gte: startOfLastMonth,
             $lt: startOfMonth
@@ -146,6 +159,7 @@ export class DashboardController {
       const revenueChange = ((currentRevenue - prevRevenue) / prevRevenue * 100).toFixed(1);
 
       const currentPatients = await Patient.countDocuments({
+        clinic_id: clinicId,
         created_at: { $gte: startOfMonth }
       });
       const patientChange = lastMonthPatients > 0 
@@ -153,6 +167,7 @@ export class DashboardController {
         : '0';
 
       const currentAppointments = await Appointment.countDocuments({
+        clinic_id: clinicId,
         created_at: { $gte: startOfMonth }
       });
       const appointmentChange = lastMonthAppointments > 0
@@ -202,8 +217,9 @@ export class DashboardController {
     }
   }
 
-  static async getRevenueAnalytics(req: Request, res: Response): Promise<void> {
+  static async getRevenueAnalytics(req: AuthRequest, res: Response): Promise<void> {
     try {
+      const clinicId = req.clinic_id;
       const { period = '6months' } = req.query;
       
       let startDate: Date;
@@ -229,6 +245,7 @@ export class DashboardController {
         Invoice.aggregate([
           {
             $match: {
+              clinic_id: clinicId,
               status: 'paid',
               paid_at: { $gte: startDate }
             }
@@ -247,10 +264,11 @@ export class DashboardController {
             $sort: { '_id.year': -1, '_id.month': -1 }
           }
         ]),
-        // Real expense data from Expense model
+        // Real expense data from Expense model - filtered by clinic
         Expense.aggregate([
           {
             $match: {
+              clinic_id: clinicId,
               status: 'paid',
               date: { $gte: startDate }
             }
@@ -288,25 +306,32 @@ export class DashboardController {
     }
   }
 
-  static async getOperationalMetrics(req: Request, res: Response): Promise<void> {
+  static async getOperationalMetrics(req: AuthRequest, res: Response): Promise<void> {
     try {
+      const clinicId = req.clinic_id;
       const now = new Date();
       const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const startOfWeek = new Date(startOfDay.getTime() - (startOfDay.getDay() * 24 * 60 * 60 * 1000));
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-      // Appointment metrics
+      // Appointment metrics - filtered by clinic
       const appointmentMetrics = await Promise.all([
         Appointment.countDocuments({
+          clinic_id: clinicId,
           appointment_date: { $gte: startOfDay }
         }),
         Appointment.countDocuments({
+          clinic_id: clinicId,
           appointment_date: { $gte: startOfWeek }
         }),
         Appointment.countDocuments({
+          clinic_id: clinicId,
           appointment_date: { $gte: startOfMonth }
         }),
         Appointment.aggregate([
+          {
+            $match: { clinic_id: clinicId }
+          },
           {
             $group: {
               _id: '$status',
@@ -316,21 +341,25 @@ export class DashboardController {
         ])
       ]);
 
-      // Patient metrics
+      // Patient metrics - filtered by clinic
       const patientMetrics = await Promise.all([
         Patient.countDocuments({
+          clinic_id: clinicId,
           created_at: { $gte: startOfDay }
         }),
         Patient.countDocuments({
+          clinic_id: clinicId,
           created_at: { $gte: startOfWeek }
         }),
         Patient.countDocuments({
+          clinic_id: clinicId,
           created_at: { $gte: startOfMonth }
         })
       ]);
 
-      // Inventory alerts
+      // Inventory alerts - filtered by clinic
       const inventoryAlerts = await Inventory.find({
+        clinic_id: clinicId,
         $or: [
           { $expr: { $lte: ['$current_stock', '$minimum_stock'] } },
           { 
@@ -368,7 +397,7 @@ export class DashboardController {
     }
   }
 
-  static async getSystemHealth(req: Request, res: Response): Promise<void> {
+  static async getSystemHealth(req: AuthRequest, res: Response): Promise<void> {
     try {
       // System health checks
       const healthChecks = await Promise.all([

@@ -33,11 +33,9 @@ import {
   Droplets,
   Folder,
   Activity,
-  BookOpen,
-  Database,
-  GraduationCap,
   Building2,
   Brain,
+  Zap,
 } from "lucide-react";
 
 interface SidebarProps {
@@ -112,6 +110,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           roles: ["admin", "doctor"],
         },
         {
+          name: "Odontogram",
+          href: "/dashboard/odontograms",
+          icon: Zap,
+          badge: "Dental",
+          roles: ["admin", "doctor"],
+        },
+        {
           name: "Test Reports",
           href: "/dashboard/test-reports",
           icon: FileText,
@@ -164,6 +169,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           roles: ["admin"],
         },
         {
+          name: "Clinics",
+          href: "/dashboard/clinics",
+          icon: Building2,
+          roles: ["admin"],
+        },
+        {
           name: "Inventory",
           href: "/dashboard/inventory",
           icon: Package,
@@ -200,35 +211,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         },
       ],
     },
-    {
-      title: "System",
-      items: [
-        {
-          name: "Training",
-          href: "/dashboard/training",
-          icon: GraduationCap,
-          roles: ["admin", "doctor", "receptionist", "nurse", "accountant"],
-        },
-        {
-          name: "Training Progress",
-          href: "/dashboard/training-progress",
-          icon: Activity,
-          roles: ["admin"],
-        },
-        {
-          name: "Documentation",
-          href: "/dashboard/documentation",
-          icon: BookOpen,
-          roles: ["admin", "doctor", "receptionist", "nurse", "accountant"],
-        },
-        {
-          name: "Database Structure",
-          href: "/dashboard/database-structure",
-          icon: Database,
-          roles: ["admin"],
-        },
-      ],
-    },
+
   ];
 
   // Role-specific navigation for different user types
@@ -260,9 +243,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 icon: Stethoscope,
               },
               {
-                name: "Training",
-                href: "/dashboard/training",
-                icon: GraduationCap,
+                name: "Odontogram",
+                href: "/dashboard/odontograms",
+                icon: Zap,
+                badge: "Dental",
               },
             ],
           },
@@ -290,11 +274,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 href: "/dashboard/billing",
                 icon: DollarSign,
               },
-              {
-                name: "Training",
-                href: "/dashboard/training",
-                icon: GraduationCap,
-              },
             ],
           },
         ];
@@ -321,11 +300,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 href: "/dashboard/inventory",
                 icon: Package,
               },
-              {
-                name: "Training",
-                href: "/dashboard/training",
-                icon: GraduationCap,
-              },
             ],
           },
         ];
@@ -347,11 +321,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 name: "Revenue Reports",
                 href: "/dashboard/reports",
                 icon: BarChart3,
-              },
-              {
-                name: "Training",
-                href: "/dashboard/training",
-                icon: GraduationCap,
               },
             ],
           },

@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IPayroll extends Document {
+  clinic_id: mongoose.Types.ObjectId;
   employee_id: mongoose.Types.ObjectId;
   month: string;
   year: number;
@@ -21,6 +22,11 @@ export interface IPayroll extends Document {
 }
 
 const PayrollSchema: Schema = new Schema({
+  clinic_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Clinic',
+    required: true
+  },
   employee_id: {
     type: Schema.Types.ObjectId,
     ref: 'User',
@@ -115,13 +121,13 @@ const PayrollSchema: Schema = new Schema({
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 
-// Create compound index to prevent duplicate payroll for same employee in same month/year
-PayrollSchema.index({ employee_id: 1, month: 1, year: 1 }, { unique: true });
-
-// Create other indexes for better query performance
-PayrollSchema.index({ status: 1, year: -1, month: 1 });
-PayrollSchema.index({ year: -1, month: 1 });
-PayrollSchema.index({ pay_date: -1 });
+// Create clinic-aware indexes for better query performance
+PayrollSchema.index({ clinic_id: 1 });
+PayrollSchema.index({ clinic_id: 1, employee_id: 1, month: 1, year: 1 }, { unique: true }); // Unique per clinic
+PayrollSchema.index({ clinic_id: 1, status: 1, year: -1, month: 1 });
+PayrollSchema.index({ clinic_id: 1, year: -1, month: 1 });
+PayrollSchema.index({ clinic_id: 1, pay_date: -1 });
+PayrollSchema.index({ clinic_id: 1, employee_id: 1 });
 
 // Pre-save middleware to calculate net salary
 PayrollSchema.pre('save', function(next) {

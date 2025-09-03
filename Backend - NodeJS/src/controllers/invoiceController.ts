@@ -1,9 +1,10 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { validationResult } from 'express-validator';
 import { Invoice } from '../models';
+import { AuthRequest } from '../types/express';
 
 export class InvoiceController {
-  static async createInvoice(req: Request, res: Response): Promise<void> {
+  static async createInvoice(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -15,7 +16,12 @@ export class InvoiceController {
         return;
       }
 
-      const invoice = new Invoice(req.body);
+      const invoiceData = {
+        ...req.body,
+        clinic_id: req.clinic_id
+      };
+
+      const invoice = new Invoice(invoiceData);
       await invoice.save();
 
       await invoice.populate('patient_id', 'first_name last_name email phone');
@@ -34,13 +40,15 @@ export class InvoiceController {
     }
   }
 
-  static async getAllInvoices(req: Request, res: Response): Promise<void> {
+  static async getAllInvoices(req: AuthRequest, res: Response): Promise<void> {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const skip = (page - 1) * limit;
 
-      let filter: any = {};
+      let filter: any = {
+        clinic_id: req.clinic_id
+      };
 
       if (req.query.status) {
         filter.status = req.query.status;
@@ -86,11 +94,13 @@ export class InvoiceController {
     }
   }
 
-  static async getInvoiceById(req: Request, res: Response): Promise<void> {
+  static async getInvoiceById(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const invoice = await Invoice.findById(id)
-        .populate('patient_id', 'first_name last_name email phone address');
+      const invoice = await Invoice.findOne({
+        _id: id,
+        clinic_id: req.clinic_id
+      }).populate('patient_id', 'first_name last_name email phone address');
 
       if (!invoice) {
         res.status(404).json({
@@ -113,11 +123,11 @@ export class InvoiceController {
     }
   }
 
-  static async updateInvoice(req: Request, res: Response): Promise<void> {
+  static async updateInvoice(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const invoice = await Invoice.findByIdAndUpdate(
-        id,
+      const invoice = await Invoice.findOneAndUpdate(
+        { _id: id, clinic_id: req.clinic_id },
         req.body,
         { new: true, runValidators: true }
       )
@@ -145,11 +155,11 @@ export class InvoiceController {
     }
   }
 
-  static async markAsPaid(req: Request, res: Response): Promise<void> {
+  static async markAsPaid(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const invoice = await Invoice.findByIdAndUpdate(
-        id,
+      const invoice = await Invoice.findOneAndUpdate(
+        { _id: id, clinic_id: req.clinic_id },
         { 
           status: 'paid',
           payment_date: new Date()
@@ -179,9 +189,10 @@ export class InvoiceController {
     }
   }
 
-  static async getOverdueInvoices(req: Request, res: Response): Promise<void> {
+  static async getOverdueInvoices(req: AuthRequest, res: Response): Promise<void> {
     try {
       const invoices = await Invoice.find({
+        clinic_id: req.clinic_id,
         status: { $in: ['pending'] },
         due_date: { $lt: new Date() }
       })
@@ -201,12 +212,15 @@ export class InvoiceController {
     }
   }
 
-  static async getInvoiceStats(req: Request, res: Response): Promise<void> {
+  static async getInvoiceStats(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const totalInvoices = await Invoice.countDocuments();
-      const paidInvoices = await Invoice.countDocuments({ status: 'paid' });
-      const pendingInvoices = await Invoice.countDocuments({ status: 'pending' });
+      const clinicFilter = { clinic_id: req.clinic_id };
+
+      const totalInvoices = await Invoice.countDocuments(clinicFilter);
+      const paidInvoices = await Invoice.countDocuments({ ...clinicFilter, status: 'paid' });
+      const pendingInvoices = await Invoice.countDocuments({ ...clinicFilter, status: 'pending' });
       const overdueInvoices = await Invoice.countDocuments({
+        ...clinicFilter,
         status: 'pending',
         due_date: { $lt: new Date() }
       });
@@ -219,7 +233,7 @@ export class InvoiceController {
       const [revenueData, monthlyRevenueData] = await Promise.all([
         // Total revenue calculation
         Invoice.aggregate([
-          { $match: { status: 'paid', paid_at: { $exists: true } } },
+          { $match: { ...clinicFilter, status: 'paid', paid_at: { $exists: true } } },
           {
             $group: {
               _id: null,
@@ -232,6 +246,7 @@ export class InvoiceController {
         Invoice.aggregate([
           { 
             $match: { 
+              ...clinicFilter,
               status: 'paid', 
               paid_at: { 
                 $gte: startOfMonth,
@@ -251,7 +266,7 @@ export class InvoiceController {
       ]);
 
       const monthlyRevenue = await Invoice.aggregate([
-        { $match: { status: 'paid', paid_at: { $exists: true } } },
+        { $match: { ...clinicFilter, status: 'paid', paid_at: { $exists: true } } },
         {
           $group: {
             _id: {
@@ -289,10 +304,13 @@ export class InvoiceController {
     }
   }
 
-  static async deleteInvoice(req: Request, res: Response): Promise<void> {
+  static async deleteInvoice(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const invoice = await Invoice.findById(id);
+      const invoice = await Invoice.findOne({
+        _id: id,
+        clinic_id: req.clinic_id
+      });
 
       if (!invoice) {
         res.status(404).json({

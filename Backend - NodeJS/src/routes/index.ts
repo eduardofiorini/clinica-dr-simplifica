@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import authRoutes from './authRoutes';
 import userRoutes from './userRoutes';
+import clinicRoutes from './clinicRoutes';
+import userClinicRoutes from './userClinicRoutes';
 import patientRoutes from './patientRoutes';
 import appointmentRoutes from './appointmentRoutes';
 import medicalRecordRoutes from './medicalRecordRoutes';
@@ -25,6 +27,7 @@ import settingsRoutes from './settingsRoutes';
 import trainingRoutes from './trainingRoutes';
 import receptionistRoutes from './receptionistRoutes';
 import xrayAnalysisRoutes from './xrayAnalysisRoutes';
+import odontogramRoutes from './odontogramRoutes';
 import { getConnectionState, isConnectionHealthy } from '../config/database';
 
 const router = Router();
@@ -32,6 +35,8 @@ const router = Router();
 // Mount routes
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
+router.use('/clinics', clinicRoutes);
+router.use('/user', userClinicRoutes);
 router.use('/patients', patientRoutes);
 router.use('/appointments', appointmentRoutes);
 router.use('/medical-records', medicalRecordRoutes);
@@ -56,6 +61,7 @@ router.use('/settings', settingsRoutes);
 router.use('/training', trainingRoutes);
 router.use('/receptionist', receptionistRoutes);
 router.use('/xray-analysis', xrayAnalysisRoutes);
+router.use('/odontograms', odontogramRoutes);
 
 // Basic health check route
 router.get('/health', (req, res) => {

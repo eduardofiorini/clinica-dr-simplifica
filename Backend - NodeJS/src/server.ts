@@ -42,7 +42,8 @@ async function initializeServer() {
         'Accept',
         'Authorization',
         'Cache-Control',
-        'Pragma'
+        'Pragma',
+        'X-Clinic-Id'
       ],
       credentials: true,
       optionsSuccessStatus: 200 // Some legacy browsers (IE11, various SmartTVs) choke on 204

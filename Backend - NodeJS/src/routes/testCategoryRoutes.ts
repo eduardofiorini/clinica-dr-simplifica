@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { TestCategoryController } from '../controllers';
+import { authenticate, requireMedicalStaff } from '../middleware/auth';
+import { clinicContext } from '../middleware/clinicContext';
 
 const router = Router();
 
@@ -17,13 +19,13 @@ const categoryValidation = [
   body('sortOrder').optional().isInt().withMessage('Sort order must be an integer')
 ];
 
-// Routes
-router.post('/', categoryValidation, TestCategoryController.createCategory);
-router.get('/', TestCategoryController.getAllCategories);
-router.get('/stats', TestCategoryController.getCategoryStats);
-router.get('/:id', TestCategoryController.getCategoryById);
-router.put('/:id', categoryValidation, TestCategoryController.updateCategory);
-router.patch('/:id/toggle', TestCategoryController.toggleStatus);
-router.delete('/:id', TestCategoryController.deleteCategory);
+// Routes - All test category operations require authentication and clinic context
+router.post('/', authenticate, clinicContext, categoryValidation, TestCategoryController.createCategory);
+router.get('/', authenticate, clinicContext, TestCategoryController.getAllCategories);
+router.get('/stats', authenticate, clinicContext, TestCategoryController.getCategoryStats);
+router.get('/:id', authenticate, clinicContext, TestCategoryController.getCategoryById);
+router.put('/:id', authenticate, clinicContext, categoryValidation, TestCategoryController.updateCategory);
+router.patch('/:id/toggle', authenticate, clinicContext, TestCategoryController.toggleStatus);
+router.delete('/:id', authenticate, clinicContext, ...requireMedicalStaff, TestCategoryController.deleteCategory);
 
 export default router; 

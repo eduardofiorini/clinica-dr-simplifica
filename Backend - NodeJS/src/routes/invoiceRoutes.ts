@@ -1,8 +1,14 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { InvoiceController } from '../controllers';
+import { clinicContext } from '../middleware/clinicContext';
+import { authenticate } from '../middleware/auth';
 
 const router = Router();
+
+// Apply authentication and clinic context middleware to all routes
+router.use(authenticate);
+router.use(clinicContext);
 
 // Validation middleware
 const invoiceValidation = [

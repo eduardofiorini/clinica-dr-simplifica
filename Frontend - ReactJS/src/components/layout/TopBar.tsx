@@ -23,6 +23,7 @@ import { Input } from "@/components/ui/input";
 import { CurrencySelector } from "@/components/ui/CurrencySelector";
 import { CurrencyDisplay } from "@/components/ui/CurrencyDisplay";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
+import ClinicSwitcher from "@/components/ClinicSwitcher";
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -55,6 +56,13 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
             >
               <Menu className="h-5 w-5" />
             </Button>
+            
+            {/* Clinic Switcher - Always visible and prominent */}
+            <div className="flex-1 max-w-xs">
+              <ErrorBoundary>
+                <ClinicSwitcher />
+              </ErrorBoundary>
+            </div>
           </div>
 
           {/* Right side - Actions and User Menu */}
@@ -103,7 +111,8 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 
-                {/* Mobile-only utility items */}
+                {/* Mobile-only utility items - Removed ClinicSwitcher since it's now always visible */}
+                
                 <div className="md:hidden">
                   <DropdownMenuItem className="py-3">
                     <ErrorBoundary>

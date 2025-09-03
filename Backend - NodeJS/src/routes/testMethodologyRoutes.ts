@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { TestMethodologyController } from '../controllers';
+import { authenticate, requireMedicalStaff } from '../middleware/auth';
+import { clinicContext } from '../middleware/clinicContext';
 
 const router = Router();
 
@@ -18,13 +20,13 @@ const methodologyValidation = [
   body('applications.*').notEmpty().withMessage('Application cannot be empty')
 ];
 
-// Routes
-router.post('/', methodologyValidation, TestMethodologyController.createMethodology);
-router.get('/', TestMethodologyController.getAllMethodologies);
-router.get('/stats', TestMethodologyController.getMethodologyStats);
-router.get('/:id', TestMethodologyController.getMethodologyById);
-router.put('/:id', methodologyValidation, TestMethodologyController.updateMethodology);
-router.patch('/:id/toggle', TestMethodologyController.toggleStatus);
-router.delete('/:id', TestMethodologyController.deleteMethodology);
+// Routes - All test methodology operations require authentication and clinic context
+router.post('/', authenticate, clinicContext, methodologyValidation, TestMethodologyController.createMethodology);
+router.get('/', authenticate, clinicContext, TestMethodologyController.getAllMethodologies);
+router.get('/stats', authenticate, clinicContext, TestMethodologyController.getMethodologyStats);
+router.get('/:id', authenticate, clinicContext, TestMethodologyController.getMethodologyById);
+router.put('/:id', authenticate, clinicContext, methodologyValidation, TestMethodologyController.updateMethodology);
+router.patch('/:id/toggle', authenticate, clinicContext, TestMethodologyController.toggleStatus);
+router.delete('/:id', authenticate, clinicContext, ...requireMedicalStaff, TestMethodologyController.deleteMethodology);
 
 export default router; 

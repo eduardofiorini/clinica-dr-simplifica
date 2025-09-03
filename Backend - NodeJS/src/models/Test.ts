@@ -10,6 +10,7 @@ export interface ITest extends Document {
   methodology?: string;
   turnaroundTime: string;
   sampleType?: string;
+  clinic_id: mongoose.Types.ObjectId;
   isActive: boolean;
   created_at: Date;
   updated_at: Date;
@@ -20,16 +21,14 @@ const TestSchema: Schema = new Schema({
     type: String,
     required: [true, 'Test name is required'],
     trim: true,
-    maxlength: [200, 'Test name cannot exceed 200 characters'],
-    unique: true
+    maxlength: [200, 'Test name cannot exceed 200 characters']
   },
   code: {
     type: String,
     required: [true, 'Test code is required'],
     trim: true,
     uppercase: true,
-    maxlength: [20, 'Test code cannot exceed 20 characters'],
-    unique: true
+    maxlength: [20, 'Test code cannot exceed 20 characters']
   },
   category: {
     type: String,
@@ -69,6 +68,11 @@ const TestSchema: Schema = new Schema({
     trim: true,
     maxlength: [100, 'Sample type cannot exceed 100 characters']
   },
+  clinic_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Clinic',
+    required: [true, 'Clinic ID is required']
+  },
   isActive: {
     type: Boolean,
     default: true
@@ -82,6 +86,14 @@ TestSchema.index({ name: 'text', code: 'text', description: 'text' });
 TestSchema.index({ category: 1 });
 TestSchema.index({ isActive: 1 });
 TestSchema.index({ methodology: 1 });
+TestSchema.index({ clinic_id: 1 });
+
+// Compound indexes for clinic-based queries
+TestSchema.index({ clinic_id: 1, name: 1 }, { unique: true });
+TestSchema.index({ clinic_id: 1, code: 1 }, { unique: true });
+TestSchema.index({ clinic_id: 1, category: 1 });
+TestSchema.index({ clinic_id: 1, isActive: 1 });
+TestSchema.index({ clinic_id: 1, methodology: 1 });
 
 // Pre-save middleware to ensure code is uppercase
 TestSchema.pre('save', function(this: ITest, next) {

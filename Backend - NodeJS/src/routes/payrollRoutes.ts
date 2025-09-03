@@ -1,8 +1,14 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
-import { PayrollController } from '../controllers';
+import { PayrollController } from '../controllers/payrollController';
+import { authenticate } from '../middleware/auth';
+import { clinicContext } from '../middleware/clinicContext';
 
 const router = Router();
+
+// Apply authentication middleware first, then clinic context to all routes
+router.use(authenticate);
+router.use(clinicContext);
 
 // Validation middleware
 const payrollValidation = [
@@ -46,4 +52,4 @@ router.put('/:id', payrollValidation, PayrollController.updatePayroll);
 router.patch('/:id/status', statusUpdateValidation, PayrollController.updatePayrollStatus);
 router.delete('/:id', PayrollController.deletePayroll);
 
-export default router; 
+export default router;

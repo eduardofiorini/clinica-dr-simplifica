@@ -7,6 +7,8 @@ interface JWTPayload {
   id: string;
   email: string;
   role: string;
+  clinic_id?: string; // Optional, added after clinic selection
+  clinic_role?: string; // User's role in the selected clinic
 }
 
 export const authenticate = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -40,7 +42,15 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
       return;
     }
 
+    // Add user to request
     req.user = user;
+
+    // Add clinic context from JWT if present
+    if (decoded.clinic_id) {
+      req.clinic_id = decoded.clinic_id;
+      // Note: Full clinic context validation will be done by clinicContext middleware if needed
+    }
+
     next();
   } catch (error) {
     res.status(401).json({
@@ -116,7 +126,7 @@ export const applyRoleBasedFilter = (req: AuthRequest, filter: any = {}) => {
  * @param entityType Type of entity being queried
  * @returns Filter object with role-based restrictions
  */
-export const getRoleBasedFilter = (user: any, entityType: 'appointment' | 'prescription' | 'patient' = 'appointment') => {
+export const getRoleBasedFilter = (user: any, entityType: 'appointment' | 'prescription' | 'patient' | 'odontogram' = 'appointment') => {
   const filter: any = {};
 
   // Admin, receptionist, and staff can see all data
@@ -126,7 +136,7 @@ export const getRoleBasedFilter = (user: any, entityType: 'appointment' | 'presc
 
   // Doctors can only see their assigned data
   if (user.role === 'doctor') {
-    if (entityType === 'appointment' || entityType === 'prescription') {
+    if (entityType === 'appointment' || entityType === 'prescription' || entityType === 'odontogram') {
       filter.doctor_id = user._id;
     } else if (entityType === 'patient') {
       // For patients, doctors can only see patients they have appointments/prescriptions with

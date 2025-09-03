@@ -1,6 +1,7 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema, Types } from 'mongoose';
 
 export interface IPatient extends Document {
+  clinic_id: Types.ObjectId;
   first_name: string;
   last_name: string;
   date_of_birth: Date;
@@ -27,6 +28,12 @@ export interface IPatient extends Document {
 }
 
 const PatientSchema: Schema = new Schema({
+  clinic_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Clinic',
+    required: [true, 'Clinic ID is required'],
+    index: true
+  },
   first_name: {
     type: String,
     required: [true, 'First name is required'],
@@ -113,7 +120,11 @@ const PatientSchema: Schema = new Schema({
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 
-// Create index for better search performance
+// Create indexes for better search performance
+PatientSchema.index({ clinic_id: 1 });
+PatientSchema.index({ clinic_id: 1, created_at: -1 });
+PatientSchema.index({ clinic_id: 1, email: 1 });
+PatientSchema.index({ clinic_id: 1, phone: 1 });
 PatientSchema.index({ 
   first_name: 'text', 
   last_name: 'text', 

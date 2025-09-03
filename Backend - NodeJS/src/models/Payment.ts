@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IPayment extends Document {
+  clinic_id: mongoose.Types.ObjectId;
   invoice_id: mongoose.Types.ObjectId;
   patient_id: mongoose.Types.ObjectId;
   amount: number;
@@ -19,6 +20,11 @@ export interface IPayment extends Document {
 }
 
 const PaymentSchema: Schema = new Schema({
+  clinic_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Clinic',
+    required: [true, 'Clinic ID is required']
+  },
   invoice_id: {
     type: Schema.Types.ObjectId,
     ref: 'Invoice',
@@ -97,12 +103,13 @@ const PaymentSchema: Schema = new Schema({
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 
-// Create indexes for better query performance
-PaymentSchema.index({ invoice_id: 1 });
-PaymentSchema.index({ patient_id: 1, payment_date: -1 });
-PaymentSchema.index({ status: 1, payment_date: -1 });
-PaymentSchema.index({ method: 1 });
-PaymentSchema.index({ payment_date: -1 });
+// Create clinic-aware indexes for better query performance
+PaymentSchema.index({ clinic_id: 1 });
+PaymentSchema.index({ clinic_id: 1, invoice_id: 1 });
+PaymentSchema.index({ clinic_id: 1, patient_id: 1, payment_date: -1 });
+PaymentSchema.index({ clinic_id: 1, status: 1, payment_date: -1 });
+PaymentSchema.index({ clinic_id: 1, method: 1 });
+PaymentSchema.index({ clinic_id: 1, payment_date: -1 });
 
 // Pre-save middleware to calculate net amount
 PaymentSchema.pre('save', function(next) {

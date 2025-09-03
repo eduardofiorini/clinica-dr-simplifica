@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 import { AppointmentController } from '../controllers';
 import { authenticate, requireMedicalStaff } from '../middleware/auth';
+import { clinicContext } from '../middleware/clinicContext';
 
 const router = Router();
 
@@ -16,14 +17,14 @@ const appointmentValidation = [
   body('notes').optional().isLength({ max: 1000 }).withMessage('Notes cannot exceed 1000 characters')
 ];
 
-// Routes - All appointment operations require authentication
-router.post('/', authenticate, appointmentValidation, AppointmentController.createAppointment);
-router.get('/', authenticate, AppointmentController.getAllAppointments);
-router.get('/stats', authenticate, AppointmentController.getAppointmentStats);
-router.get('/upcoming', authenticate, AppointmentController.getUpcomingAppointments);
-router.get('/doctor/:doctorId/schedule', authenticate, AppointmentController.getDoctorSchedule);
-router.get('/:id', authenticate, AppointmentController.getAppointmentById);
-router.put('/:id', authenticate, appointmentValidation, AppointmentController.updateAppointment);
-router.patch('/:id/cancel', authenticate, AppointmentController.cancelAppointment);
+// Routes - All appointment operations require authentication and clinic context
+router.post('/', authenticate, clinicContext, appointmentValidation, AppointmentController.createAppointment);
+router.get('/', authenticate, clinicContext, AppointmentController.getAllAppointments);
+router.get('/stats', authenticate, clinicContext, AppointmentController.getAppointmentStats);
+router.get('/upcoming', authenticate, clinicContext, AppointmentController.getUpcomingAppointments);
+router.get('/doctor/:doctorId/schedule', authenticate, clinicContext, AppointmentController.getDoctorSchedule);
+router.get('/:id', authenticate, clinicContext, AppointmentController.getAppointmentById);
+router.put('/:id', authenticate, clinicContext, appointmentValidation, AppointmentController.updateAppointment);
+router.patch('/:id/cancel', authenticate, clinicContext, AppointmentController.cancelAppointment);
 
 export default router; 

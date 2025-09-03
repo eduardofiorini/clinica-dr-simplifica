@@ -6,6 +6,7 @@ import React, {
   ReactNode,
 } from "react";
 import { apiService, User as ApiUser, LoginRequest, RegisterRequest } from "@/services/api";
+import { clinicCookies } from "@/utils/cookies";
 
 export type UserRole =
   | "admin"
@@ -117,6 +118,11 @@ const ROLE_PERMISSIONS: Record<UserRole, string[]> = {
     "manage_payroll",
     "view_financial_reports",
   ],
+  staff: [
+    "view_dashboard",
+    "view_patients",
+    "basic_operations",
+  ],
 };
 
 // Helper function to convert API user to context user
@@ -146,39 +152,112 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const refreshUser = async (): Promise<void> => {
+  // Debug user state changes
+  useEffect(() => {
+    console.log('🔐 AuthContext - User state changed:', { 
+      user: !!user, 
+      userEmail: user?.email,
+      isAuthenticated: !!user,
+      loading
+    });
+  }, [user, loading]);
+
+  const refreshUser = async () => {
     try {
       const apiUser = await apiService.getCurrentUser();
       const contextUser = convertApiUserToContextUser(apiUser);
       setUser(contextUser);
       // Update stored user data
       localStorage.setItem("clinic_user", JSON.stringify(contextUser));
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error refreshing user data:", error);
-      // If refresh fails due to invalid token, clear session
-      localStorage.removeItem("clinic_token");
-      localStorage.removeItem("clinic_user");
-      setUser(null);
+      
+      // Only clear session for genuine auth errors (401, 403)
+      // Don't clear for network issues, server errors, etc.
+      if (error?.response?.status === 401 || error?.response?.status === 403) {
+        console.log("🔐 AuthContext - Auth error, clearing session");
+            clinicCookies.clearClinicData();
+    localStorage.removeItem("clinic_user"); // Keep this for backward compatibility
+        setUser(null);
+      } else {
+        console.warn("🔐 AuthContext - Non-auth error during refresh, keeping session");
+        // For non-auth errors, try to use stored user data
+        const storedUser = localStorage.getItem("clinic_user");
+        if (storedUser) {
+          try {
+            const contextUser = JSON.parse(storedUser);
+            setUser(contextUser);
+          } catch (parseError) {
+            console.error("Error parsing stored user:", parseError);
+            setUser(null);
+          }
+        }
+      }
     }
   };
 
   useEffect(() => {
     // Check for existing session on mount
     const initializeAuth = async () => {
-      const token = localStorage.getItem("clinic_token");
+      const token = clinicCookies.getClinicToken();
       const storedUser = localStorage.getItem("clinic_user");
       
-      if (token && storedUser) {
+      console.log('🔐 AuthContext - Initializing auth:', { hasToken: !!token, hasStoredUser: !!storedUser });
+      
+      if (token) {
+        // If we have a token, try to restore/refresh user data
         try {
-          // Try to get current user from API to ensure token is still valid
+          if (storedUser) {
+            // First try to use stored user data
+            console.log('🔐 AuthContext - Restoring user from stored data');
+            const contextUser = JSON.parse(storedUser);
+            setUser(contextUser);
+          }
+          
+          // Always try to refresh user data from API when we have a token
+          console.log('🔐 AuthContext - Refreshing user data from API');
           await refreshUser();
-        } catch (error) {
-          console.error("Error validating stored session:", error);
-          // Clear invalid session
-          localStorage.removeItem("clinic_token");
-          localStorage.removeItem("clinic_user");
+        } catch (error: any) {
+          console.warn("🔐 AuthContext - Error during initialization:", error);
+          
+          // Only clear session for genuine auth errors
+          if (error?.response?.status === 401 || error?.response?.status === 403) {
+            console.log("🔐 AuthContext - Auth error during init, clearing session");
+            clinicCookies.clearClinicData();
+            localStorage.removeItem("clinic_user");
+            setUser(null);
+          } else if (storedUser) {
+            // For other errors, try to use stored user data
+            try {
+              const contextUser = JSON.parse(storedUser);
+              setUser(contextUser);
+              console.log("🔐 AuthContext - Using stored user data after API error");
+            } catch (parseError) {
+              console.error("🔐 AuthContext - Error parsing stored user:", parseError);
+              // If we have a token but can't parse stored user, try to fetch fresh user data
+              console.log("🔐 AuthContext - Attempting to fetch fresh user data");
+              try {
+                await refreshUser();
+              } catch (refreshError) {
+                console.error("🔐 AuthContext - Failed to fetch fresh user data:", refreshError);
+                setUser(null);
+              }
+            }
+          } else {
+            // No stored user but we have a token - try to fetch user data
+            console.log("🔐 AuthContext - No stored user, fetching from API");
+            try {
+              await refreshUser();
+            } catch (refreshError) {
+              console.error("🔐 AuthContext - Failed to fetch user data:", refreshError);
+              setUser(null);
+            }
+          }
         }
+      } else {
+        console.log('🔐 AuthContext - No token found, user not authenticated');
       }
+      
       setLoading(false);
     };
 
@@ -191,8 +270,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const credentials: LoginRequest = { email, password };
       const response = await apiService.login(credentials);
       
-      // Store token and user data
-      localStorage.setItem("clinic_token", response.token);
+      console.log('🔐 AuthContext - Login response:', { 
+        hasToken: !!response.token, 
+        hasUser: !!response.user,
+        tokenPreview: response.token ? `${response.token.substring(0, 20)}...` : 'none'
+      });
+      
+      // Store the initial authentication token (without clinic context)
+      // This token allows access to user/clinics endpoint
+      if (response.token) {
+        console.log('🔐 AuthContext - Storing initial auth token');
+        clinicCookies.setAuthToken(response.token);
+        
+        // Verify token was stored
+        const storedToken = clinicCookies.getClinicToken();
+        console.log('🔐 AuthContext - Token stored successfully:', !!storedToken);
+      } else {
+        console.error('🔐 AuthContext - No token in login response!');
+      }
       
       const contextUser = convertApiUserToContextUser(response.user);
       setUser(contextUser);
@@ -234,8 +329,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("clinic_token");
-    localStorage.removeItem("clinic_user");
+          clinicCookies.clearClinicData();
+      localStorage.removeItem("clinic_user"); // Keep this for backward compatibility
   };
 
   const hasPermission = (permission: string): boolean => {

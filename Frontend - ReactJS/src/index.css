@@ -110,16 +110,26 @@
   }
 }
 
-/* Fix for Radix Dialog pointer-events issue */
+/* Fix for Radix Dialog pointer-events issue and scroll behavior */
 @layer components {
-  /* Prevent body from losing pointer events when dialogs are open or closing */
+  /* Body scroll lock when dialog or alert dialog is open */
   body:has([data-state="open"][data-radix-dialog-content]),
-  body:has([data-state="closed"][data-radix-dialog-content]) {
+  body:has([data-state="open"][data-radix-alert-dialog-content]) {
+    overflow: hidden !important;
+    padding-right: 0px !important;
     pointer-events: auto !important;
   }
   
+  /* Prevent body from losing pointer events when dialogs are open or closing */
+  body:has([data-state="closed"][data-radix-dialog-content]),
+  body:has([data-state="closed"][data-radix-alert-dialog-content]) {
+    pointer-events: auto !important;
+    overflow: auto !important;
+  }
+  
   /* Ensure dialog overlays maintain proper pointer events */
-  [data-radix-dialog-overlay] {
+  [data-radix-dialog-overlay],
+  [data-radix-alert-dialog-overlay] {
     pointer-events: auto;
   }
   
@@ -137,6 +147,73 @@
     to {
       pointer-events: auto;
     }
+  }
+  
+  /* Modal content scroll behavior */
+  [data-radix-dialog-content],
+  [data-radix-alert-dialog-content] {
+    /* Ensure proper scroll behavior within modals */
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
+  }
+  
+  /* Smooth scrolling for modal content */
+  [data-radix-dialog-content] .overflow-y-auto,
+  [data-radix-alert-dialog-content] .overflow-y-auto {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
+  }
+  
+  /* Webkit scrollbar styling for modal content and scrollbar utilities */
+  [data-radix-dialog-content]::-webkit-scrollbar,
+  [data-radix-alert-dialog-content]::-webkit-scrollbar,
+  [data-radix-dialog-content] .overflow-y-auto::-webkit-scrollbar,
+  [data-radix-alert-dialog-content] .overflow-y-auto::-webkit-scrollbar,
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  [data-radix-dialog-content]::-webkit-scrollbar-track,
+  [data-radix-alert-dialog-content]::-webkit-scrollbar-track,
+  [data-radix-dialog-content] .overflow-y-auto::-webkit-scrollbar-track,
+  [data-radix-alert-dialog-content] .overflow-y-auto::-webkit-scrollbar-track,
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  [data-radix-dialog-content]::-webkit-scrollbar-thumb,
+  [data-radix-alert-dialog-content]::-webkit-scrollbar-thumb,
+  [data-radix-dialog-content] .overflow-y-auto::-webkit-scrollbar-thumb,
+  [data-radix-alert-dialog-content] .overflow-y-auto::-webkit-scrollbar-thumb,
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.5);
+    border-radius: 3px;
+  }
+  
+  [data-radix-dialog-content]::-webkit-scrollbar-thumb:hover,
+  [data-radix-alert-dialog-content]::-webkit-scrollbar-thumb:hover,
+  [data-radix-dialog-content] .overflow-y-auto::-webkit-scrollbar-thumb:hover,
+  [data-radix-alert-dialog-content] .overflow-y-auto::-webkit-scrollbar-thumb:hover,
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(156, 163, 175, 0.7);
+  }
+  
+  /* Scrollbar color utilities */
+  .scrollbar-thumb-gray-300::-webkit-scrollbar-thumb {
+    background-color: rgb(209, 213, 219);
+  }
+  
+  .scrollbar-track-gray-100::-webkit-scrollbar-track {
+    background-color: rgb(243, 244, 246);
+  }
+  
+  /* Firefox scrollbar support */
+  [data-radix-dialog-content],
+  [data-radix-alert-dialog-content],
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
   }
 
   /* Responsive Utilities */

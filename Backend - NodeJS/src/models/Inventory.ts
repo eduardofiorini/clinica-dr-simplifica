@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IInventory extends Document {
+  clinic_id: mongoose.Types.ObjectId;
   name: string;
   category: string;
   sku: string;
@@ -22,6 +23,11 @@ export interface IInventoryModel extends mongoose.Model<IInventory> {
 }
 
 const InventorySchema: Schema = new Schema({
+  clinic_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Clinic',
+    required: true
+  },
   name: {
     type: String,
     required: [true, 'Item name is required'],
@@ -46,7 +52,6 @@ const InventorySchema: Schema = new Schema({
   sku: {
     type: String,
     required: [true, 'SKU is required'],
-    unique: true,
     trim: true,
     uppercase: true,
     maxlength: [50, 'SKU cannot exceed 50 characters'],
@@ -94,10 +99,18 @@ const InventorySchema: Schema = new Schema({
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 
-// Create indexes for better query performance
-InventorySchema.index({ name: 'text', category: 'text', supplier: 'text' });
-InventorySchema.index({ category: 1, current_stock: 1 });
-InventorySchema.index({ expiry_date: 1 });
+// Create clinic-aware indexes for better query performance
+InventorySchema.index({ clinic_id: 1 });
+InventorySchema.index({ clinic_id: 1, sku: 1 }, { unique: true }); // Unique SKU per clinic
+InventorySchema.index({ clinic_id: 1, category: 1 });
+InventorySchema.index({ clinic_id: 1, current_stock: 1 });
+InventorySchema.index({ clinic_id: 1, expiry_date: 1 });
+InventorySchema.index({ 
+  clinic_id: 1,
+  name: 'text', 
+  category: 'text', 
+  supplier: 'text' 
+}); // Text search within clinic
 
 // Virtual to check if item is low in stock
 InventorySchema.virtual('is_low_stock').get(function() {

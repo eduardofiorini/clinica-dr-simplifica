@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IService extends Document {
+  clinic_id: mongoose.Types.ObjectId;
   name: string;
   category: string;
   description: string;
@@ -17,6 +18,11 @@ export interface IService extends Document {
 }
 
 const ServiceSchema: Schema = new Schema({
+  clinic_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Clinic',
+    required: true
+  },
   name: {
     type: String,
     required: true,
@@ -81,10 +87,12 @@ const ServiceSchema: Schema = new Schema({
 });
 
 // Indexes for better query performance
-ServiceSchema.index({ name: 1 });
-ServiceSchema.index({ category: 1 });
-ServiceSchema.index({ department: 1 });
-ServiceSchema.index({ isActive: 1 });
-ServiceSchema.index({ price: 1 });
+ServiceSchema.index({ clinic_id: 1 });
+ServiceSchema.index({ clinic_id: 1, name: 1 });
+ServiceSchema.index({ clinic_id: 1, category: 1 });
+ServiceSchema.index({ clinic_id: 1, department: 1 });
+ServiceSchema.index({ clinic_id: 1, isActive: 1 });
+ServiceSchema.index({ clinic_id: 1, price: 1 });
+ServiceSchema.index({ clinic_id: 1, isActive: 1, category: 1 }); // Compound index for common queries
 
 export default mongoose.model<IService>('Service', ServiceSchema); 

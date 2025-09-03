@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import { DashboardController } from '../controllers';
 import { authenticate, requireAdmin, requireAnalyticsAccess } from '../middleware/auth';
+import { clinicContext } from '../middleware/clinicContext';
 
 const router = Router();
 
-// All dashboard routes require authentication and admin/accountant privileges
+// All dashboard routes require authentication, clinic context, and admin/accountant privileges
 router.use(authenticate);
+router.use(clinicContext);
 router.use(requireAnalyticsAccess);
 
 /**

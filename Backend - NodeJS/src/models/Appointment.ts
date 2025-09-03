@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IAppointment extends Document {
+  clinic_id: mongoose.Types.ObjectId;
   patient_id: mongoose.Types.ObjectId;
   doctor_id: mongoose.Types.ObjectId;
   nurse_id?: mongoose.Types.ObjectId;
@@ -15,6 +16,12 @@ export interface IAppointment extends Document {
 }
 
 const AppointmentSchema: Schema = new Schema({
+  clinic_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Clinic',
+    required: [true, 'Clinic ID is required'],
+    index: true
+  },
   patient_id: {
     type: Schema.Types.ObjectId,
     ref: 'Patient',
@@ -98,13 +105,15 @@ const AppointmentSchema: Schema = new Schema({
 });
 
 // Create indexes for better query performance
-AppointmentSchema.index({ patient_id: 1, appointment_date: 1 });
-AppointmentSchema.index({ appointment_date: 1, status: 1 });
-AppointmentSchema.index({ nurse_id: 1, appointment_date: 1 });
+AppointmentSchema.index({ clinic_id: 1 });
+AppointmentSchema.index({ clinic_id: 1, appointment_date: 1 });
+AppointmentSchema.index({ clinic_id: 1, patient_id: 1, appointment_date: 1 });
+AppointmentSchema.index({ clinic_id: 1, appointment_date: 1, status: 1 });
+AppointmentSchema.index({ clinic_id: 1, nurse_id: 1, appointment_date: 1 });
 
-// Prevent double booking - same doctor at the same time
+// Prevent double booking - same doctor at the same time within same clinic
 AppointmentSchema.index(
-  { doctor_id: 1, appointment_date: 1 },
+  { clinic_id: 1, doctor_id: 1, appointment_date: 1 },
   { 
     unique: true,
     partialFilterExpression: { 

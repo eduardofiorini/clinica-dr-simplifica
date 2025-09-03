@@ -17,7 +17,12 @@ export class AppointmentController {
         return;
       }
 
-      const appointment = new Appointment(req.body);
+      const appointmentData = {
+        ...req.body,
+        clinic_id: req.clinic_id // Add clinic context to appointment data
+      };
+      
+      const appointment = new Appointment(appointmentData);
       await appointment.save();
 
       // Populate patient, doctor, and nurse details
@@ -50,7 +55,9 @@ export class AppointmentController {
       const limit = parseInt(req.query.limit as string) || 10;
       const skip = (page - 1) * limit;
 
-      let filter: any = {};
+      let filter: any = {
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get appointments from current clinic
+      };
 
       // Date range filter
       if (req.query.start_date && req.query.end_date) {
@@ -114,7 +121,10 @@ export class AppointmentController {
     try {
       const { id } = req.params;
       
-      let filter: any = { _id: id };
+      let filter: any = { 
+        _id: id, 
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get appointment from current clinic
+      };
       
       // Apply role-based filtering
       const roleFilter = getRoleBasedFilter(req.user, 'appointment');

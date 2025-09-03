@@ -1,16 +1,19 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import Service, { IService } from '../models/Service';
 import { validationResult } from 'express-validator';
+import { AuthRequest } from '../types/express';
 
 // Get all services with optional filtering
-export const getServices = async (req: Request, res: Response) => {
+export const getServices = async (req: AuthRequest, res: Response) => {
   try {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
 
-    // Build filter object
-    const filter: any = {};
+    // Build filter object with clinic context
+    const filter: any = {
+      clinic_id: req.clinic_id
+    };
     
     if (req.query.category && req.query.category !== 'all') {
       filter.category = req.query.category;
@@ -72,9 +75,12 @@ export const getServices = async (req: Request, res: Response) => {
 };
 
 // Get service by ID
-export const getServiceById = async (req: Request, res: Response) => {
+export const getServiceById = async (req: AuthRequest, res: Response) => {
   try {
-    const service = await Service.findById(req.params.id);
+    const service = await Service.findOne({
+      _id: req.params.id,
+      clinic_id: req.clinic_id
+    });
     
     if (!service) {
       return res.status(404).json({
@@ -98,7 +104,7 @@ export const getServiceById = async (req: Request, res: Response) => {
 };
 
 // Create new service
-export const createService = async (req: Request, res: Response) => {
+export const createService = async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -109,7 +115,12 @@ export const createService = async (req: Request, res: Response) => {
       });
     }
 
-    const service = new Service(req.body);
+    const serviceData = {
+      ...req.body,
+      clinic_id: req.clinic_id
+    };
+
+    const service = new Service(serviceData);
     await service.save();
 
     return res.status(201).json({
@@ -128,7 +139,7 @@ export const createService = async (req: Request, res: Response) => {
 };
 
 // Update service
-export const updateService = async (req: Request, res: Response) => {
+export const updateService = async (req: AuthRequest, res: Response) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -139,8 +150,8 @@ export const updateService = async (req: Request, res: Response) => {
       });
     }
 
-    const service = await Service.findByIdAndUpdate(
-      req.params.id,
+    const service = await Service.findOneAndUpdate(
+      { _id: req.params.id, clinic_id: req.clinic_id },
       req.body,
       { new: true, runValidators: true }
     );
@@ -168,9 +179,12 @@ export const updateService = async (req: Request, res: Response) => {
 };
 
 // Delete service
-export const deleteService = async (req: Request, res: Response) => {
+export const deleteService = async (req: AuthRequest, res: Response) => {
   try {
-    const service = await Service.findByIdAndDelete(req.params.id);
+    const service = await Service.findOneAndDelete({
+      _id: req.params.id,
+      clinic_id: req.clinic_id
+    });
 
     if (!service) {
       return res.status(404).json({
@@ -194,14 +208,17 @@ export const deleteService = async (req: Request, res: Response) => {
 };
 
 // Get service statistics
-export const getServiceStats = async (req: Request, res: Response) => {
+export const getServiceStats = async (req: AuthRequest, res: Response) => {
   try {
-    const totalServices = await Service.countDocuments();
-    const activeServices = await Service.countDocuments({ isActive: true });
-    const inactiveServices = await Service.countDocuments({ isActive: false });
+    const clinicFilter = { clinic_id: req.clinic_id };
+
+    const totalServices = await Service.countDocuments(clinicFilter);
+    const activeServices = await Service.countDocuments({ ...clinicFilter, isActive: true });
+    const inactiveServices = await Service.countDocuments({ ...clinicFilter, isActive: false });
 
     // Category breakdown
     const categoryStats = await Service.aggregate([
+      { $match: clinicFilter },
       {
         $group: {
           _id: '$category',
@@ -216,6 +233,7 @@ export const getServiceStats = async (req: Request, res: Response) => {
 
     // Department breakdown
     const departmentStats = await Service.aggregate([
+      { $match: clinicFilter },
       {
         $group: {
           _id: '$department',
@@ -230,6 +248,7 @@ export const getServiceStats = async (req: Request, res: Response) => {
 
     // Price range distribution
     const priceRanges = await Service.aggregate([
+      { $match: clinicFilter },
       {
         $bucket: {
           groupBy: '$price',
@@ -265,9 +284,12 @@ export const getServiceStats = async (req: Request, res: Response) => {
 };
 
 // Toggle service status
-export const toggleServiceStatus = async (req: Request, res: Response) => {
+export const toggleServiceStatus = async (req: AuthRequest, res: Response) => {
   try {
-    const service = await Service.findById(req.params.id);
+    const service = await Service.findOne({
+      _id: req.params.id,
+      clinic_id: req.clinic_id
+    });
 
     if (!service) {
       return res.status(404).json({

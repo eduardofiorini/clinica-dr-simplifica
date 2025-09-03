@@ -13,6 +13,7 @@ export interface IPrescription extends Document {
   patient_id: mongoose.Types.ObjectId;
   doctor_id: mongoose.Types.ObjectId;
   appointment_id?: mongoose.Types.ObjectId;
+  clinic_id: mongoose.Types.ObjectId;
   prescription_id: string; // Custom ID like RX-001
   diagnosis: string;
   medications: IMedication[];
@@ -73,6 +74,11 @@ const PrescriptionSchema: Schema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Appointment'
   },
+  clinic_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Clinic',
+    required: [true, 'Clinic ID is required']
+  },
   prescription_id: {
     type: String,
     required: [true, 'Prescription ID is required'],
@@ -123,7 +129,14 @@ const PrescriptionSchema: Schema = new Schema({
 PrescriptionSchema.index({ patient_id: 1 });
 PrescriptionSchema.index({ doctor_id: 1 });
 PrescriptionSchema.index({ status: 1 });
+PrescriptionSchema.index({ clinic_id: 1 });
 PrescriptionSchema.index({ created_at: -1 });
+
+// Compound indexes for clinic-based queries
+PrescriptionSchema.index({ clinic_id: 1, status: 1 });
+PrescriptionSchema.index({ clinic_id: 1, patient_id: 1 });
+PrescriptionSchema.index({ clinic_id: 1, doctor_id: 1 });
+PrescriptionSchema.index({ clinic_id: 1, created_at: -1 });
 
 // Note: Prescription ID is now generated in the controller before saving
 

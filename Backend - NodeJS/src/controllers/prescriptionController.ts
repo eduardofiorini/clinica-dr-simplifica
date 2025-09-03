@@ -19,11 +19,16 @@ export class PrescriptionController {
 
       // Generate prescription ID if not provided
       if (!req.body.prescription_id) {
-        const count = await Prescription.countDocuments();
+        const count = await Prescription.countDocuments({ clinic_id: req.clinic_id });
         req.body.prescription_id = `RX-${String(count + 1).padStart(3, '0')}`;
       }
 
-      const prescription = new Prescription(req.body);
+      const prescriptionData = {
+        ...req.body,
+        clinic_id: req.clinic_id // Add clinic context to prescription data
+      };
+
+      const prescription = new Prescription(prescriptionData);
       await prescription.save();
 
       // Populate patient and doctor information
@@ -70,7 +75,9 @@ export class PrescriptionController {
       const limit = parseInt(req.query.limit as string) || 10;
       const skip = (page - 1) * limit;
 
-      let filter: any = {};
+      let filter: any = {
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get prescriptions from current clinic
+      };
 
       // Search filter
       if (req.query.search) {
@@ -193,7 +200,10 @@ export class PrescriptionController {
     try {
       const { id } = req.params;
       
-      let filter: any = { _id: id };
+      let filter: any = { 
+        _id: id, 
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get prescription from current clinic
+      };
       
       // Apply role-based filtering
       const roleFilter = getRoleBasedFilter(req.user, 'prescription');
@@ -241,7 +251,10 @@ export class PrescriptionController {
 
       const { id } = req.params;
       
-      let filter: any = { _id: id };
+      let filter: any = { 
+        _id: id, 
+        clinic_id: req.clinic_id // CLINIC FILTER: Only update prescription from current clinic
+      };
       
       // Apply role-based filtering
       const roleFilter = getRoleBasedFilter(req.user, 'prescription');
@@ -370,7 +383,10 @@ export class PrescriptionController {
     try {
       const { id } = req.params;
 
-      let filter: any = { _id: id };
+      let filter: any = { 
+        _id: id, 
+        clinic_id: req.clinic_id // CLINIC FILTER: Only access prescriptions from current clinic
+      };
       
       // Apply role-based filtering
       const roleFilter = getRoleBasedFilter(req.user, 'prescription');
@@ -413,7 +429,9 @@ export class PrescriptionController {
 
   static async getPrescriptionStats(req: AuthRequest, res: Response): Promise<void> {
     try {
-      let filter: any = {};
+      let filter: any = {
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get stats from current clinic
+      };
 
       // Apply role-based filtering
       const roleFilter = getRoleBasedFilter(req.user, 'prescription');
@@ -512,7 +530,10 @@ export class PrescriptionController {
     try {
       const { patientId } = req.params;
       
-      let filter: any = { patient_id: patientId };
+      let filter: any = { 
+        patient_id: patientId, 
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get prescriptions from current clinic
+      };
       
       // Apply role-based filtering
       const roleFilter = getRoleBasedFilter(req.user, 'prescription');
@@ -551,7 +572,10 @@ export class PrescriptionController {
         return;
       }
       
-      const prescriptions = await Prescription.find({ doctor_id: doctorId })
+      const prescriptions = await Prescription.find({ 
+        doctor_id: doctorId, 
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get prescriptions from current clinic
+      })
         .populate([
           { path: 'patient_id', select: 'first_name last_name date_of_birth' },
           { path: 'appointment_id', select: 'appointment_date' }

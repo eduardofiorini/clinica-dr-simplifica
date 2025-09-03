@@ -1,9 +1,10 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { validationResult } from 'express-validator';
 import { Department } from '../models';
+import { AuthRequest } from '../types/express';
 
 export class DepartmentController {
-  static async createDepartment(req: Request, res: Response): Promise<void> {
+  static async createDepartment(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -15,8 +16,11 @@ export class DepartmentController {
         return;
       }
 
-      // Check if department code already exists
-      const existingDept = await Department.findOne({ code: req.body.code.toUpperCase() });
+      // Check if department code already exists in this clinic
+      const existingDept = await Department.findOne({ 
+        code: req.body.code.toUpperCase(),
+        clinic_id: req.clinic_id
+      });
       if (existingDept) {
         res.status(400).json({
           success: false,
@@ -25,7 +29,12 @@ export class DepartmentController {
         return;
       }
 
-      const department = new Department(req.body);
+      const departmentData = {
+        ...req.body,
+        clinic_id: req.clinic_id
+      };
+
+      const department = new Department(departmentData);
       await department.save();
 
       res.status(201).json({
@@ -42,13 +51,15 @@ export class DepartmentController {
     }
   }
 
-  static async getAllDepartments(req: Request, res: Response): Promise<void> {
+  static async getAllDepartments(req: AuthRequest, res: Response): Promise<void> {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const skip = (page - 1) * limit;
 
-      let filter: any = {};
+      let filter: any = {
+        clinic_id: req.clinic_id
+      };
 
       // Search filter
       if (req.query.search) {
@@ -93,10 +104,13 @@ export class DepartmentController {
     }
   }
 
-  static async getDepartmentById(req: Request, res: Response): Promise<void> {
+  static async getDepartmentById(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const department = await Department.findById(id);
+      const department = await Department.findOne({
+        _id: id,
+        clinic_id: req.clinic_id
+      });
 
       if (!department) {
         res.status(404).json({
@@ -119,7 +133,7 @@ export class DepartmentController {
     }
   }
 
-  static async updateDepartment(req: Request, res: Response): Promise<void> {
+  static async updateDepartment(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -133,11 +147,12 @@ export class DepartmentController {
 
       const { id } = req.params;
 
-      // Check if department code already exists (excluding current department)
+      // Check if department code already exists (excluding current department) in this clinic
       if (req.body.code) {
         const existingDept = await Department.findOne({ 
           code: req.body.code.toUpperCase(),
-          _id: { $ne: id }
+          _id: { $ne: id },
+          clinic_id: req.clinic_id
         });
         if (existingDept) {
           res.status(400).json({
@@ -148,8 +163,8 @@ export class DepartmentController {
         }
       }
 
-      const department = await Department.findByIdAndUpdate(
-        id,
+      const department = await Department.findOneAndUpdate(
+        { _id: id, clinic_id: req.clinic_id },
         req.body,
         { new: true, runValidators: true }
       );
@@ -176,10 +191,13 @@ export class DepartmentController {
     }
   }
 
-  static async deleteDepartment(req: Request, res: Response): Promise<void> {
+  static async deleteDepartment(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const department = await Department.findByIdAndDelete(id);
+      const department = await Department.findOneAndDelete({
+        _id: id,
+        clinic_id: req.clinic_id
+      });
 
       if (!department) {
         res.status(404).json({
@@ -202,14 +220,17 @@ export class DepartmentController {
     }
   }
 
-  static async getDepartmentStats(req: Request, res: Response): Promise<void> {
+  static async getDepartmentStats(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const totalDepartments = await Department.countDocuments();
-      const activeDepartments = await Department.countDocuments({ status: 'active' });
-      const inactiveDepartments = await Department.countDocuments({ status: 'inactive' });
+      const clinicFilter = { clinic_id: req.clinic_id };
+      
+      const totalDepartments = await Department.countDocuments(clinicFilter);
+      const activeDepartments = await Department.countDocuments({ ...clinicFilter, status: 'active' });
+      const inactiveDepartments = await Department.countDocuments({ ...clinicFilter, status: 'inactive' });
 
       // Staff statistics
       const staffStats = await Department.aggregate([
+        { $match: clinicFilter },
         {
           $group: {
             _id: null,
@@ -223,6 +244,7 @@ export class DepartmentController {
 
       // Budget statistics
       const budgetStats = await Department.aggregate([
+        { $match: clinicFilter },
         {
           $group: {
             _id: null,
@@ -236,6 +258,7 @@ export class DepartmentController {
 
       // Status distribution
       const statusStats = await Department.aggregate([
+        { $match: clinicFilter },
         {
           $group: {
             _id: '$status',
@@ -245,13 +268,13 @@ export class DepartmentController {
       ]);
 
       // Top departments by staff count
-      const topDepartmentsByStaff = await Department.find()
+      const topDepartmentsByStaff = await Department.find(clinicFilter)
         .select('name code staffCount')
         .sort({ staffCount: -1 })
         .limit(5);
 
       // Top departments by budget
-      const topDepartmentsByBudget = await Department.find()
+      const topDepartmentsByBudget = await Department.find(clinicFilter)
         .select('name code budget')
         .sort({ budget: -1 })
         .limit(5);
@@ -290,7 +313,7 @@ export class DepartmentController {
     }
   }
 
-  static async updateDepartmentStatus(req: Request, res: Response): Promise<void> {
+  static async updateDepartmentStatus(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const { status } = req.body;
@@ -303,8 +326,8 @@ export class DepartmentController {
         return;
       }
 
-      const department = await Department.findByIdAndUpdate(
-        id,
+      const department = await Department.findOneAndUpdate(
+        { _id: id, clinic_id: req.clinic_id },
         { status },
         { new: true, runValidators: true }
       );

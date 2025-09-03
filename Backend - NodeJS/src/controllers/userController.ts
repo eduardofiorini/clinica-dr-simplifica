@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
-import { User } from '../models';
+import { User, UserClinic } from '../models';
 import { AuthRequest } from '../types/express';
 import { S3Service, s3AvatarUpload } from '../utils/s3';
 
@@ -111,7 +111,20 @@ export class UserController {
         return;
       }
 
-      // Generate JWT token
+      // Get user's clinics
+      const userClinics = await UserClinic.find({
+        user_id: user._id,
+        is_active: true
+      }).populate({
+        path: 'clinic_id',
+        match: { is_active: true },
+        select: 'name code description address.city address.state is_active'
+      });
+
+      // Filter out clinics that are null (inactive)
+      const activeClinics = userClinics.filter(uc => uc.clinic_id);
+
+      // Generate JWT token (no clinic context yet - will be added after clinic selection)
       const token = jwt.sign(
         { 
           id: user._id, 
@@ -134,7 +147,9 @@ export class UserController {
             last_name: user.last_name,
             role: user.role,
             phone: user.phone
-          }
+          },
+          clinics: activeClinics,
+          requiresClinicSelection: activeClinics.length > 1
         }
       });
     } catch (error) {
@@ -412,6 +427,51 @@ export class UserController {
       });
     } catch (error) {
       console.error('Get all users error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
+    }
+  }
+
+  // Get demo users (public access for login page)
+  static async getDemoUsers(req: Request, res: Response) {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const skip = (page - 1) * limit;
+
+      const filter: any = {};
+      if (req.query.role) {
+        filter.role = req.query.role;
+      }
+      if (req.query.is_active !== undefined) {
+        filter.is_active = req.query.is_active === 'true';
+      }
+
+      // Only return basic fields for security (no password_hash, sensitive data)
+      const users = await User.find(filter)
+        .select('_id email first_name last_name role phone is_active created_at')
+        .skip(skip)
+        .limit(limit)
+        .sort({ created_at: -1 });
+
+      const totalUsers = await User.countDocuments(filter);
+
+      res.json({
+        success: true,
+        data: {
+          users,
+          pagination: {
+            page,
+            limit,
+            total: totalUsers,
+            pages: Math.ceil(totalUsers / limit)
+          }
+        }
+      });
+    } catch (error) {
+      console.error('Get demo users error:', error);
       res.status(500).json({
         success: false,
         message: 'Internal server error'

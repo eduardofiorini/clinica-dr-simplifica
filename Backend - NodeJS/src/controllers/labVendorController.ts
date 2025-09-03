@@ -1,9 +1,10 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { validationResult } from 'express-validator';
 import { LabVendor } from '../models';
+import { AuthRequest } from '../types/express';
 
 export class LabVendorController {
-  static async createLabVendor(req: Request, res: Response): Promise<void> {
+  static async createLabVendor(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -15,8 +16,11 @@ export class LabVendorController {
         return;
       }
 
-      // Check if lab vendor code already exists
-      const existingVendor = await LabVendor.findOne({ code: req.body.code.toUpperCase() });
+      // Check if lab vendor code already exists in this clinic
+      const existingVendor = await LabVendor.findOne({ 
+        code: req.body.code.toUpperCase(),
+        clinic_id: req.clinic_id
+      });
       if (existingVendor) {
         res.status(400).json({
           success: false,
@@ -25,7 +29,12 @@ export class LabVendorController {
         return;
       }
 
-      const labVendor = new LabVendor(req.body);
+      const labVendorData = {
+        ...req.body,
+        clinic_id: req.clinic_id
+      };
+
+      const labVendor = new LabVendor(labVendorData);
       await labVendor.save();
 
       res.status(201).json({
@@ -42,13 +51,15 @@ export class LabVendorController {
     }
   }
 
-  static async getAllLabVendors(req: Request, res: Response): Promise<void> {
+  static async getAllLabVendors(req: AuthRequest, res: Response): Promise<void> {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const skip = (page - 1) * limit;
 
-      let filter: any = {};
+      let filter: any = {
+        clinic_id: req.clinic_id
+      };
 
       // Search filter
       if (req.query.search) {
@@ -115,10 +126,13 @@ export class LabVendorController {
     }
   }
 
-  static async getLabVendorById(req: Request, res: Response): Promise<void> {
+  static async getLabVendorById(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const labVendor = await LabVendor.findById(id);
+      const labVendor = await LabVendor.findOne({
+        _id: id,
+        clinic_id: req.clinic_id
+      });
 
       if (!labVendor) {
         res.status(404).json({
@@ -141,7 +155,7 @@ export class LabVendorController {
     }
   }
 
-  static async updateLabVendor(req: Request, res: Response): Promise<void> {
+  static async updateLabVendor(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -159,7 +173,8 @@ export class LabVendorController {
       if (req.body.code) {
         const existingVendor = await LabVendor.findOne({ 
           code: req.body.code.toUpperCase(),
-          _id: { $ne: id }
+          _id: { $ne: id },
+          clinic_id: req.clinic_id
         });
         if (existingVendor) {
           res.status(400).json({
@@ -170,8 +185,8 @@ export class LabVendorController {
         }
       }
 
-      const labVendor = await LabVendor.findByIdAndUpdate(
-        id,
+      const labVendor = await LabVendor.findOneAndUpdate(
+        { _id: id, clinic_id: req.clinic_id },
         req.body,
         { new: true, runValidators: true }
       );
@@ -198,10 +213,13 @@ export class LabVendorController {
     }
   }
 
-  static async deleteLabVendor(req: Request, res: Response): Promise<void> {
+  static async deleteLabVendor(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const labVendor = await LabVendor.findByIdAndDelete(id);
+      const labVendor = await LabVendor.findOneAndDelete({
+        _id: id,
+        clinic_id: req.clinic_id
+      });
 
       if (!labVendor) {
         res.status(404).json({
@@ -224,12 +242,12 @@ export class LabVendorController {
     }
   }
 
-  static async getLabVendorStats(req: Request, res: Response): Promise<void> {
+  static async getLabVendorStats(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const totalVendors = await LabVendor.countDocuments();
-      const activeVendors = await LabVendor.countDocuments({ status: 'active' });
-      const pendingVendors = await LabVendor.countDocuments({ status: 'pending' });
-      const suspendedVendors = await LabVendor.countDocuments({ status: 'suspended' });
+      const totalVendors = await LabVendor.countDocuments({ clinic_id: req.clinic_id });
+      const activeVendors = await LabVendor.countDocuments({ status: 'active', clinic_id: req.clinic_id });
+      const pendingVendors = await LabVendor.countDocuments({ status: 'pending', clinic_id: req.clinic_id });
+      const suspendedVendors = await LabVendor.countDocuments({ status: 'suspended', clinic_id: req.clinic_id });
 
       // Type distribution
       const typeStats = await LabVendor.aggregate([
@@ -294,7 +312,8 @@ export class LabVendorController {
 
       const expiringContracts = await LabVendor.countDocuments({
         contractEnd: { $lte: thirtyDaysFromNow },
-        status: 'active'
+        status: 'active',
+        clinic_id: req.clinic_id
       });
 
       res.json({
@@ -321,7 +340,7 @@ export class LabVendorController {
     }
   }
 
-  static async updateLabVendorStatus(req: Request, res: Response): Promise<void> {
+  static async updateLabVendorStatus(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -336,8 +355,8 @@ export class LabVendorController {
       const { id } = req.params;
       const { status } = req.body;
 
-      const labVendor = await LabVendor.findByIdAndUpdate(
-        id,
+      const labVendor = await LabVendor.findOneAndUpdate(
+        { _id: id, clinic_id: req.clinic_id },
         { status },
         { new: true, runValidators: true }
       );
@@ -364,13 +383,13 @@ export class LabVendorController {
     }
   }
 
-  static async updateTestCount(req: Request, res: Response): Promise<void> {
+  static async updateTestCount(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const { increment = 1 } = req.body;
 
-      const labVendor = await LabVendor.findByIdAndUpdate(
-        id,
+      const labVendor = await LabVendor.findOneAndUpdate(
+        { _id: id, clinic_id: req.clinic_id },
         { 
           $inc: { totalTests: increment },
           lastTestDate: new Date()
@@ -400,7 +419,7 @@ export class LabVendorController {
     }
   }
 
-  static async getContractExpiringVendors(req: Request, res: Response): Promise<void> {
+  static async getContractExpiringVendors(req: AuthRequest, res: Response): Promise<void> {
     try {
       const days = parseInt(req.query.days as string) || 30;
       const targetDate = new Date();
@@ -408,7 +427,8 @@ export class LabVendorController {
 
       const expiringVendors = await LabVendor.find({
         contractEnd: { $lte: targetDate },
-        status: 'active'
+        status: 'active',
+        clinic_id: req.clinic_id
               }).sort({ contractEnd: -1 });
 
       res.json({
@@ -424,7 +444,7 @@ export class LabVendorController {
     }
   }
 
-  static async getTestHistory(req: Request, res: Response): Promise<void> {
+  static async getTestHistory(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const page = parseInt(req.query.page as string) || 1;
@@ -546,7 +566,7 @@ export class LabVendorController {
     }
   }
 
-  static async getContractDetails(req: Request, res: Response): Promise<void> {
+  static async getContractDetails(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
 
@@ -602,7 +622,7 @@ export class LabVendorController {
     }
   }
 
-  static async getBillingPayments(req: Request, res: Response): Promise<void> {
+  static async getBillingPayments(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const page = parseInt(req.query.page as string) || 1;

@@ -1,11 +1,12 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { validationResult } from 'express-validator';
 import { Payment, Invoice, Patient } from '../models';
+import { AuthRequest } from '../types/express';
 import mongoose from 'mongoose';
 
 export class PaymentController {
   // Create a new payment
-  static async createPayment(req: Request, res: Response): Promise<void> {
+  static async createPayment(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -17,7 +18,12 @@ export class PaymentController {
         return;
       }
 
-      const payment = new Payment(req.body);
+      const paymentData = {
+        ...req.body,
+        clinic_id: req.clinic_id
+      };
+      
+      const payment = new Payment(paymentData);
       await payment.save();
 
       // If payment is completed, update invoice status
@@ -48,7 +54,7 @@ export class PaymentController {
   }
 
   // Get all payments with filters
-  static async getAllPayments(req: Request, res: Response) {
+  static async getAllPayments(req: AuthRequest, res: Response) {
     try {
       const { 
         page = 1, 
@@ -60,7 +66,9 @@ export class PaymentController {
         end_date 
       } = req.query;
 
-      const query: any = {};
+      const query: any = {
+        clinic_id: req.clinic_id
+      };
       
       if (status) query.status = status;
       if (method) query.method = method;
@@ -105,7 +113,7 @@ export class PaymentController {
   }
 
   // Get payment by ID
-  static async getPaymentById(req: Request, res: Response): Promise<void> {
+  static async getPaymentById(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
 
@@ -117,7 +125,10 @@ export class PaymentController {
         return;
       }
 
-      const payment = await Payment.findById(id)
+      const payment = await Payment.findOne({
+        _id: id,
+        clinic_id: req.clinic_id
+      })
         .populate('invoice_id', 'invoice_number total_amount services')
         .populate('patient_id', 'first_name last_name email phone');
 
@@ -143,7 +154,7 @@ export class PaymentController {
   }
 
   // Update payment
-  static async updatePayment(req: Request, res: Response): Promise<void> {
+  static async updatePayment(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -165,7 +176,11 @@ export class PaymentController {
         return;
       }
 
-      const payment = await Payment.findByIdAndUpdate(id, req.body, { new: true })
+      const payment = await Payment.findOneAndUpdate(
+        { _id: id, clinic_id: req.clinic_id },
+        req.body,
+        { new: true, runValidators: true }
+      )
         .populate('invoice_id', 'invoice_number total_amount')
         .populate('patient_id', 'first_name last_name email');
 
@@ -201,7 +216,7 @@ export class PaymentController {
   }
 
   // Update payment status
-  static async updatePaymentStatus(req: Request, res: Response): Promise<void> {
+  static async updatePaymentStatus(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const { status, failure_reason } = req.body;
@@ -218,7 +233,11 @@ export class PaymentController {
       if (failure_reason) updateData.failure_reason = failure_reason;
       if (status === 'completed') updateData.payment_date = new Date();
 
-      const payment = await Payment.findByIdAndUpdate(id, updateData, { new: true })
+      const payment = await Payment.findOneAndUpdate(
+        { _id: id, clinic_id: req.clinic_id },
+        updateData,
+        { new: true }
+      )
         .populate('invoice_id', 'invoice_number total_amount')
         .populate('patient_id', 'first_name last_name email');
 
@@ -254,11 +273,13 @@ export class PaymentController {
   }
 
   // Get payment statistics
-  static async getPaymentStats(req: Request, res: Response) {
+  static async getPaymentStats(req: AuthRequest, res: Response) {
     try {
       const { start_date, end_date } = req.query;
       
-      const dateFilter: any = {};
+      const dateFilter: any = {
+        clinic_id: req.clinic_id
+      };
       if (start_date || end_date) {
         dateFilter.payment_date = {};
         if (start_date) dateFilter.payment_date.$gte = new Date(start_date as string);
@@ -302,6 +323,7 @@ export class PaymentController {
         Payment.aggregate([
           { 
             $match: { 
+              clinic_id: req.clinic_id,
               status: 'completed',
               payment_date: { 
                 $gte: startOfMonth,
@@ -358,7 +380,7 @@ export class PaymentController {
   }
 
   // Initiate refund
-  static async initiateRefund(req: Request, res: Response): Promise<void> {
+  static async initiateRefund(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const { refund_amount, reason } = req.body;
@@ -371,7 +393,10 @@ export class PaymentController {
         return;
       }
 
-      const payment = await Payment.findById(id);
+      const payment = await Payment.findOne({
+        _id: id,
+        clinic_id: req.clinic_id
+      });
       if (!payment) {
         res.status(404).json({
           success: false,

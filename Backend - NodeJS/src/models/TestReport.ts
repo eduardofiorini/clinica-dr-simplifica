@@ -29,6 +29,7 @@ export interface ITestReport extends Document {
   interpretation?: string;
   verifiedBy?: string;
   verifiedDate?: Date;
+  clinic_id: mongoose.Types.ObjectId;
   created_at: Date;
   updated_at: Date;
   updateStatus(newStatus: 'pending' | 'recorded' | 'verified' | 'delivered', verifiedBy?: string): Promise<this>;
@@ -39,7 +40,6 @@ const TestReportSchema: Schema = new Schema({
     type: String,
     required: [true, 'Report number is required'],
     trim: true,
-    unique: true,
     maxlength: [50, 'Report number cannot exceed 50 characters']
   },
   patientId: {
@@ -177,13 +177,17 @@ const TestReportSchema: Schema = new Schema({
   },
   verifiedDate: {
     type: Date
+  },
+  clinic_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Clinic',
+    required: [true, 'Clinic ID is required']
   }
 }, {
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 
 // Create indexes for better performance
-// Note: unique index on reportNumber already created by field definition
 TestReportSchema.index({ patientId: 1 });
 TestReportSchema.index({ testId: 1 });
 TestReportSchema.index({ status: 1 });
@@ -191,12 +195,23 @@ TestReportSchema.index({ testDate: -1 });
 TestReportSchema.index({ recordedDate: -1 });
 TestReportSchema.index({ category: 1 });
 TestReportSchema.index({ externalVendor: 1 });
+TestReportSchema.index({ clinic_id: 1 });
 TestReportSchema.index({ 
   patientName: 'text', 
   testName: 'text', 
   reportNumber: 'text',
   externalVendor: 'text'
 });
+
+// Compound indexes for clinic-based queries
+TestReportSchema.index({ clinic_id: 1, reportNumber: 1 }, { unique: true });
+TestReportSchema.index({ clinic_id: 1, patientId: 1 });
+TestReportSchema.index({ clinic_id: 1, testId: 1 });
+TestReportSchema.index({ clinic_id: 1, status: 1 });
+TestReportSchema.index({ clinic_id: 1, testDate: -1 });
+TestReportSchema.index({ clinic_id: 1, recordedDate: -1 });
+TestReportSchema.index({ clinic_id: 1, category: 1 });
+TestReportSchema.index({ clinic_id: 1, externalVendor: 1 });
 
 // Pre-save middleware
 TestReportSchema.pre('save', function(this: ITestReport, next) {

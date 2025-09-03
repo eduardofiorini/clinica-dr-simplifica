@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { TurnaroundTimeController } from '../controllers';
+import { authenticate, requireMedicalStaff } from '../middleware/auth';
+import { clinicContext } from '../middleware/clinicContext';
 
 const router = Router();
 
@@ -17,13 +19,13 @@ const turnaroundTimeValidation = [
   body('examples.*').notEmpty().withMessage('Example cannot be empty')
 ];
 
-// Routes
-router.post('/', turnaroundTimeValidation, TurnaroundTimeController.createTurnaroundTime);
-router.get('/', TurnaroundTimeController.getAllTurnaroundTimes);
-router.get('/stats', TurnaroundTimeController.getTurnaroundTimeStats);
-router.get('/:id', TurnaroundTimeController.getTurnaroundTimeById);
-router.put('/:id', turnaroundTimeValidation, TurnaroundTimeController.updateTurnaroundTime);
-router.patch('/:id/toggle', TurnaroundTimeController.toggleStatus);
-router.delete('/:id', TurnaroundTimeController.deleteTurnaroundTime);
+// Routes - All turnaround time operations require authentication and clinic context
+router.post('/', authenticate, clinicContext, turnaroundTimeValidation, TurnaroundTimeController.createTurnaroundTime);
+router.get('/', authenticate, clinicContext, TurnaroundTimeController.getAllTurnaroundTimes);
+router.get('/stats', authenticate, clinicContext, TurnaroundTimeController.getTurnaroundTimeStats);
+router.get('/:id', authenticate, clinicContext, TurnaroundTimeController.getTurnaroundTimeById);
+router.put('/:id', authenticate, clinicContext, turnaroundTimeValidation, TurnaroundTimeController.updateTurnaroundTime);
+router.patch('/:id/toggle', authenticate, clinicContext, TurnaroundTimeController.toggleStatus);
+router.delete('/:id', authenticate, clinicContext, ...requireMedicalStaff, TurnaroundTimeController.deleteTurnaroundTime);
 
 export default router; 

@@ -1,9 +1,11 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { AuthRequest } from '../types/express';
 import { Patient, Appointment, Invoice, User, Lead, Expense, Inventory } from '../models';
+import { getClinicScopedFilter } from '../middleware/clinicContext';
 
 export class AnalyticsController {
   // Get comprehensive analytics data
-  static async getAnalyticsOverview(req: Request, res: Response): Promise<void> {
+  static async getAnalyticsOverview(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { period = '6months' } = req.query;
       
@@ -27,10 +29,12 @@ export class AnalyticsController {
       }
 
       // Revenue and expense data with patient counts
+      const clinicFilter = getClinicScopedFilter(req);
       const [revenueExpenseData, patientData] = await Promise.all([
         Invoice.aggregate([
           {
             $match: {
+              ...clinicFilter,
               status: 'paid',
               paid_at: { $gte: startDate }
             }
@@ -52,6 +56,7 @@ export class AnalyticsController {
         Patient.aggregate([
           {
             $match: {
+              ...clinicFilter,
               created_at: { $gte: startDate }
             }
           },
@@ -74,6 +79,7 @@ export class AnalyticsController {
       const expenseData = await Expense.aggregate([
         {
           $match: {
+            ...clinicFilter,
             status: 'paid',
             date: { $gte: startDate }
           }
@@ -131,11 +137,12 @@ export class AnalyticsController {
   }
 
   // Get department performance analytics
-  static async getDepartmentAnalytics(req: Request, res: Response): Promise<void> {
+  static async getDepartmentAnalytics(req: AuthRequest, res: Response): Promise<void> {
     try {
       // Mock department data - in real app, you'd have Department-linked invoices
+      const clinicFilter = getClinicScopedFilter(req);
       const departmentData = await Invoice.aggregate([
-        { $match: { status: 'paid' } },
+        { $match: { ...clinicFilter, status: 'paid' } },
         {
           $lookup: {
             from: 'appointments',
@@ -178,9 +185,13 @@ export class AnalyticsController {
   }
 
   // Get appointment status analytics
-  static async getAppointmentAnalytics(req: Request, res: Response): Promise<void> {
+  static async getAppointmentAnalytics(req: AuthRequest, res: Response): Promise<void> {
     try {
+      const clinicFilter = getClinicScopedFilter(req);
       const appointmentStats = await Appointment.aggregate([
+        {
+          $match: clinicFilter
+        },
         {
           $group: {
             _id: '$status',
@@ -219,9 +230,13 @@ export class AnalyticsController {
   }
 
   // Get patient demographics analytics
-  static async getPatientDemographics(req: Request, res: Response): Promise<void> {
+  static async getPatientDemographics(req: AuthRequest, res: Response): Promise<void> {
     try {
+      const clinicFilter = getClinicScopedFilter(req);
       const demographics = await Patient.aggregate([
+        {
+          $match: clinicFilter
+        },
         {
           $addFields: {
             birthDate: {
@@ -300,10 +315,11 @@ export class AnalyticsController {
   }
 
   // Get top services analytics
-  static async getTopServices(req: Request, res: Response): Promise<void> {
+  static async getTopServices(req: AuthRequest, res: Response): Promise<void> {
     try {
+      const clinicFilter = getClinicScopedFilter(req);
       const topServices = await Invoice.aggregate([
-        { $match: { status: 'paid' } },
+        { $match: { ...clinicFilter, status: 'paid' } },
         { $unwind: '$services' },
         {
           $group: {
@@ -336,10 +352,11 @@ export class AnalyticsController {
   }
 
   // Get payment methods analytics
-  static async getPaymentMethodAnalytics(req: Request, res: Response): Promise<void> {
+  static async getPaymentMethodAnalytics(req: AuthRequest, res: Response): Promise<void> {
     try {
+      const clinicFilter = getClinicScopedFilter(req);
       const paymentStats = await Invoice.aggregate([
-        { $match: { status: 'paid' } },
+        { $match: { ...clinicFilter, status: 'paid' } },
         {
           $group: {
             _id: '$payment_method',
@@ -372,7 +389,7 @@ export class AnalyticsController {
   }
 
   // Get comprehensive analytics stats
-  static async getAnalyticsStats(req: Request, res: Response): Promise<void> {
+  static async getAnalyticsStats(req: AuthRequest, res: Response): Promise<void> {
     try {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -380,22 +397,23 @@ export class AnalyticsController {
       previousMonth.setMonth(previousMonth.getMonth() - 1);
 
       // Current month stats
+      const clinicFilter = getClinicScopedFilter(req);
       const [currentStats, previousStats] = await Promise.all([
         Promise.all([
           Invoice.aggregate([
-            { $match: { status: 'paid', paid_at: { $gte: startOfMonth } } },
+            { $match: { ...clinicFilter, status: 'paid', paid_at: { $gte: startOfMonth } } },
             { $group: { _id: null, revenue: { $sum: '$total_amount' }, count: { $sum: 1 } } }
           ]),
-          Patient.countDocuments({ created_at: { $gte: startOfMonth } }),
-          Appointment.countDocuments({ created_at: { $gte: startOfMonth } }),
+          Patient.countDocuments({ ...clinicFilter, created_at: { $gte: startOfMonth } }),
+          Appointment.countDocuments({ ...clinicFilter, created_at: { $gte: startOfMonth } }),
         ]),
         Promise.all([
           Invoice.aggregate([
-            { $match: { status: 'paid', paid_at: { $gte: previousMonth, $lt: startOfMonth } } },
+            { $match: { ...clinicFilter, status: 'paid', paid_at: { $gte: previousMonth, $lt: startOfMonth } } },
             { $group: { _id: null, revenue: { $sum: '$total_amount' }, count: { $sum: 1 } } }
           ]),
-          Patient.countDocuments({ created_at: { $gte: previousMonth, $lt: startOfMonth } }),
-          Appointment.countDocuments({ created_at: { $gte: previousMonth, $lt: startOfMonth } }),
+          Patient.countDocuments({ ...clinicFilter, created_at: { $gte: previousMonth, $lt: startOfMonth } }),
+          Appointment.countDocuments({ ...clinicFilter, created_at: { $gte: previousMonth, $lt: startOfMonth } }),
         ])
       ]);
 
@@ -413,8 +431,8 @@ export class AnalyticsController {
       const appointmentGrowth = ((currentAppointments - previousAppointments) / previousAppointments * 100);
 
       // Additional stats
-      const totalAppointments = await Appointment.countDocuments();
-      const completedAppointments = await Appointment.countDocuments({ status: 'completed' });
+      const totalAppointments = await Appointment.countDocuments(clinicFilter);
+      const completedAppointments = await Appointment.countDocuments({ ...clinicFilter, status: 'completed' });
       const completionRate = totalAppointments > 0 ? (completedAppointments / totalAppointments * 100) : 0;
 
       res.json({

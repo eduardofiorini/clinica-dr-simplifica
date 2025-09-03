@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 import { PatientController } from '../controllers';
 import { authenticate, requireMedicalStaff } from '../middleware/auth';
+import { clinicContext } from '../middleware/clinicContext';
 
 const router = Router();
 
@@ -24,12 +25,12 @@ const patientValidation = [
   body('insurance_info.expiry_date').optional().isISO8601().withMessage('Please provide a valid expiry date')
 ];
 
-// Routes - All routes require authentication and medical staff access
-router.post('/', authenticate, patientValidation, PatientController.createPatient);
-router.get('/', authenticate, PatientController.getAllPatients);
-router.get('/stats', authenticate, PatientController.getPatientStats);
-router.get('/:id', authenticate, PatientController.getPatientById);
-router.put('/:id', authenticate, patientValidation, PatientController.updatePatient);
-router.delete('/:id', authenticate, PatientController.deletePatient);
+// Routes - All routes require authentication and clinic context
+router.post('/', authenticate, clinicContext, patientValidation, PatientController.createPatient);
+router.get('/', authenticate, clinicContext, PatientController.getAllPatients);
+router.get('/stats', authenticate, clinicContext, PatientController.getPatientStats);
+router.get('/:id', authenticate, clinicContext, PatientController.getPatientById);
+router.put('/:id', authenticate, clinicContext, patientValidation, PatientController.updatePatient);
+router.delete('/:id', authenticate, clinicContext, PatientController.deletePatient);
 
 export default router; 

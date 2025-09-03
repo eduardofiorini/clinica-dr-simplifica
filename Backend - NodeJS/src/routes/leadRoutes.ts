@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 import { LeadController } from '../controllers';
 import { authenticate, requireStaff } from '../middleware/auth';
+import { clinicContext } from '../middleware/clinicContext';
 
 const router = Router();
 
@@ -38,17 +39,17 @@ const conversionValidation = [
   body('insurance_info.group_number').optional().isString().withMessage('Group number must be a string')
 ];
 
-// Basic CRUD routes (require authentication)
-router.post('/', authenticate, leadValidation, LeadController.createLead);
-router.get('/', authenticate, LeadController.getAllLeads);
-router.get('/stats', authenticate, LeadController.getLeadStats);
-router.get('/assignee/:assignee', authenticate, LeadController.getLeadsByAssignee);
-router.get('/:id', authenticate, LeadController.getLeadById);
-router.put('/:id', authenticate, leadValidation, LeadController.updateLead);
-router.delete('/:id', ...requireStaff, LeadController.deleteLead);
+// Basic CRUD routes (require authentication and clinic context)
+router.post('/', authenticate, clinicContext, leadValidation, LeadController.createLead);
+router.get('/', authenticate, clinicContext, LeadController.getAllLeads);
+router.get('/stats', authenticate, clinicContext, LeadController.getLeadStats);
+router.get('/assignee/:assignee', authenticate, clinicContext, LeadController.getLeadsByAssignee);
+router.get('/:id', authenticate, clinicContext, LeadController.getLeadById);
+router.put('/:id', authenticate, clinicContext, leadValidation, LeadController.updateLead);
+router.delete('/:id', authenticate, clinicContext, ...requireStaff, LeadController.deleteLead);
 
 // Special endpoints
-router.patch('/:id/status', authenticate, LeadController.updateLeadStatus);
-router.post('/:id/convert', authenticate, conversionValidation, LeadController.convertLeadToPatient);
+router.patch('/:id/status', authenticate, clinicContext, LeadController.updateLeadStatus);
+router.post('/:id/convert', authenticate, clinicContext, conversionValidation, LeadController.convertLeadToPatient);
 
 export default router; 

@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IDepartment extends Document {
+  clinic_id: mongoose.Types.ObjectId;
   code: string;
   name: string;
   description: string;
@@ -16,10 +17,14 @@ export interface IDepartment extends Document {
 }
 
 const DepartmentSchema: Schema = new Schema({
+  clinic_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Clinic',
+    required: true
+  },
   code: {
     type: String,
     required: [true, 'Department code is required'],
-    unique: true,
     trim: true,
     uppercase: true,
     maxlength: [10, 'Department code cannot exceed 10 characters'],
@@ -86,14 +91,19 @@ const DepartmentSchema: Schema = new Schema({
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 
-// Create index for better search performance
+// Create clinic-aware indexes for better performance
+DepartmentSchema.index({ clinic_id: 1 });
+DepartmentSchema.index({ clinic_id: 1, code: 1 }, { unique: true }); // Unique code per clinic
+DepartmentSchema.index({ clinic_id: 1, status: 1 });
+DepartmentSchema.index({ clinic_id: 1, name: 1 });
+
+// Create text index for search within clinic context
 DepartmentSchema.index({ 
+  clinic_id: 1,
   name: 'text', 
   code: 'text', 
   description: 'text',
   head: 'text'
 });
-
-// Note: unique index on code already created by field definition
 
 export default mongoose.model<IDepartment>('Department', DepartmentSchema); 

@@ -42,6 +42,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useClinic } from "@/contexts/ClinicContext";
 import appointmentApi, { CalendarEvent } from "@/services/api/appointmentApi";
 import userApi, { Doctor } from "@/services/api/userApi";
 
@@ -52,6 +53,7 @@ const Calendar = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDoctor, setSelectedDoctor] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const { currentClinic, loading: clinicLoading, error: clinicError } = useClinic();
   
   // API data states
   const [events, setEvents] = useState<CalendarEvent[]>([]);
@@ -63,9 +65,14 @@ const Calendar = () => {
   // Cache to prevent duplicate API calls
   const [lastFilterKey, setLastFilterKey] = useState<string>("");
 
-  // Load initial data
+  // Load initial data when clinic is available
   useEffect(() => {
     const loadData = async () => {
+      if (!currentClinic) {
+        setLoading(false);
+        return;
+      }
+
       try {
         setLoading(true);
         setError(null);
@@ -80,19 +87,27 @@ const Calendar = () => {
         setDoctors(doctorsData);
       } catch (err) {
         console.error("Error loading calendar data:", err);
-        setError(err instanceof Error ? err.message : "Failed to load calendar data");
+        const errorMessage = err instanceof Error && err.message.includes('401') 
+          ? "Access denied. Please check your clinic permissions." 
+          : err instanceof Error && err.message.includes('403')
+          ? "Insufficient permissions to view appointments for this clinic."
+          : "Failed to load calendar data. Please try again.";
+        
+        setError(errorMessage);
         toast({
           title: "Error",
-          description: "Failed to load calendar data. Please try again.",
+          description: errorMessage,
           variant: "destructive",
         });
+        setEvents([]);
+        setDoctors([]);
       } finally {
         setLoading(false);
       }
     };
 
     loadData();
-  }, []);
+  }, [currentClinic]);
 
   // Helper function to get date range based on view mode
   const getDateRange = (date: Date, mode: "month" | "week" | "day") => {
@@ -186,15 +201,15 @@ const Calendar = () => {
         }
       };
 
-      // Only reload if we have doctors data (initial load is complete)
-      if (doctors.length > 0) {
+      // Only reload if we have doctors data and clinic (initial load is complete)
+      if (doctors.length > 0 && currentClinic) {
         await loadFilteredAppointments();
       }
     }, 300); // 300ms debounce to prevent rapid API calls
 
     // Cleanup timeout on dependency change
     return () => clearTimeout(timeoutId);
-  }, [selectedDoctor, selectedStatus, doctors, currentDate, viewMode, lastFilterKey]);
+  }, [selectedDoctor, selectedStatus, doctors, currentDate, viewMode, lastFilterKey, currentClinic]);
 
   // Handle appointment actions
   const handleViewAppointment = async (appointmentId: string) => {
@@ -422,6 +437,36 @@ const Calendar = () => {
     );
   });
 
+  // Handle clinic loading state
+  if (clinicLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2 text-gray-600">Loading clinic context...</span>
+      </div>
+    );
+  }
+
+  // Handle no clinic selected state
+  if (!currentClinic && !clinicLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-12">
+          <CalendarIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Clinic Selected</h2>
+          <p className="text-gray-600 mb-4">
+            Please select a clinic to view and manage appointments.
+          </p>
+          {clinicError && (
+            <p className="text-red-600 text-sm">
+              Error: {clinicError}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -431,7 +476,11 @@ const Calendar = () => {
             Calendar View
           </h1>
           <p className="text-gray-600 mt-1">
-            Manage appointments, surgeries, and clinic events
+            {currentClinic ? (
+              <>Manage appointments, surgeries, and clinic events for <span className="font-semibold text-blue-600">{currentClinic.name}</span></>
+            ) : (
+              "Manage appointments, surgeries, and clinic events"
+            )}
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 flex-shrink-0">

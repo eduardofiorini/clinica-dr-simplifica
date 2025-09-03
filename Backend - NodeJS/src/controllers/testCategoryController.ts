@@ -1,9 +1,10 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { validationResult } from 'express-validator';
 import { TestCategory } from '../models';
+import { AuthRequest } from '../types/express';
 
 export class TestCategoryController {
-  static async createCategory(req: Request, res: Response): Promise<void> {
+  static async createCategory(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -15,7 +16,12 @@ export class TestCategoryController {
         return;
       }
 
-      const category = new TestCategory(req.body);
+      const categoryData = {
+        ...req.body,
+        clinic_id: req.clinic_id
+      };
+
+      const category = new TestCategory(categoryData);
       await category.save();
 
       res.status(201).json({
@@ -39,13 +45,15 @@ export class TestCategoryController {
     }
   }
 
-  static async getAllCategories(req: Request, res: Response): Promise<void> {
+  static async getAllCategories(req: AuthRequest, res: Response): Promise<void> {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const skip = (page - 1) * limit;
 
-      let filter: any = {};
+      let filter: any = {
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get categories from current clinic
+      };
 
       // Search filter
       if (req.query.search) {
@@ -95,10 +103,13 @@ export class TestCategoryController {
     }
   }
 
-  static async getCategoryById(req: Request, res: Response): Promise<void> {
+  static async getCategoryById(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const category = await TestCategory.findById(id);
+      const category = await TestCategory.findOne({
+        _id: id,
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get category from current clinic
+      });
 
       if (!category) {
         res.status(404).json({
@@ -121,7 +132,7 @@ export class TestCategoryController {
     }
   }
 
-  static async updateCategory(req: Request, res: Response): Promise<void> {
+  static async updateCategory(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -134,8 +145,11 @@ export class TestCategoryController {
       }
 
       const { id } = req.params;
-      const category = await TestCategory.findByIdAndUpdate(
-        id,
+      const category = await TestCategory.findOneAndUpdate(
+        {
+          _id: id,
+          clinic_id: req.clinic_id // CLINIC FILTER: Only update category from current clinic
+        },
         req.body,
         { new: true, runValidators: true }
       );
@@ -169,10 +183,13 @@ export class TestCategoryController {
     }
   }
 
-  static async deleteCategory(req: Request, res: Response): Promise<void> {
+  static async deleteCategory(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const category = await TestCategory.findByIdAndDelete(id);
+      const category = await TestCategory.findOneAndDelete({
+        _id: id,
+        clinic_id: req.clinic_id // CLINIC FILTER: Only delete category from current clinic
+      });
 
       if (!category) {
         res.status(404).json({
@@ -195,10 +212,13 @@ export class TestCategoryController {
     }
   }
 
-  static async toggleStatus(req: Request, res: Response): Promise<void> {
+  static async toggleStatus(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const category = await TestCategory.findById(id);
+      const category = await TestCategory.findOne({
+        _id: id,
+        clinic_id: req.clinic_id // CLINIC FILTER: Only toggle category from current clinic
+      });
 
       if (!category) {
         res.status(404).json({
@@ -225,16 +245,19 @@ export class TestCategoryController {
     }
   }
 
-  static async getCategoryStats(req: Request, res: Response): Promise<void> {
+  static async getCategoryStats(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const totalCategories = await TestCategory.countDocuments();
-      const activeCategories = await TestCategory.countDocuments({ isActive: true });
+      const filter = { clinic_id: req.clinic_id }; // CLINIC FILTER: Only get stats from current clinic
+      const totalCategories = await TestCategory.countDocuments(filter);
+      const activeCategories = await TestCategory.countDocuments({ ...filter, isActive: true });
       const totalTests = await TestCategory.aggregate([
+        { $match: filter },
         { $group: { _id: null, total: { $sum: '$testCount' } } }
       ]);
-      const departmentsCount = await TestCategory.distinct('department').then(departments => departments.length);
+      const departmentsCount = await TestCategory.distinct('department', filter).then(departments => departments.length);
 
       const departmentStats = await TestCategory.aggregate([
+        { $match: filter },
         {
           $group: {
             _id: '$department',

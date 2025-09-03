@@ -1,6 +1,7 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { validationResult } from 'express-validator';
 import { TestReport, Patient, Test } from '../models';
+import { AuthRequest } from '../types/express';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -39,7 +40,7 @@ export const upload = multer({
 });
 
 export class TestReportController {
-  static async createReport(req: Request, res: Response): Promise<void> {
+  static async createReport(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -51,8 +52,11 @@ export class TestReportController {
         return;
       }
 
-      // Validate patient exists
-      const patient = await Patient.findById(req.body.patientId);
+      // Validate patient exists in the current clinic
+      const patient = await Patient.findOne({
+        _id: req.body.patientId,
+        clinic_id: req.clinic_id
+      });
       if (!patient) {
         res.status(400).json({
           success: false,
@@ -61,8 +65,11 @@ export class TestReportController {
         return;
       }
 
-      // Validate test exists
-      const test = await Test.findById(req.body.testId);
+      // Validate test exists in the current clinic
+      const test = await Test.findOne({
+        _id: req.body.testId,
+        clinic_id: req.clinic_id
+      });
       if (!test) {
         res.status(400).json({
           success: false,
@@ -71,15 +78,19 @@ export class TestReportController {
         return;
       }
 
-      // Auto-populate patient and test details
-      req.body.patientName = `${patient.first_name} ${patient.last_name}`;
-      req.body.patientAge = patient.age;
-      req.body.patientGender = patient.gender;
-      req.body.testName = test.name;
-      req.body.testCode = test.code;
-      req.body.category = test.category;
+      // Auto-populate patient and test details with clinic context
+      const reportData = {
+        ...req.body,
+        clinic_id: req.clinic_id,
+        patientName: `${patient.first_name} ${patient.last_name}`,
+        patientAge: patient.age,
+        patientGender: patient.gender,
+        testName: test.name,
+        testCode: test.code,
+        category: test.category
+      };
 
-      const report = new TestReport(req.body);
+      const report = new TestReport(reportData);
       await report.save();
 
       // Populate related fields for response
@@ -109,13 +120,15 @@ export class TestReportController {
     }
   }
 
-  static async getAllReports(req: Request, res: Response): Promise<void> {
+  static async getAllReports(req: AuthRequest, res: Response): Promise<void> {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const skip = (page - 1) * limit;
 
-      let filter: any = {};
+      let filter: any = {
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get reports from current clinic
+      };
 
       // Search filter
       if (req.query.search) {
@@ -183,10 +196,13 @@ export class TestReportController {
     }
   }
 
-  static async getReportById(req: Request, res: Response): Promise<void> {
+  static async getReportById(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const report = await TestReport.findById(id)
+      const report = await TestReport.findOne({
+        _id: id,
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get report from current clinic
+      })
         .populate('patientId', 'first_name last_name email phone address')
         .populate('testId', 'name code category description normalRange units methodology');
 
@@ -211,7 +227,7 @@ export class TestReportController {
     }
   }
 
-  static async updateReport(req: Request, res: Response): Promise<void> {
+  static async updateReport(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -224,8 +240,11 @@ export class TestReportController {
       }
 
       const { id } = req.params;
-      const report = await TestReport.findByIdAndUpdate(
-        id,
+      const report = await TestReport.findOneAndUpdate(
+        {
+          _id: id,
+          clinic_id: req.clinic_id // CLINIC FILTER: Only update report from current clinic
+        },
         req.body,
         { new: true, runValidators: true }
       ).populate([
@@ -262,10 +281,13 @@ export class TestReportController {
     }
   }
 
-  static async deleteReport(req: Request, res: Response): Promise<void> {
+  static async deleteReport(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const report = await TestReport.findByIdAndDelete(id);
+      const report = await TestReport.findOneAndDelete({
+        _id: id,
+        clinic_id: req.clinic_id // CLINIC FILTER: Only delete report from current clinic
+      });
 
       if (!report) {
         res.status(404).json({
@@ -298,12 +320,15 @@ export class TestReportController {
     }
   }
 
-  static async updateStatus(req: Request, res: Response): Promise<void> {
+  static async updateStatus(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const { status, verifiedBy } = req.body;
 
-      const report = await TestReport.findById(id);
+      const report = await TestReport.findOne({
+        _id: id,
+        clinic_id: req.clinic_id // CLINIC FILTER: Only update status for reports from current clinic
+      });
       if (!report) {
         res.status(404).json({
           success: false,
@@ -339,10 +364,13 @@ export class TestReportController {
     }
   }
 
-  static async addAttachment(req: Request, res: Response): Promise<void> {
+  static async addAttachment(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const report = await TestReport.findById(id);
+      const report = await TestReport.findOne({
+        _id: id,
+        clinic_id: req.clinic_id // CLINIC FILTER: Only add attachment to reports from current clinic
+      });
 
       if (!report) {
         res.status(404).json({
@@ -386,10 +414,13 @@ export class TestReportController {
     }
   }
 
-  static async removeAttachment(req: Request, res: Response): Promise<void> {
+  static async removeAttachment(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id, attachmentId } = req.params;
-      const report = await TestReport.findById(id);
+      const report = await TestReport.findOne({
+        _id: id,
+        clinic_id: req.clinic_id // CLINIC FILTER: Only remove attachment from reports in current clinic
+      });
 
       if (!report) {
         res.status(404).json({
@@ -432,15 +463,17 @@ export class TestReportController {
     }
   }
 
-  static async getReportStats(req: Request, res: Response): Promise<void> {
+  static async getReportStats(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const totalReports = await TestReport.countDocuments();
-      const pendingReports = await TestReport.countDocuments({ status: 'pending' });
-      const recordedReports = await TestReport.countDocuments({ status: 'recorded' });
-      const verifiedReports = await TestReport.countDocuments({ status: 'verified' });
-      const deliveredReports = await TestReport.countDocuments({ status: 'delivered' });
+      const filter = { clinic_id: req.clinic_id }; // CLINIC FILTER: Only get stats from current clinic
+      const totalReports = await TestReport.countDocuments(filter);
+      const pendingReports = await TestReport.countDocuments({ ...filter, status: 'pending' });
+      const recordedReports = await TestReport.countDocuments({ ...filter, status: 'recorded' });
+      const verifiedReports = await TestReport.countDocuments({ ...filter, status: 'verified' });
+      const deliveredReports = await TestReport.countDocuments({ ...filter, status: 'delivered' });
 
       const categoryStats = await TestReport.aggregate([
+        { $match: filter },
         {
           $group: {
             _id: '$category',
@@ -451,6 +484,7 @@ export class TestReportController {
       ]);
 
       const vendorStats = await TestReport.aggregate([
+        { $match: filter },
         {
           $group: {
             _id: '$externalVendor',
@@ -461,6 +495,7 @@ export class TestReportController {
       ]);
 
       const monthlyStats = await TestReport.aggregate([
+        { $match: filter },
         {
           $group: {
             _id: {
@@ -496,20 +531,25 @@ export class TestReportController {
     }
   }
 
-  static async getPatientReports(req: Request, res: Response): Promise<void> {
+  static async getPatientReports(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { patientId } = req.params;
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const skip = (page - 1) * limit;
 
-      const reports = await TestReport.find({ patientId })
+      const filter = { 
+        patientId, 
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get reports from current clinic
+      };
+
+      const reports = await TestReport.find(filter)
         .populate('testId', 'name code category normalRange units')
         .skip(skip)
         .limit(limit)
         .sort({ testDate: -1 });
 
-      const totalReports = await TestReport.countDocuments({ patientId });
+      const totalReports = await TestReport.countDocuments(filter);
 
       res.json({
         success: true,

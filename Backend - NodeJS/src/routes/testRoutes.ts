@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { TestController } from '../controllers';
+import { authenticate, requireMedicalStaff } from '../middleware/auth';
+import { clinicContext } from '../middleware/clinicContext';
 
 const router = Router();
 
@@ -17,13 +19,13 @@ const testValidation = [
   body('sampleType').optional().isLength({ max: 100 }).withMessage('Sample type cannot exceed 100 characters')
 ];
 
-// Routes
-router.post('/', testValidation, TestController.createTest);
-router.get('/', TestController.getAllTests);
-router.get('/stats', TestController.getTestStats);
-router.get('/:id', TestController.getTestById);
-router.put('/:id', testValidation, TestController.updateTest);
-router.patch('/:id/toggle', TestController.toggleStatus);
-router.delete('/:id', TestController.deleteTest);
+// Routes - All test operations require authentication and clinic context
+router.post('/', authenticate, clinicContext, testValidation, TestController.createTest);
+router.get('/', authenticate, clinicContext, TestController.getAllTests);
+router.get('/stats', authenticate, clinicContext, TestController.getTestStats);
+router.get('/:id', authenticate, clinicContext, TestController.getTestById);
+router.put('/:id', authenticate, clinicContext, testValidation, TestController.updateTest);
+router.patch('/:id/toggle', authenticate, clinicContext, TestController.toggleStatus);
+router.delete('/:id', authenticate, clinicContext, ...requireMedicalStaff, TestController.deleteTest);
 
 export default router; 

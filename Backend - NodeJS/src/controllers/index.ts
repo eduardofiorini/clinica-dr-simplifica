@@ -1,4 +1,6 @@
 export { UserController } from './userController';
+export { ClinicController } from './clinicController';
+export { UserClinicController } from './userClinicController';
 export { PatientController } from './patientController';
 export { AppointmentController } from './appointmentController';
 export { MedicalRecordController } from './medicalRecordController';
@@ -18,4 +20,5 @@ export { DepartmentController } from './departmentController';
 export { LabVendorController } from './labVendorController';
 export { DashboardController } from './dashboardController';
 export { ReceptionistController } from './receptionistController';
-export { default as SettingsController } from './settingsController'; 
+export { default as SettingsController } from './settingsController';
+export { OdontogramController } from './odontogramController'; 

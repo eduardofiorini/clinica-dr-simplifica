@@ -8,29 +8,45 @@ import {
   InventoryItem,
   User 
 } from '@/services/api';
-import { Lead, TestCategory, CreateTestCategoryRequest, CreateTurnaroundTimeRequest } from '@/types';
+import { Lead, Prescription, PrescriptionStats, CreatePrescriptionRequest, TestCategory, CreateTestCategoryRequest, CreateTurnaroundTimeRequest } from '@/types';
+import { useClinic } from '@/contexts/ClinicContext';
 
 // Query Keys
 export const queryKeys = {
-  patients: ['patients'] as const,
-  patient: (id: string) => ['patients', id] as const,
-  appointments: ['appointments'] as const,
-  appointment: (id: string) => ['appointments', id] as const,
-  medicalRecords: ['medical-records'] as const,
-  medicalRecord: (id: string) => ['medical-records', id] as const,
-  invoices: ['invoices'] as const,
-  invoice: (id: string) => ['invoices', id] as const,
-  inventory: ['inventory'] as const,
-  inventoryItem: (id: string) => ['inventory', id] as const,
-  leads: ['leads'] as const,
-  lead: (id: string) => ['leads', id] as const,
+  patients: (clinicId: string | null) => ['patients', clinicId] as const,
+  patient: (clinicId: string | null, id: string) => ['patients', clinicId, id] as const,
+  appointments: (clinicId: string | null) => ['appointments', clinicId] as const,
+  appointment: (clinicId: string | null, id: string) => ['appointments', clinicId, id] as const,
+  medicalRecords: (clinicId: string | null) => ['medical-records', clinicId] as const,
+  medicalRecord: (clinicId: string | null, id: string) => ['medical-records', clinicId, id] as const,
+  invoices: (clinicId: string | null) => ['invoices', clinicId] as const,
+  invoice: (clinicId: string | null, id: string) => ['invoices', clinicId, id] as const,
+  inventory: (clinicId: string | null) => ['inventory', clinicId] as const,
+  inventoryItem: (clinicId: string | null, id: string) => ['inventory', clinicId, id] as const,
+  leads: (clinicId: string | null) => ['leads', clinicId] as const,
+  lead: (clinicId: string | null, id: string) => ['leads', clinicId, id] as const,
+  prescriptions: (clinicId: string | null) => ['prescriptions', clinicId] as const,
+  prescription: (clinicId: string | null, id: string) => ['prescriptions', clinicId, id] as const,
+  prescriptionStats: (clinicId: string | null) => ['prescription-stats', clinicId] as const,
   currentUser: ['current-user'] as const,
-  testCategories: ['test-categories'] as const,
-  testCategory: (id: string) => ['test-categories', id] as const,
-  testCategoryStats: ['test-category-stats'] as const,
-  turnaroundTimes: ['turnaround-times'] as const,
-  turnaroundTime: (id: string) => ['turnaround-times', id] as const,
-  turnaroundTimeStats: ['turnaround-time-stats'] as const,
+  testCategories: (clinicId: string | null) => ['test-categories', clinicId] as const,
+  testCategory: (clinicId: string | null, id: string) => ['test-categories', clinicId, id] as const,
+  testCategoryStats: (clinicId: string | null) => ['test-category-stats', clinicId] as const,
+  tests: (clinicId: string | null) => ['tests', clinicId] as const,
+  test: (clinicId: string | null, id: string) => ['tests', clinicId, id] as const,
+  testStats: (clinicId: string | null) => ['test-stats', clinicId] as const,
+  testMethodologies: (clinicId: string | null) => ['test-methodologies', clinicId] as const,
+  testMethodology: (clinicId: string | null, id: string) => ['test-methodologies', clinicId, id] as const,
+  testMethodologyStats: (clinicId: string | null) => ['test-methodology-stats', clinicId] as const,
+  sampleTypes: (clinicId: string | null) => ['sample-types', clinicId] as const,
+  sampleType: (clinicId: string | null, id: string) => ['sample-types', clinicId, id] as const,
+  sampleTypeStats: (clinicId: string | null) => ['sample-type-stats', clinicId] as const,
+  testReports: (clinicId: string | null) => ['test-reports', clinicId] as const,
+  testReport: (clinicId: string | null, id: string) => ['test-reports', clinicId, id] as const,
+  testReportStats: (clinicId: string | null) => ['test-report-stats', clinicId] as const,
+  turnaroundTimes: (clinicId: string | null) => ['turnaround-times', clinicId] as const,
+  turnaroundTime: (clinicId: string | null, id: string) => ['turnaround-times', clinicId, id] as const,
+  turnaroundTimeStats: (clinicId: string | null) => ['turnaround-time-stats', clinicId] as const,
 };
 
 // Patient Hooks
@@ -41,30 +57,39 @@ export const usePatients = (params?: {
   sort?: string;
   order?: 'asc' | 'desc';
 }) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
   return useQuery({
-    queryKey: [...queryKeys.patients, params],
+    queryKey: [...queryKeys.patients(clinicId), params],
     queryFn: () => apiService.getPatients(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clinicId,
   });
 };
 
 export const usePatient = (id: string) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
   return useQuery({
-    queryKey: queryKeys.patient(id),
+    queryKey: queryKeys.patient(clinicId, id),
     queryFn: () => apiService.getPatient(id),
-    enabled: !!id,
+    enabled: !!id && !!clinicId,
   });
 };
 
 export const useCreatePatient = () => {
   const queryClient = useQueryClient();
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
   
   return useMutation({
     mutationFn: (patientData: Omit<Patient, '_id' | 'created_at' | 'updated_at'>) => 
       apiService.createPatient(patientData),
     onSuccess: () => {
       queryClient.invalidateQueries({ 
-        queryKey: queryKeys.patients,
+        queryKey: queryKeys.patients(clinicId),
         exact: false 
       });
     },
@@ -85,10 +110,10 @@ export const useUpdatePatient = () => {
     },
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ 
-        queryKey: queryKeys.patients,
+        queryKey: queryKeys.patients(null),
         exact: false 
       });
-      queryClient.invalidateQueries({ queryKey: queryKeys.patient(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.patient(null, id) });
     },
   });
 };
@@ -100,7 +125,7 @@ export const useDeletePatient = () => {
     mutationFn: (id: string) => apiService.deletePatient(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ 
-        queryKey: queryKeys.patients,
+        queryKey: queryKeys.patients(null),
         exact: false 
       });
     },
@@ -129,18 +154,25 @@ export const useAppointments = (params?: {
   end_date?: string;
   status?: string;
 }) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
   return useQuery({
-    queryKey: [...queryKeys.appointments, params],
+    queryKey: [...queryKeys.appointments(clinicId), params],
     queryFn: () => apiService.getAppointments(params),
     staleTime: 2 * 60 * 1000, // 2 minutes
+    enabled: !!clinicId,
   });
 };
 
 export const useAppointment = (id: string) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
   return useQuery({
-    queryKey: queryKeys.appointment(id),
+    queryKey: queryKeys.appointment(clinicId, id),
     queryFn: () => apiService.getAppointment(id),
-    enabled: !!id,
+    enabled: !!id && !!clinicId,
   });
 };
 
@@ -151,7 +183,7 @@ export const useCreateAppointment = () => {
     mutationFn: (appointmentData: Omit<Appointment, '_id' | 'created_at' | 'updated_at'>) => 
       apiService.createAppointment(appointmentData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.appointments });
+      queryClient.invalidateQueries({ queryKey: queryKeys.appointments(null) });
     },
   });
 };
@@ -163,8 +195,8 @@ export const useUpdateAppointment = () => {
     mutationFn: ({ id, data }: { id: string; data: Partial<Appointment> }) => 
       apiService.updateAppointment(id, data),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.appointments });
-      queryClient.invalidateQueries({ queryKey: queryKeys.appointment(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.appointments(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.appointment(null, id) });
     },
   });
 };
@@ -175,7 +207,7 @@ export const useDeleteAppointment = () => {
   return useMutation({
     mutationFn: (id: string) => apiService.deleteAppointment(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.appointments });
+      queryClient.invalidateQueries({ queryKey: queryKeys.appointments(null) });
     },
   });
 };
@@ -190,7 +222,7 @@ export const useMedicalRecords = (params?: {
   end_date?: string;
 }) => {
   return useQuery({
-    queryKey: [...queryKeys.medicalRecords, params],
+    queryKey: [...queryKeys.medicalRecords(null), params],
     queryFn: () => apiService.getMedicalRecords(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -198,7 +230,7 @@ export const useMedicalRecords = (params?: {
 
 export const useMedicalRecord = (id: string) => {
   return useQuery({
-    queryKey: queryKeys.medicalRecord(id),
+    queryKey: queryKeys.medicalRecord(null, id),
     queryFn: () => apiService.getMedicalRecord(id),
     enabled: !!id,
   });
@@ -211,7 +243,7 @@ export const useCreateMedicalRecord = () => {
     mutationFn: (recordData: Omit<MedicalRecord, '_id' | 'created_at' | 'updated_at'>) => 
       apiService.createMedicalRecord(recordData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.medicalRecords });
+      queryClient.invalidateQueries({ queryKey: queryKeys.medicalRecords(null) });
     },
   });
 };
@@ -223,8 +255,8 @@ export const useUpdateMedicalRecord = () => {
     mutationFn: ({ id, data }: { id: string; data: Partial<MedicalRecord> }) => 
       apiService.updateMedicalRecord(id, data),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.medicalRecords });
-      queryClient.invalidateQueries({ queryKey: queryKeys.medicalRecord(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.medicalRecords(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.medicalRecord(null, id) });
     },
   });
 };
@@ -235,7 +267,7 @@ export const useDeleteMedicalRecord = () => {
   return useMutation({
     mutationFn: (id: string) => apiService.deleteMedicalRecord(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.medicalRecords });
+      queryClient.invalidateQueries({ queryKey: queryKeys.medicalRecords(null) });
     },
   });
 };
@@ -250,7 +282,7 @@ export const useInvoices = (params?: {
   end_date?: string;
 }) => {
   return useQuery({
-    queryKey: [...queryKeys.invoices, params],
+    queryKey: [...queryKeys.invoices(null), params],
     queryFn: () => apiService.getInvoices(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
@@ -258,7 +290,7 @@ export const useInvoices = (params?: {
 
 export const useInvoice = (id: string) => {
   return useQuery({
-    queryKey: queryKeys.invoice(id),
+    queryKey: queryKeys.invoice(null, id),
     queryFn: () => apiService.getInvoice(id),
     enabled: !!id,
   });
@@ -271,7 +303,7 @@ export const useCreateInvoice = () => {
     mutationFn: (invoiceData: Omit<Invoice, '_id' | 'invoice_number' | 'created_at' | 'updated_at'>) => 
       apiService.createInvoice(invoiceData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.invoices });
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoices(null) });
     },
   });
 };
@@ -283,8 +315,8 @@ export const useUpdateInvoice = () => {
     mutationFn: ({ id, data }: { id: string; data: Partial<Invoice> }) => 
       apiService.updateInvoice(id, data),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.invoices });
-      queryClient.invalidateQueries({ queryKey: queryKeys.invoice(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoices(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoice(null, id) });
     },
   });
 };
@@ -295,7 +327,7 @@ export const useDeleteInvoice = () => {
   return useMutation({
     mutationFn: (id: string) => apiService.deleteInvoice(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.invoices });
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoices(null) });
     },
   });
 };
@@ -308,16 +340,20 @@ export const useInventory = (params?: {
   search?: string;
   low_stock?: boolean;
 }) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
   return useQuery({
-    queryKey: [...queryKeys.inventory, params],
+    queryKey: [...queryKeys.inventory(clinicId), params],
     queryFn: () => apiService.getInventory(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clinicId,
   });
 };
 
 export const useInventoryItem = (id: string) => {
   return useQuery({
-    queryKey: queryKeys.inventoryItem(id),
+    queryKey: queryKeys.inventoryItem(null, id),
     queryFn: () => apiService.getInventoryItem(id),
     enabled: !!id,
   });
@@ -330,7 +366,7 @@ export const useCreateInventoryItem = () => {
     mutationFn: (itemData: Omit<InventoryItem, '_id' | 'created_at' | 'updated_at'>) => 
       apiService.createInventoryItem(itemData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventory });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory(null) });
     },
   });
 };
@@ -342,8 +378,8 @@ export const useUpdateInventoryItem = () => {
     mutationFn: ({ id, data }: { id: string; data: Partial<InventoryItem> }) => 
       apiService.updateInventoryItem(id, data),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventory });
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventoryItem(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventoryItem(null, id) });
     },
   });
 };
@@ -354,7 +390,7 @@ export const useDeleteInventoryItem = () => {
   return useMutation({
     mutationFn: (id: string) => apiService.deleteInventoryItem(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.inventory });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventory(null) });
     },
   });
 };
@@ -389,16 +425,20 @@ export const useLeads = (params?: {
   sort?: string;
   order?: 'asc' | 'desc';
 }) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
   return useQuery({
-    queryKey: [...queryKeys.leads, params],
+    queryKey: [...queryKeys.leads(clinicId), params],
     queryFn: () => apiService.getLeads(params),
     staleTime: 2 * 60 * 1000, // 2 minutes
+    enabled: !!clinicId,
   });
 };
 
 export const useLead = (id: string) => {
   return useQuery({
-    queryKey: queryKeys.lead(id),
+    queryKey: queryKeys.lead(null, id),
     queryFn: () => apiService.getLead(id),
     enabled: !!id,
   });
@@ -410,7 +450,7 @@ export const useCreateLead = () => {
     mutationFn: (leadData: Omit<Lead, 'id' | 'createdAt' | 'updatedAt'>) => 
       apiService.createLead(leadData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.leads });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leads(null) });
     },
   });
 };
@@ -421,8 +461,8 @@ export const useUpdateLead = () => {
     mutationFn: ({ id, data }: { id: string; data: Partial<Lead> }) => 
       apiService.updateLead(id, data),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.leads });
-      queryClient.invalidateQueries({ queryKey: queryKeys.lead(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leads(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.lead(null, id) });
     },
   });
 };
@@ -432,7 +472,7 @@ export const useDeleteLead = () => {
   return useMutation({
     mutationFn: (id: string) => apiService.deleteLead(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.leads });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leads(null) });
     },
   });
 };
@@ -443,8 +483,8 @@ export const useUpdateLeadStatus = () => {
     mutationFn: ({ id, status }: { id: string; status: Lead['status'] }) => 
       apiService.updateLeadStatus(id, status),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.leads });
-      queryClient.invalidateQueries({ queryKey: queryKeys.lead(id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leads(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.lead(null, id) });
     },
   });
 };
@@ -457,8 +497,119 @@ export const useConvertLeadToPatient = () => {
       patientData: Omit<Patient, '_id' | 'created_at' | 'updated_at'> 
     }) => apiService.convertLeadToPatient(id, patientData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.leads });
-      queryClient.invalidateQueries({ queryKey: queryKeys.patients });
+      queryClient.invalidateQueries({ queryKey: queryKeys.leads(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.patients(null) });
+    },
+  });
+};
+
+// Prescription Hooks
+export const usePrescriptions = (params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  doctor_id?: string;
+  patient_id?: string;
+  date_from?: string;
+  date_to?: string;
+}) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
+  return useQuery({
+    queryKey: [...queryKeys.prescriptions(clinicId), params],
+    queryFn: () => apiService.getPrescriptions(params),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    enabled: !!clinicId,
+  });
+};
+
+export const usePrescription = (id: string) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
+  return useQuery({
+    queryKey: queryKeys.prescription(clinicId, id),
+    queryFn: () => apiService.getPrescription(id),
+    enabled: !!id && !!clinicId,
+  });
+};
+
+export const usePrescriptionStats = () => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
+  return useQuery({
+    queryKey: queryKeys.prescriptionStats(clinicId),
+    queryFn: () => apiService.getPrescriptionStats(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clinicId,
+  });
+};
+
+export const useCreatePrescription = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (prescriptionData: CreatePrescriptionRequest) => 
+      apiService.createPrescription(prescriptionData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.prescriptions(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prescriptionStats(null) });
+    },
+  });
+};
+
+export const useUpdatePrescription = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<CreatePrescriptionRequest> }) => 
+      apiService.updatePrescription(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.prescriptions(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prescription(null, id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prescriptionStats(null) });
+    },
+  });
+};
+
+export const useDeletePrescription = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (id: string) => apiService.deletePrescription(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.prescriptions(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prescriptionStats(null) });
+    },
+  });
+};
+
+export const useUpdatePrescriptionStatus = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) => 
+      apiService.updatePrescriptionStatus(id, status),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.prescriptions(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prescription(null, id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prescriptionStats(null) });
+    },
+  });
+};
+
+export const useSendToPharmacy = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (id: string) => apiService.sendToPharmacy(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.prescriptions(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prescription(null, id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.prescriptionStats(null) });
     },
   });
 };
@@ -490,26 +641,37 @@ export const useTestCategories = (params?: {
   department?: string;
   status?: string;
 }) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
   return useQuery({
-    queryKey: [...queryKeys.testCategories, params],
+    queryKey: [...queryKeys.testCategories(clinicId), params],
     queryFn: () => apiService.getTestCategories(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clinicId,
   });
 };
 
 export const useTestCategory = (id: string) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
   return useQuery({
-    queryKey: queryKeys.testCategory(id),
+    queryKey: queryKeys.testCategory(clinicId, id),
     queryFn: () => apiService.getTestCategory(id),
-    enabled: !!id,
+    enabled: !!id && !!clinicId,
   });
 };
 
 export const useTestCategoryStats = () => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
   return useQuery({
-    queryKey: queryKeys.testCategoryStats,
+    queryKey: queryKeys.testCategoryStats(clinicId),
     queryFn: () => apiService.getTestCategoryStats(),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clinicId,
   });
 };
 
@@ -520,8 +682,8 @@ export const useCreateTestCategory = () => {
     mutationFn: (categoryData: CreateTestCategoryRequest) => 
       apiService.createTestCategory(categoryData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.testCategories });
-      queryClient.invalidateQueries({ queryKey: queryKeys.testCategoryStats });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testCategories(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testCategoryStats(null) });
     },
   });
 };
@@ -533,9 +695,9 @@ export const useUpdateTestCategory = () => {
     mutationFn: ({ id, data }: { id: string; data: Partial<CreateTestCategoryRequest> }) => 
       apiService.updateTestCategory(id, data),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.testCategories });
-      queryClient.invalidateQueries({ queryKey: queryKeys.testCategory(id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.testCategoryStats });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testCategories(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testCategory(null, id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testCategoryStats(null) });
     },
   });
 };
@@ -546,8 +708,8 @@ export const useDeleteTestCategory = () => {
   return useMutation({
     mutationFn: (id: string) => apiService.deleteTestCategory(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.testCategories });
-      queryClient.invalidateQueries({ queryKey: queryKeys.testCategoryStats });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testCategories(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testCategoryStats(null) });
     },
   });
 };
@@ -558,9 +720,9 @@ export const useToggleTestCategoryStatus = () => {
   return useMutation({
     mutationFn: (id: string) => apiService.toggleTestCategoryStatus(id),
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.testCategories });
-      queryClient.invalidateQueries({ queryKey: queryKeys.testCategory(id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.testCategoryStats });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testCategories(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testCategory(null, id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testCategoryStats(null) });
     },
   });
 };
@@ -573,77 +735,504 @@ export const useTurnaroundTimes = (params?: {
   priority?: string;
   status?: string;
 }) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
   return useQuery({
-    queryKey: [...queryKeys.turnaroundTimes, params],
+    queryKey: [...queryKeys.turnaroundTimes(clinicId), params],
     queryFn: () => apiService.getTurnaroundTimes(params),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clinicId,
   });
 };
 
 export const useTurnaroundTime = (id: string) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
   return useQuery({
-    queryKey: queryKeys.turnaroundTime(id),
+    queryKey: queryKeys.turnaroundTime(clinicId, id),
     queryFn: () => apiService.getTurnaroundTime(id),
-    enabled: !!id,
+    enabled: !!id && !!clinicId,
   });
 };
 
 export const useTurnaroundTimeStats = () => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
   return useQuery({
-    queryKey: queryKeys.turnaroundTimeStats,
+    queryKey: queryKeys.turnaroundTimeStats(clinicId),
     queryFn: () => apiService.getTurnaroundTimeStats(),
     staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clinicId,
   });
 };
 
 export const useCreateTurnaroundTime = () => {
   const queryClient = useQueryClient();
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
   
   return useMutation({
     mutationFn: (turnaroundData: CreateTurnaroundTimeRequest) => 
       apiService.createTurnaroundTime(turnaroundData),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTimes });
-      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTimeStats });
+      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTimes(clinicId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTimeStats(clinicId) });
     },
   });
 };
 
 export const useUpdateTurnaroundTime = () => {
   const queryClient = useQueryClient();
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
   
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<CreateTurnaroundTimeRequest> }) => 
       apiService.updateTurnaroundTime(id, data),
     onSuccess: (_, { id }) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTimes });
-      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTime(id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTimeStats });
+      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTimes(clinicId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTime(clinicId, id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTimeStats(clinicId) });
     },
   });
 };
 
 export const useDeleteTurnaroundTime = () => {
   const queryClient = useQueryClient();
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
   
   return useMutation({
     mutationFn: (id: string) => apiService.deleteTurnaroundTime(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTimes });
-      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTimeStats });
+      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTimes(clinicId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTimeStats(clinicId) });
     },
   });
 };
 
 export const useToggleTurnaroundTimeStatus = () => {
   const queryClient = useQueryClient();
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
   
   return useMutation({
     mutationFn: (id: string) => apiService.toggleTurnaroundTimeStatus(id),
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTimes });
-      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTime(id) });
-      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTimeStats });
+      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTimes(clinicId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTime(clinicId, id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.turnaroundTimeStats(clinicId) });
+    },
+  });
+};
+
+// Tests Hooks
+export const useTests = (params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category?: string;
+  status?: string;
+}) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
+  return useQuery({
+    queryKey: [...queryKeys.tests(clinicId), params],
+    queryFn: () => apiService.getTests(params),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clinicId,
+  });
+};
+
+export const useTest = (id: string) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
+  return useQuery({
+    queryKey: queryKeys.test(clinicId, id),
+    queryFn: () => apiService.getTest(id),
+    enabled: !!id && !!clinicId,
+  });
+};
+
+export const useTestStats = () => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
+  return useQuery({
+    queryKey: queryKeys.testStats(clinicId),
+    queryFn: () => apiService.getTestStats(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clinicId,
+  });
+};
+
+export const useCreateTest = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (data: any) => apiService.createTest(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tests(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testStats(null) });
+    },
+  });
+};
+
+export const useUpdateTest = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => 
+      apiService.updateTest(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tests(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.test(null, id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testStats(null) });
+    },
+  });
+};
+
+export const useDeleteTest = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (id: string) => apiService.deleteTest(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tests(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testStats(null) });
+    },
+  });
+};
+
+export const useToggleTestStatus = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (id: string) => apiService.toggleTestStatus(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.tests(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.test(null, id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testStats(null) });
+    },
+  });
+};
+
+// Test Methodologies Hooks
+export const useTestMethodologies = (params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category?: string;
+  status?: string;
+}) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
+  return useQuery({
+    queryKey: [...queryKeys.testMethodologies(clinicId), params],
+    queryFn: () => apiService.getTestMethodologies(params),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clinicId,
+  });
+};
+
+export const useTestMethodology = (id: string) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
+  return useQuery({
+    queryKey: queryKeys.testMethodology(clinicId, id),
+    queryFn: () => apiService.getTestMethodology(id),
+    enabled: !!id && !!clinicId,
+  });
+};
+
+export const useTestMethodologyStats = () => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
+  return useQuery({
+    queryKey: queryKeys.testMethodologyStats(clinicId),
+    queryFn: () => apiService.getTestMethodologyStats(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clinicId,
+  });
+};
+
+export const useCreateTestMethodology = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (data: any) => apiService.createTestMethodology(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.testMethodologies(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testMethodologyStats(null) });
+    },
+  });
+};
+
+export const useUpdateTestMethodology = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => 
+      apiService.updateTestMethodology(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.testMethodologies(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testMethodology(null, id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testMethodologyStats(null) });
+    },
+  });
+};
+
+export const useDeleteTestMethodology = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (id: string) => apiService.deleteTestMethodology(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.testMethodologies(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testMethodologyStats(null) });
+    },
+  });
+};
+
+export const useToggleTestMethodologyStatus = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (id: string) => apiService.toggleTestMethodologyStatus(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.testMethodologies(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testMethodology(null, id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testMethodologyStats(null) });
+    },
+  });
+};
+
+// Sample Types Hooks
+export const useSampleTypes = (params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  category?: string;
+  status?: string;
+}) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
+  return useQuery({
+    queryKey: [...queryKeys.sampleTypes(clinicId), params],
+    queryFn: () => apiService.getSampleTypes(params),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clinicId,
+  });
+};
+
+export const useSampleType = (id: string) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
+  return useQuery({
+    queryKey: queryKeys.sampleType(clinicId, id),
+    queryFn: () => apiService.getSampleType(id),
+    enabled: !!id && !!clinicId,
+  });
+};
+
+export const useSampleTypeStats = () => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
+  return useQuery({
+    queryKey: queryKeys.sampleTypeStats(clinicId),
+    queryFn: () => apiService.getSampleTypeStats(),
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    enabled: !!clinicId,
+  });
+};
+
+export const useCreateSampleType = () => {
+  const queryClient = useQueryClient();
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+  
+  return useMutation({
+    mutationFn: (data: any) => apiService.createSampleType(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sampleTypes(clinicId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sampleTypeStats(clinicId) });
+    },
+  });
+};
+
+export const useUpdateSampleType = () => {
+  const queryClient = useQueryClient();
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+  
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => 
+      apiService.updateSampleType(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sampleTypes(clinicId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sampleType(clinicId, id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sampleTypeStats(clinicId) });
+    },
+  });
+};
+
+export const useDeleteSampleType = () => {
+  const queryClient = useQueryClient();
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+  
+  return useMutation({
+    mutationFn: (id: string) => apiService.deleteSampleType(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sampleTypes(clinicId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sampleTypeStats(clinicId) });
+    },
+  });
+};
+
+export const useToggleSampleTypeStatus = () => {
+  const queryClient = useQueryClient();
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+  
+  return useMutation({
+    mutationFn: (id: string) => apiService.toggleSampleTypeStatus(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.sampleTypes(clinicId) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sampleType(clinicId, id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.sampleTypeStats(clinicId) });
+    },
+  });
+};
+
+// Test Reports Hooks
+export const useTestReports = (params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: string;
+  vendor?: string;
+  category?: string;
+}) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
+  return useQuery({
+    queryKey: [...queryKeys.testReports(clinicId), params],
+    queryFn: () => apiService.getTestReports(params),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    enabled: !!clinicId,
+  });
+};
+
+export const useTestReport = (id: string) => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
+  return useQuery({
+    queryKey: queryKeys.testReport(clinicId, id),
+    queryFn: () => apiService.getTestReport(id),
+    enabled: !!id && !!clinicId,
+  });
+};
+
+export const useTestReportStats = () => {
+  const { currentClinic } = useClinic();
+  const clinicId = currentClinic?._id || null;
+
+  return useQuery({
+    queryKey: queryKeys.testReportStats(clinicId),
+    queryFn: () => apiService.getTestReportStats(),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    enabled: !!clinicId,
+  });
+};
+
+export const useCreateTestReport = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (data: any) => apiService.createTestReport(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.testReports(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testReportStats(null) });
+    },
+  });
+};
+
+export const useUpdateTestReport = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: any }) => 
+      apiService.updateTestReport(id, data),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.testReports(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testReport(null, id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testReportStats(null) });
+    },
+  });
+};
+
+export const useDeleteTestReport = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (id: string) => apiService.deleteTestReport(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.testReports(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testReportStats(null) });
+    },
+  });
+};
+
+export const useUpdateTestReportStatus = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: ({ id, status, verifiedBy }: { id: string; status: string; verifiedBy?: string }) => 
+      apiService.updateTestReportStatus(id, { status, verifiedBy }),
+    onSuccess: (_, { id }) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.testReports(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testReport(null, id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testReportStats(null) });
+    },
+  });
+};
+
+export const useVerifyTestReport = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (id: string) => apiService.verifyTestReport(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.testReports(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testReport(null, id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testReportStats(null) });
+    },
+  });
+};
+
+export const useDeliverTestReport = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: (id: string) => apiService.deliverTestReport(id),
+    onSuccess: (_, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.testReports(null) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testReport(null, id) });
+      queryClient.invalidateQueries({ queryKey: queryKeys.testReportStats(null) });
     },
   });
 }; 

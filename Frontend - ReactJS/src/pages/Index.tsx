@@ -28,8 +28,6 @@ import {
   Mail,
   MapPin,
   Building2,
-  GraduationCap,
-  Database,
   Activity,
   TestTube2,
   Stethoscope,
@@ -120,20 +118,7 @@ const Index = () => {
         "Comprehensive dashboards with revenue tracking, patient analytics, and performance metrics",
       highlight: "Real-time Data",
     },
-    {
-      icon: Database,
-      title: "Database Management",
-      description:
-        "Complete database structure visualization with relationship mapping and technical documentation",
-      highlight: "Technical Docs",
-    },
-    {
-      icon: GraduationCap,
-      title: "Training Center",
-      description:
-        "Role-based training modules with progress tracking and comprehensive documentation",
-      highlight: "Learning Hub",
-    },
+
   ];
 
   const systemFeatures = [
@@ -173,7 +158,7 @@ const Index = () => {
       role: "Clinic Director",
       clinic: "MedCenter Pro",
       content:
-        "The advanced analytics and database structure documentation gave us insights we never had before. Revenue tracking is now seamless.",
+        "The advanced analytics and comprehensive reporting gave us insights we never had before. Revenue tracking is now seamless.",
       rating: 5,
     },
     {
@@ -400,24 +385,7 @@ const Index = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-3 p-2 bg-green-50 rounded">
-                    <GraduationCap className="h-8 w-8 text-green-600" />
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">Training Center</div>
-                      <div className="text-xs text-gray-500">
-                        85% completion rate
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center space-x-3 p-2 bg-purple-50 rounded">
-                    <Database className="h-8 w-8 text-purple-600" />
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">Analytics Ready</div>
-                      <div className="text-xs text-gray-500">
-                        Real-time insights available
-                      </div>
-                    </div>
-                  </div>
+
                 </div>
               </div>
             </motion.div>

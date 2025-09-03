@@ -1,9 +1,10 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { validationResult } from 'express-validator';
 import { MedicalRecord } from '../models';
+import { AuthRequest } from '../types/express';
 
 export class MedicalRecordController {
-  static async createMedicalRecord(req: Request, res: Response): Promise<void> {
+  static async createMedicalRecord(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -15,7 +16,12 @@ export class MedicalRecordController {
         return;
       }
 
-      const medicalRecord = new MedicalRecord(req.body);
+      const medicalRecordData = {
+        ...req.body,
+        clinic_id: req.clinic_id // Add clinic context to medical record data
+      };
+
+      const medicalRecord = new MedicalRecord(medicalRecordData);
       await medicalRecord.save();
 
       // Populate patient and doctor details
@@ -38,20 +44,25 @@ export class MedicalRecordController {
     }
   }
 
-  static async getMedicalRecordsByPatient(req: Request, res: Response): Promise<void> {
+  static async getMedicalRecordsByPatient(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { patientId } = req.params;
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const skip = (page - 1) * limit;
 
-      const medicalRecords = await MedicalRecord.find({ patient_id: patientId })
+      const filter = { 
+        patient_id: patientId,
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get medical records from current clinic
+      };
+
+      const medicalRecords = await MedicalRecord.find(filter)
         .populate('doctor_id', 'first_name last_name role')
         .skip(skip)
         .limit(limit)
         .sort({ visit_date: -1 });
 
-      const totalRecords = await MedicalRecord.countDocuments({ patient_id: patientId });
+      const totalRecords = await MedicalRecord.countDocuments(filter);
 
       res.json({
         success: true,
@@ -74,10 +85,13 @@ export class MedicalRecordController {
     }
   }
 
-  static async getMedicalRecordById(req: Request, res: Response): Promise<void> {
+  static async getMedicalRecordById(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const medicalRecord = await MedicalRecord.findById(id)
+      const medicalRecord = await MedicalRecord.findOne({ 
+        _id: id, 
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get medical record from current clinic
+      })
         .populate('patient_id', 'first_name last_name email phone date_of_birth')
         .populate('doctor_id', 'first_name last_name role');
 
@@ -102,11 +116,11 @@ export class MedicalRecordController {
     }
   }
 
-  static async updateMedicalRecord(req: Request, res: Response): Promise<void> {
+  static async updateMedicalRecord(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const medicalRecord = await MedicalRecord.findByIdAndUpdate(
-        id,
+      const medicalRecord = await MedicalRecord.findOneAndUpdate(
+        { _id: id, clinic_id: req.clinic_id }, // CLINIC FILTER: Only update medical record from current clinic
         req.body,
         { new: true, runValidators: true }
       )
@@ -135,10 +149,13 @@ export class MedicalRecordController {
     }
   }
 
-  static async deleteMedicalRecord(req: Request, res: Response): Promise<void> {
+  static async deleteMedicalRecord(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const medicalRecord = await MedicalRecord.findByIdAndDelete(id);
+      const medicalRecord = await MedicalRecord.findOneAndDelete({ 
+        _id: id, 
+        clinic_id: req.clinic_id // CLINIC FILTER: Only delete medical record from current clinic
+      });
 
       if (!medicalRecord) {
         res.status(404).json({
@@ -161,17 +178,22 @@ export class MedicalRecordController {
     }
   }
 
-  static async getPatientHistory(req: Request, res: Response): Promise<void> {
+  static async getPatientHistory(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { patientId } = req.params;
 
-      const medicalRecords = await MedicalRecord.find({ patient_id: patientId })
+      const filter = { 
+        patient_id: patientId,
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get medical records from current clinic
+      };
+
+      const medicalRecords = await MedicalRecord.find(filter)
         .populate('doctor_id', 'first_name last_name role')
         .sort({ visit_date: -1 });
 
       // Get chronic conditions
       const chronicConditions = await MedicalRecord.aggregate([
-        { $match: { patient_id: patientId } },
+        { $match: filter },
         { $unwind: '$diagnosis' },
         { $group: { _id: '$diagnosis', count: { $sum: 1 } } },
         { $match: { count: { $gte: 2 } } },
@@ -180,14 +202,14 @@ export class MedicalRecordController {
 
       // Get allergies
       const allergies = await MedicalRecord.aggregate([
-        { $match: { patient_id: patientId } },
+        { $match: filter },
         { $unwind: '$allergies' },
         { $group: { _id: '$allergies' } }
       ]);
 
       // Get current medications
       const currentMedications = await MedicalRecord.aggregate([
-        { $match: { patient_id: patientId } },
+        { $match: filter },
         { $sort: { visit_date: -1 } },
         { $limit: 1 },
         { $unwind: '$medications' },

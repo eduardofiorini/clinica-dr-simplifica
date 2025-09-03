@@ -1,9 +1,10 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { validationResult } from 'express-validator';
 import { Inventory } from '../models';
+import { AuthRequest } from '../types/express';
 
 export class InventoryController {
-  static async createInventoryItem(req: Request, res: Response): Promise<void> {
+  static async createInventoryItem(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -15,7 +16,12 @@ export class InventoryController {
         return;
       }
 
-      const inventoryItem = new Inventory(req.body);
+      const inventoryData = {
+        ...req.body,
+        clinic_id: req.clinic_id
+      };
+
+      const inventoryItem = new Inventory(inventoryData);
       await inventoryItem.save();
 
       res.status(201).json({
@@ -39,14 +45,16 @@ export class InventoryController {
     }
   }
 
-  static async getAllInventoryItems(req: Request, res: Response): Promise<void> {
+  static async getAllInventoryItems(req: AuthRequest, res: Response): Promise<void> {
     try {
       
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const skip = (page - 1) * limit;
 
-      let filter: any = {};
+      let filter: any = {
+        clinic_id: req.clinic_id
+      };
 
       if (req.query.category) {
         filter.category = req.query.category;
@@ -92,10 +100,13 @@ export class InventoryController {
     }
   }
 
-  static async getInventoryItemById(req: Request, res: Response): Promise<void> {
+  static async getInventoryItemById(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const inventoryItem = await Inventory.findById(id);
+      const inventoryItem = await Inventory.findOne({
+        _id: id,
+        clinic_id: req.clinic_id
+      });
 
       if (!inventoryItem) {
         res.status(404).json({
@@ -118,11 +129,11 @@ export class InventoryController {
     }
   }
 
-  static async updateInventoryItem(req: Request, res: Response): Promise<void> {
+  static async updateInventoryItem(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const inventoryItem = await Inventory.findByIdAndUpdate(
-        id,
+      const inventoryItem = await Inventory.findOneAndUpdate(
+        { _id: id, clinic_id: req.clinic_id },
         req.body,
         { new: true, runValidators: true }
       );
@@ -149,10 +160,13 @@ export class InventoryController {
     }
   }
 
-  static async deleteInventoryItem(req: Request, res: Response): Promise<void> {
+  static async deleteInventoryItem(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const inventoryItem = await Inventory.findByIdAndDelete(id);
+      const inventoryItem = await Inventory.findOneAndDelete({
+        _id: id,
+        clinic_id: req.clinic_id
+      });
 
       if (!inventoryItem) {
         res.status(404).json({
@@ -175,12 +189,15 @@ export class InventoryController {
     }
   }
 
-  static async updateStock(req: Request, res: Response): Promise<void> {
+  static async updateStock(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const { quantity, operation } = req.body;
 
-      const inventoryItem = await Inventory.findById(id);
+      const inventoryItem = await Inventory.findOne({
+        _id: id,
+        clinic_id: req.clinic_id
+      });
       if (!inventoryItem) {
         res.status(404).json({
           success: false,
@@ -205,10 +222,12 @@ export class InventoryController {
     }
   }
 
-  static async getLowStockItems(req: Request, res: Response): Promise<void> {
+  static async getLowStockItems(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const inventoryItems = await Inventory.findLowStock()
-        .sort({ current_stock: -1 });
+      const inventoryItems = await Inventory.find({
+        clinic_id: req.clinic_id,
+        $expr: { $lte: ['$current_stock', '$minimum_stock'] }
+      }).sort({ current_stock: -1 });
 
       res.json({
         success: true,
@@ -223,10 +242,12 @@ export class InventoryController {
     }
   }
 
-  static async getExpiredItems(req: Request, res: Response): Promise<void> {
+  static async getExpiredItems(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const inventoryItems = await Inventory.findExpired()
-        .sort({ expiry_date: -1 });
+      const inventoryItems = await Inventory.find({
+        clinic_id: req.clinic_id,
+        expiry_date: { $lte: new Date() }
+      }).sort({ expiry_date: -1 });
 
       res.json({
         success: true,
@@ -241,11 +262,18 @@ export class InventoryController {
     }
   }
 
-  static async getExpiringItems(req: Request, res: Response): Promise<void> {
+  static async getExpiringItems(req: AuthRequest, res: Response): Promise<void> {
     try {
       const days = parseInt(req.query.days as string) || 30;
-      const inventoryItems = await Inventory.findExpiringWithinDays(days)
-        .sort({ expiry_date: -1 });
+      const futureDate = new Date(Date.now() + (days * 24 * 60 * 60 * 1000));
+      
+      const inventoryItems = await Inventory.find({
+        clinic_id: req.clinic_id,
+        expiry_date: { 
+          $gte: new Date(),
+          $lte: futureDate 
+        }
+      }).sort({ expiry_date: -1 });
 
       res.json({
         success: true,
@@ -260,18 +288,25 @@ export class InventoryController {
     }
   }
 
-  static async getInventoryStats(req: Request, res: Response): Promise<void> {
+  static async getInventoryStats(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const totalItems = await Inventory.countDocuments();
+      const clinicFilter = { clinic_id: req.clinic_id };
+      const totalItems = await Inventory.countDocuments(clinicFilter);
       const lowStockItems = await Inventory.countDocuments({
+        ...clinicFilter,
         $expr: { $lte: ['$current_stock', '$minimum_stock'] }
       });
-      const outOfStockItems = await Inventory.countDocuments({ current_stock: 0 });
+      const outOfStockItems = await Inventory.countDocuments({ 
+        ...clinicFilter,
+        current_stock: 0 
+      });
       const expiredItems = await Inventory.countDocuments({
+        ...clinicFilter,
         expiry_date: { $lte: new Date() }
       });
 
       const totalValue = await Inventory.aggregate([
+        { $match: clinicFilter },
         {
           $group: {
             _id: null,
@@ -281,6 +316,7 @@ export class InventoryController {
       ]);
 
       const categoryStats = await Inventory.aggregate([
+        { $match: clinicFilter },
         {
           $group: {
             _id: '$category',

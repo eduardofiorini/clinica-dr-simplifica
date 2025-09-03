@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { TestReportController, upload } from '../controllers/testReportController';
+import { authenticate, requireMedicalStaff } from '../middleware/auth';
+import { clinicContext } from '../middleware/clinicContext';
 
 const router = Router();
 
@@ -22,16 +24,16 @@ const statusUpdateValidation = [
   body('verifiedBy').optional().notEmpty().withMessage('Verified by is required when verifying')
 ];
 
-// Routes
-router.post('/', reportValidation, TestReportController.createReport);
-router.get('/', TestReportController.getAllReports);
-router.get('/stats', TestReportController.getReportStats);
-router.get('/patient/:patientId', TestReportController.getPatientReports);
-router.get('/:id', TestReportController.getReportById);
-router.put('/:id', reportValidation, TestReportController.updateReport);
-router.patch('/:id/status', statusUpdateValidation, TestReportController.updateStatus);
-router.post('/:id/attachments', upload.single('file'), TestReportController.addAttachment);
-router.delete('/:id/attachments/:attachmentId', TestReportController.removeAttachment);
-router.delete('/:id', TestReportController.deleteReport);
+// Routes - All test report operations require authentication and clinic context
+router.post('/', authenticate, clinicContext, reportValidation, TestReportController.createReport);
+router.get('/', authenticate, clinicContext, TestReportController.getAllReports);
+router.get('/stats', authenticate, clinicContext, TestReportController.getReportStats);
+router.get('/patient/:patientId', authenticate, clinicContext, TestReportController.getPatientReports);
+router.get('/:id', authenticate, clinicContext, TestReportController.getReportById);
+router.put('/:id', authenticate, clinicContext, reportValidation, TestReportController.updateReport);
+router.patch('/:id/status', authenticate, clinicContext, statusUpdateValidation, TestReportController.updateStatus);
+router.post('/:id/attachments', authenticate, clinicContext, upload.single('file'), TestReportController.addAttachment);
+router.delete('/:id/attachments/:attachmentId', authenticate, clinicContext, TestReportController.removeAttachment);
+router.delete('/:id', authenticate, clinicContext, ...requireMedicalStaff, TestReportController.deleteReport);
 
 export default router; 

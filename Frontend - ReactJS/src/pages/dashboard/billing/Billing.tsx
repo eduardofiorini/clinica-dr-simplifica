@@ -59,6 +59,7 @@ import { CurrencyDisplay } from "@/components/ui/CurrencyDisplay";
 import { toast } from "@/hooks/use-toast";
 import { apiService, type Invoice, type Payment, type PaymentStats, type InvoiceStats } from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
+import ErrorHandler from "@/components/ErrorHandler";
 
 const Billing = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -71,6 +72,7 @@ const Billing = () => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [error, setError] = useState<Error | null>(null);
 
   // Modal states
   const [viewModalOpen, setViewModalOpen] = useState(false);
@@ -88,6 +90,7 @@ const Billing = () => {
   const loadData = async () => {
     try {
       setLoading(true);
+      setError(null);
       await Promise.all([
         loadInvoices(),
         loadPayments(),
@@ -96,11 +99,17 @@ const Billing = () => {
       ]);
     } catch (error) {
       console.error('Error loading billing data:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load billing data. Please try again.",
-        variant: "destructive",
-      });
+      const err = error as Error;
+      setError(err);
+      
+      // Don't show toast for permission errors, ErrorHandler will handle it
+      if (!err.message.includes('403')) {
+        toast({
+          title: "Error",
+          description: "Failed to load billing data. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -393,6 +402,21 @@ const Billing = () => {
 
   return (
     <div className="space-y-3 xs:space-y-4 sm:space-y-6">
+      {/* Error Handler - Show when there are errors */}
+      {error && (
+        <ErrorHandler 
+          error={error} 
+          errorCode={error.message.includes('403') ? '403' : undefined}
+          onRetry={loadData}
+          showDebug={process.env.NODE_ENV === 'development'}
+        />
+      )}
+
+
+
+      {/* Only show the main UI if there's no error */}
+      {!error && (
+        <>
       {/* Header */}
       <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1 min-w-0">
@@ -1008,6 +1032,8 @@ const Billing = () => {
         isOpen={viewPaymentModalOpen}
         onClose={handleModalClose}
       />
+        </>
+      )}
     </div>
   );
 };

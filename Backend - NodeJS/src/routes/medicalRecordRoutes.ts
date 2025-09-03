@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { MedicalRecordController } from '../controllers';
+import { authenticate } from '../middleware/auth';
+import { clinicContext } from '../middleware/clinicContext';
 
 const router = Router();
 
@@ -22,12 +24,12 @@ const medicalRecordValidation = [
   body('vital_signs.height').optional().isFloat({ min: 30, max: 250 }).withMessage('Height must be between 30-250 cm')
 ];
 
-// Routes
-router.post('/', medicalRecordValidation, MedicalRecordController.createMedicalRecord);
-router.get('/patient/:patientId', MedicalRecordController.getMedicalRecordsByPatient);
-router.get('/patient/:patientId/history', MedicalRecordController.getPatientHistory);
-router.get('/:id', MedicalRecordController.getMedicalRecordById);
-router.put('/:id', medicalRecordValidation, MedicalRecordController.updateMedicalRecord);
-router.delete('/:id', MedicalRecordController.deleteMedicalRecord);
+// Routes - All routes require authentication and clinic context
+router.post('/', authenticate, clinicContext, medicalRecordValidation, MedicalRecordController.createMedicalRecord);
+router.get('/patient/:patientId', authenticate, clinicContext, MedicalRecordController.getMedicalRecordsByPatient);
+router.get('/patient/:patientId/history', authenticate, clinicContext, MedicalRecordController.getPatientHistory);
+router.get('/:id', authenticate, clinicContext, MedicalRecordController.getMedicalRecordById);
+router.put('/:id', authenticate, clinicContext, medicalRecordValidation, MedicalRecordController.updateMedicalRecord);
+router.delete('/:id', authenticate, clinicContext, MedicalRecordController.deleteMedicalRecord);
 
 export default router; 

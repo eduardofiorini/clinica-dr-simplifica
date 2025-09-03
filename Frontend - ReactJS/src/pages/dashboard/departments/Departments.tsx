@@ -48,6 +48,7 @@ import EditDepartmentModal from "@/components/modals/EditDepartmentModal";
 import ViewDepartmentModal from "@/components/modals/ViewDepartmentModal";
 import { toast } from "@/hooks/use-toast";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useClinic } from "@/contexts/ClinicContext";
 import { CurrencyDisplay } from "@/components/ui/CurrencyDisplay";
 import { apiService, Department as ApiDepartment, CreateDepartmentRequest, DepartmentStats } from "@/services/api";
 

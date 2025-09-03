@@ -81,6 +81,9 @@ router.get('/doctors', requireMedicalStaff, UserController.getDoctors);
 // Nurse routes (accessible by medical staff for appointments)
 router.get('/nurses', requireMedicalStaff, UserController.getNurses);
 
+// Public routes (no authentication required)
+router.get('/demo', UserController.getDemoUsers);
+
 // Admin routes (require admin authorization middleware)
 router.get('/', requireAllRoles, UserController.getAllUsers);
 router.get('/:id', requireAdmin, UserController.getUserById);

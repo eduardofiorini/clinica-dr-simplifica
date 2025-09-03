@@ -10,6 +10,7 @@ export interface ILead extends Document {
   status: 'new' | 'contacted' | 'converted' | 'lost';
   assignedTo?: string;
   notes?: string;
+  clinic_id: mongoose.Types.ObjectId;
   created_at: Date;
   updated_at: Date;
 }
@@ -65,6 +66,11 @@ const LeadSchema: Schema = new Schema({
     type: String,
     trim: true,
     maxlength: [1000, 'Notes cannot exceed 1000 characters']
+  },
+  clinic_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Clinic',
+    required: [true, 'Clinic ID is required']
   }
 }, {
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
@@ -82,8 +88,12 @@ LeadSchema.index({
 LeadSchema.index({ status: 1 });
 LeadSchema.index({ source: 1 });
 LeadSchema.index({ assignedTo: 1 });
+LeadSchema.index({ clinic_id: 1 });
 
 // Compound index for common queries
+LeadSchema.index({ clinic_id: 1, status: 1 });
+LeadSchema.index({ clinic_id: 1, source: 1 });
+LeadSchema.index({ clinic_id: 1, created_at: -1 });
 LeadSchema.index({ status: 1, source: 1 });
 LeadSchema.index({ created_at: -1 });
 

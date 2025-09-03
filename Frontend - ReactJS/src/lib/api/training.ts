@@ -1,6 +1,8 @@
 // Define axios client similar to existing API pattern
 import axios, { AxiosInstance } from 'axios';
 
+import { clinicCookies } from '@/utils/cookies';
+
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api';
 
 const apiClient: AxiosInstance = axios.create({
@@ -14,7 +16,7 @@ const apiClient: AxiosInstance = axios.create({
 // Request interceptor to add auth token
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('clinic_token');
+    const token = clinicCookies.getClinicToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -30,8 +32,8 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('clinic_token');
-      localStorage.removeItem('clinic_user');
+      clinicCookies.clearClinicData();
+      localStorage.removeItem('clinic_user'); // Keep this for backward compatibility
       window.location.href = '/login';
     }
     return Promise.reject(error);

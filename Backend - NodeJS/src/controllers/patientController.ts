@@ -17,7 +17,12 @@ export class PatientController {
         return;
       }
 
-      const patient = new Patient(req.body);
+      const patientData = {
+        ...req.body,
+        clinic_id: req.clinic_id // Add clinic context to patient data
+      };
+      
+      const patient = new Patient(patientData);
       await patient.save();
 
       res.status(201).json({
@@ -40,7 +45,9 @@ export class PatientController {
       const limit = parseInt(req.query.limit as string) || 10;
       const skip = (page - 1) * limit;
 
-      let filter: any = {};
+      let filter: any = {
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get patients from current clinic
+      };
 
       // Search filter
       if (req.query.search) {
@@ -196,7 +203,10 @@ export class PatientController {
         return;
       }
 
-      const patient = await Patient.findById(id);
+      const patient = await Patient.findOne({ 
+        _id: id, 
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get patient from current clinic
+      });
 
       if (!patient) {
         res.status(404).json({
@@ -261,8 +271,8 @@ export class PatientController {
         return;
       }
 
-      const patient = await Patient.findByIdAndUpdate(
-        id,
+      const patient = await Patient.findOneAndUpdate(
+        { _id: id, clinic_id: req.clinic_id }, // CLINIC FILTER: Only update patient from current clinic
         req.body,
         { new: true, runValidators: true }
       );
@@ -302,7 +312,10 @@ export class PatientController {
         return;
       }
 
-      const patient = await Patient.findByIdAndDelete(id);
+      const patient = await Patient.findOneAndDelete({ 
+        _id: id, 
+        clinic_id: req.clinic_id // CLINIC FILTER: Only delete patient from current clinic
+      });
 
       if (!patient) {
         res.status(404).json({
@@ -327,7 +340,9 @@ export class PatientController {
 
   static async getPatientStats(req: AuthRequest, res: Response): Promise<void> {
     try {
-      let filter: any = {};
+      let filter: any = {
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get stats for current clinic
+      };
 
       // Apply role-based filtering for stats
       if (req.user?.role === 'doctor') {
@@ -335,10 +350,16 @@ export class PatientController {
         const doctorId = req.user._id;
         
         // Get patient IDs from appointments
-        const appointmentPatients = await Appointment.distinct('patient_id', { doctor_id: doctorId });
+        const appointmentPatients = await Appointment.distinct('patient_id', { 
+          doctor_id: doctorId, 
+          clinic_id: req.clinic_id 
+        });
         
         // Get patient IDs from prescriptions
-        const prescriptionPatients = await Prescription.distinct('patient_id', { doctor_id: doctorId });
+        const prescriptionPatients = await Prescription.distinct('patient_id', { 
+          doctor_id: doctorId, 
+          clinic_id: req.clinic_id 
+        });
         
         // Combine patient IDs
         const patientIds = [...new Set([...appointmentPatients, ...prescriptionPatients])];

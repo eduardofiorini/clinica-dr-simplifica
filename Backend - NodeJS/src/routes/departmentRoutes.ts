@@ -1,8 +1,14 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { DepartmentController } from '../controllers';
+import { authenticate } from '../middleware/auth';
+import { clinicContext } from '../middleware/clinicContext';
 
 const router = Router();
+
+// Apply authentication middleware first, then clinic context to all routes
+router.use(authenticate);
+router.use(clinicContext);
 
 // Validation middleware
 const departmentValidation = [

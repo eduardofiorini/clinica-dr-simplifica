@@ -9,6 +9,7 @@ export interface ITurnaroundTime extends Document {
   category: string;
   description: string;
   examples: string[];
+  clinic_id: mongoose.Types.ObjectId;
   isActive: boolean;
   created_at: Date;
   updated_at: Date;
@@ -19,16 +20,14 @@ const TurnaroundTimeSchema: Schema = new Schema({
     type: String,
     required: [true, 'Turnaround time name is required'],
     trim: true,
-    maxlength: [100, 'Turnaround time name cannot exceed 100 characters'],
-    unique: true
+    maxlength: [100, 'Turnaround time name cannot exceed 100 characters']
   },
   code: {
     type: String,
     required: [true, 'Turnaround time code is required'],
     trim: true,
     uppercase: true,
-    maxlength: [20, 'Turnaround time code cannot exceed 20 characters'],
-    unique: true
+    maxlength: [20, 'Turnaround time code cannot exceed 20 characters']
   },
   duration: {
     type: String,
@@ -66,6 +65,11 @@ const TurnaroundTimeSchema: Schema = new Schema({
     trim: true,
     required: true
   }],
+  clinic_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Clinic',
+    required: [true, 'Clinic ID is required']
+  },
   isActive: {
     type: Boolean,
     default: true
@@ -79,6 +83,14 @@ TurnaroundTimeSchema.index({ name: 'text', code: 'text', description: 'text' });
 TurnaroundTimeSchema.index({ priority: 1 });
 TurnaroundTimeSchema.index({ isActive: 1 });
 TurnaroundTimeSchema.index({ durationMinutes: 1 });
+TurnaroundTimeSchema.index({ clinic_id: 1 });
+
+// Compound indexes for clinic-based queries
+TurnaroundTimeSchema.index({ clinic_id: 1, name: 1 }, { unique: true });
+TurnaroundTimeSchema.index({ clinic_id: 1, code: 1 }, { unique: true });
+TurnaroundTimeSchema.index({ clinic_id: 1, priority: 1 });
+TurnaroundTimeSchema.index({ clinic_id: 1, isActive: 1 });
+TurnaroundTimeSchema.index({ clinic_id: 1, durationMinutes: 1 });
 
 // Pre-save middleware to ensure code is uppercase
 TurnaroundTimeSchema.pre('save', function(this: ITurnaroundTime, next) {

@@ -1,9 +1,10 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import { Lead, Patient } from '../models';
+import { AuthRequest } from '../types/express';
 
 export class LeadController {
-  static async createLead(req: Request, res: Response): Promise<void> {
+  static async createLead(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -15,7 +16,12 @@ export class LeadController {
         return;
       }
 
-      const lead = new Lead(req.body);
+      const leadData = {
+        ...req.body,
+        clinic_id: req.clinic_id // Add clinic context to lead data
+      };
+      
+      const lead = new Lead(leadData);
       await lead.save();
 
       res.status(201).json({
@@ -32,13 +38,15 @@ export class LeadController {
     }
   }
 
-  static async getAllLeads(req: Request, res: Response): Promise<void> {
+  static async getAllLeads(req: AuthRequest, res: Response): Promise<void> {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const skip = (page - 1) * limit;
 
-      let filter: any = {};
+      let filter: any = {
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get leads from current clinic
+      };
 
       // Search filter
       if (req.query.search) {
@@ -112,10 +120,13 @@ export class LeadController {
     }
   }
 
-  static async getLeadById(req: Request, res: Response): Promise<void> {
+  static async getLeadById(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const lead = await Lead.findById(id);
+      const lead = await Lead.findOne({ 
+        _id: id, 
+        clinic_id: req.clinic_id 
+      });
 
       if (!lead) {
         res.status(404).json({
@@ -138,7 +149,7 @@ export class LeadController {
     }
   }
 
-  static async updateLead(req: Request, res: Response): Promise<void> {
+  static async updateLead(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -151,8 +162,8 @@ export class LeadController {
       }
 
       const { id } = req.params;
-      const lead = await Lead.findByIdAndUpdate(
-        id,
+      const lead = await Lead.findOneAndUpdate(
+        { _id: id, clinic_id: req.clinic_id },
         req.body,
         { new: true, runValidators: true }
       );
@@ -179,10 +190,13 @@ export class LeadController {
     }
   }
 
-  static async deleteLead(req: Request, res: Response): Promise<void> {
+  static async deleteLead(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const lead = await Lead.findByIdAndDelete(id);
+      const lead = await Lead.findOneAndDelete({ 
+        _id: id, 
+        clinic_id: req.clinic_id 
+      });
 
       if (!lead) {
         res.status(404).json({
@@ -205,7 +219,7 @@ export class LeadController {
     }
   }
 
-  static async updateLeadStatus(req: Request, res: Response): Promise<void> {
+  static async updateLeadStatus(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const { status } = req.body;
@@ -218,8 +232,8 @@ export class LeadController {
         return;
       }
 
-      const lead = await Lead.findByIdAndUpdate(
-        id,
+      const lead = await Lead.findOneAndUpdate(
+        { _id: id, clinic_id: req.clinic_id },
         { status },
         { new: true, runValidators: true }
       );
@@ -246,7 +260,7 @@ export class LeadController {
     }
   }
 
-  static async convertLeadToPatient(req: Request, res: Response): Promise<void> {
+  static async convertLeadToPatient(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -259,7 +273,10 @@ export class LeadController {
       }
 
       const { id } = req.params;
-      const lead = await Lead.findById(id);
+      const lead = await Lead.findOne({ 
+        _id: id, 
+        clinic_id: req.clinic_id 
+      });
 
       if (!lead) {
         res.status(404).json({
@@ -285,6 +302,7 @@ export class LeadController {
         last_name: req.body.last_name || lead.lastName,
         email: req.body.email || lead.email,
         phone: req.body.phone || lead.phone,
+        clinic_id: req.clinic_id // Add clinic context to patient data
       };
 
       const patient = new Patient(patientData);
@@ -314,12 +332,15 @@ export class LeadController {
     }
   }
 
-  static async getLeadStats(req: Request, res: Response): Promise<void> {
+  static async getLeadStats(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const totalLeads = await Lead.countDocuments();
+      const clinicFilter = { clinic_id: req.clinic_id };
+      
+      const totalLeads = await Lead.countDocuments(clinicFilter);
       
       // Status distribution
       const statusStats = await Lead.aggregate([
+        { $match: clinicFilter },
         {
           $group: {
             _id: '$status',
@@ -330,6 +351,7 @@ export class LeadController {
 
       // Source distribution
       const sourceStats = await Lead.aggregate([
+        { $match: clinicFilter },
         {
           $group: {
             _id: '$source',
@@ -339,13 +361,17 @@ export class LeadController {
       ]);
 
       // Conversion rate
-      const convertedLeads = await Lead.countDocuments({ status: 'converted' });
+      const convertedLeads = await Lead.countDocuments({ 
+        ...clinicFilter,
+        status: 'converted' 
+      });
       const conversionRate = totalLeads > 0 ? (convertedLeads / totalLeads) * 100 : 0;
 
       // Recent leads (last 30 days)
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       const recentLeads = await Lead.countDocuments({
+        ...clinicFilter,
         created_at: { $gte: thirtyDaysAgo }
       });
 
@@ -356,6 +382,7 @@ export class LeadController {
       const monthlyTrend = await Lead.aggregate([
         {
           $match: {
+            ...clinicFilter,
             created_at: { $gte: sixMonthsAgo }
           }
         },
@@ -398,19 +425,24 @@ export class LeadController {
     }
   }
 
-  static async getLeadsByAssignee(req: Request, res: Response): Promise<void> {
+  static async getLeadsByAssignee(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { assignee } = req.params;
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const skip = (page - 1) * limit;
 
-      const leads = await Lead.find({ assignedTo: assignee })
+      const filter = { 
+        assignedTo: assignee, 
+        clinic_id: req.clinic_id 
+      };
+
+      const leads = await Lead.find(filter)
         .skip(skip)
         .limit(limit)
         .sort({ created_at: -1 });
 
-      const totalLeads = await Lead.countDocuments({ assignedTo: assignee });
+      const totalLeads = await Lead.countDocuments(filter);
 
       res.json({
         success: true,

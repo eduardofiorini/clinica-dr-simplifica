@@ -1,11 +1,13 @@
 import { Router } from 'express';
 import { requireAnalyticsAccess } from '../middleware/auth';
+import { clinicContext } from '../middleware/clinicContext';
 import { AnalyticsController } from '../controllers/analyticsController';
 
 const router = Router();
 
-// All analytics routes require admin or accountant authentication
+// All analytics routes require admin or accountant authentication AND clinic context
 router.use(requireAnalyticsAccess);
+router.use(clinicContext);
 
 /**
  * @swagger

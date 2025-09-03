@@ -20,6 +20,7 @@ interface WorkSchedule {
 
 export interface IUser extends Document {
   _id: Types.ObjectId;
+  clinic_id: mongoose.Types.ObjectId;
   email: string;
   password_hash: string;
   first_name: string;
@@ -74,6 +75,11 @@ const WorkScheduleSchema = new Schema({
 }, { _id: false });
 
 const UserSchema: Schema = new Schema({
+  clinic_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Clinic',
+    required: true
+  },
   email: {
     type: String,
     required: [true, 'Email is required'],
@@ -170,6 +176,14 @@ const UserSchema: Schema = new Schema({
 }, {
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
+
+// Create clinic-aware indexes for better query performance
+UserSchema.index({ clinic_id: 1 });
+UserSchema.index({ clinic_id: 1, email: 1 }, { unique: true }); // Unique email per clinic
+UserSchema.index({ clinic_id: 1, role: 1 });
+UserSchema.index({ clinic_id: 1, is_active: 1 });
+UserSchema.index({ clinic_id: 1, department: 1 });
+UserSchema.index({ clinic_id: 1, first_name: 1, last_name: 1 });
 
 // Hash password before saving
 UserSchema.pre('save', async function(next) {

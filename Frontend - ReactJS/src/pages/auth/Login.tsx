@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
+import { useDemoUsers } from "@/hooks/useDemoUsers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,8 +25,10 @@ import {
   Users,
   Calculator,
   UserCheck,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { clinicCookies, iframeUtils } from "@/utils/cookies";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -35,6 +38,7 @@ const Login = () => {
   const [error, setError] = useState("");
 
   const { login, loading: authLoading } = useAuth();
+  const { demoAccounts, loading: demoLoading, error: demoError, refetch: refetchDemoUsers } = useDemoUsers();
   const navigate = useNavigate();
 
 
@@ -121,52 +125,44 @@ const Login = () => {
     }
   };
 
-  const demoAccounts = [
-    {
-      role: "Admin",
-      email: "admin@clinic.com",
-      password: "admin123",
-      description: "Full system access",
-      icon: Shield,
-      color: "bg-purple-100 text-purple-800",
-    },
-    {
-      role: "Doctor",
-      email: "sarah.johnson@clinic.com",
-      password: "doctor123",
-      description: "Patient care & prescriptions",
-      icon: Stethoscope,
-      color: "bg-blue-100 text-blue-800",
-    },
-    {
-      role: "Receptionist",
-      email: "linda.receptionist@clinic.com",
-      password: "receptionist123",
-      description: "Appointments & leads",
-      icon: Users,
-      color: "bg-green-100 text-green-800",
-    },
-    {
-      role: "Nurse",
-      email: "mary.nurse@clinic.com",
-      password: "nurse123",
-      description: "Patient care & inventory",
-      icon: UserCheck,
-      color: "bg-orange-100 text-orange-800",
-    },
-    {
-      role: "Accountant",
-      email: "robert.accountant@clinic.com",
-      password: "accountant123",
-      description: "Financial management",
-      icon: Calculator,
-      color: "bg-pink-100 text-pink-800",
-    },
-  ];
+
 
   return (
     <div className="w-full bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
       <div className="w-full max-w-7xl mx-auto">
+        {/* iframe Access Notice */}
+        {iframeUtils.isInIframe() && (
+          <Alert className="mb-6 border-blue-200 bg-blue-50">
+            <AlertDescription className="text-blue-800 text-center">
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
+                <span>Having trouble accessing the login?</span>
+                <a 
+                  href="https://clinic-management-system-kappa.vercel.app/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="font-medium text-blue-600 hover:text-blue-500 underline transition-colors"
+                >
+                  Try the direct link to our original domain →
+                </a>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Debug Information for iframe contexts */}
+        {iframeUtils.isInIframe() && process.env.NODE_ENV === 'development' && (
+          <Alert className="mb-6 border-amber-200 bg-amber-50">
+            <AlertDescription className="text-amber-800">
+              <details className="cursor-pointer">
+                <summary className="font-medium mb-2">🔧 Debug Information (Dev Mode)</summary>
+                <pre className="text-xs bg-amber-100 p-2 rounded mt-2 overflow-x-auto">
+                  {JSON.stringify(clinicCookies.getStorageDiagnostics(), null, 2)}
+                </pre>
+              </details>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-2">
@@ -341,14 +337,42 @@ const Login = () => {
           {/* Right Column: Demo Accounts Section */}
           <Card className="shadow-xl border-0 h-fit">
             <CardHeader>
-              <CardTitle className="text-lg lg:text-xl text-center">
-                Try Demo Accounts
-              </CardTitle>
-              <CardDescription className="text-center text-sm">
-                Experience different user roles with our demo accounts. Click "Try" to login instantly.
-              </CardDescription>
+              <div className="flex items-center justify-between">
+                <div className="text-center flex-1">
+                  <CardTitle className="text-lg lg:text-xl">
+                    Try Demo Accounts
+                  </CardTitle>
+                  <CardDescription className="text-sm mt-1">
+                    Experience different user roles with our demo accounts. Click "Try" to login instantly.
+                  </CardDescription>
+                </div>
+                {!demoLoading && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={refetchDemoUsers}
+                    className="ml-2 h-8 w-8 p-0"
+                    title="Refresh demo accounts"
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent className="space-y-4">
+              {demoLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                  <span className="ml-2 text-sm text-gray-500">Loading demo accounts...</span>
+                </div>
+              ) : demoError ? (
+                <Alert variant="destructive" className="border-red-200 bg-red-50">
+                  <AlertDescription className="text-red-800">
+                    {demoError}
+                  </AlertDescription>
+                </Alert>
+              ) : null}
+              
               {demoAccounts.map((account) => (
                 <div
                   key={account.role}
@@ -362,6 +386,11 @@ const Login = () => {
                       <div className="flex items-center space-x-2 mb-1">
                         <p className="font-semibold text-gray-900 text-sm">
                           {account.role}
+                          {account.firstName && account.lastName && (
+                            <span className="font-normal text-gray-600 ml-1">
+                              ({account.firstName} {account.lastName})
+                            </span>
+                          )}
                         </p>
                         <Badge className={`text-xs ${account.color}`}>
                           {account.role.toLowerCase()}
@@ -382,7 +411,7 @@ const Login = () => {
                     variant="outline"
                     size="sm"
                     onClick={() => handleDemoLogin(account.email, account.password)}
-                    disabled={isLoading || authLoading}
+                    disabled={isLoading || authLoading || demoLoading}
                     className="ml-3 flex-shrink-0"
                   >
                     {(isLoading || authLoading) ? (
@@ -393,6 +422,24 @@ const Login = () => {
                   </Button>
                 </div>
               ))}
+              
+              {!demoLoading && demoAccounts.length === 0 && !demoError && (
+                <div className="text-center py-4 text-gray-500">
+                  <p className="text-sm">No users found in database</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Please run the database seeder to create demo users
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={refetchDemoUsers}
+                    className="mt-2"
+                  >
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </motion.div>

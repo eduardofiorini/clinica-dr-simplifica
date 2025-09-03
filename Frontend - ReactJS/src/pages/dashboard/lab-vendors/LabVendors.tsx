@@ -53,8 +53,10 @@ import {
   FileText,
   Users,
   DollarSign,
+  Loader2,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { useClinic } from "@/contexts/ClinicContext";
 import AddLabVendorModal from "@/components/modals/AddLabVendorModal";
 import ViewVendorDetailsModal from "@/components/modals/ViewVendorDetailsModal";
 import EditVendorModal from "@/components/modals/EditVendorModal";
@@ -69,6 +71,7 @@ const LabVendors = () => {
   const [selectedType, setSelectedType] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedSpecialty, setSelectedSpecialty] = useState("all");
+  const { currentClinic, loading: clinicLoading, error: clinicError } = useClinic();
 
   // API state
   const [labVendors, setLabVendors] = useState<LabVendor[]>([]);
@@ -234,6 +237,12 @@ const LabVendors = () => {
 
   // Load lab vendors from API
   const fetchLabVendors = async () => {
+    if (!currentClinic) {
+      console.warn("No clinic selected, skipping lab vendors fetch");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       setIsLoading(true);
       const filters = {
@@ -250,19 +259,28 @@ const LabVendors = () => {
       setPagination(response.pagination);
     } catch (error) {
       console.error("Error fetching lab vendors:", error);
+      const errorMessage = error instanceof Error && error.message.includes('401') 
+        ? "Access denied. Please check your clinic permissions." 
+        : error instanceof Error && error.message.includes('403')
+        ? "Insufficient permissions to view lab vendors for this clinic."
+        : "Failed to load lab vendors. Please try again.";
+      
       toast({
         title: "Error",
-        description: "Failed to load lab vendors. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
-      // Fallback to mock data
-      setLabVendors(mockLabVendors);
+      setLabVendors([]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const fetchStats = async () => {
+    if (!currentClinic) {
+      return;
+    }
+
     try {
       const labVendorStats = await labVendorApi.getLabVendorStats();
       setStats(labVendorStats);
@@ -290,18 +308,20 @@ const LabVendors = () => {
     }
   };
 
-  // Initial load
+  // Initial load when clinic is available
   useEffect(() => {
-    fetchLabVendors();
-    fetchStats();
-  }, []);
+    if (currentClinic) {
+      fetchLabVendors();
+      fetchStats();
+    }
+  }, [currentClinic]);
 
   // Refresh when filters change
   useEffect(() => {
-    if (!isLoading) {
+    if (!isLoading && currentClinic) {
       fetchLabVendors();
     }
-  }, [searchTerm, selectedType, selectedStatus, selectedSpecialty, pagination.page]);
+  }, [searchTerm, selectedType, selectedStatus, selectedSpecialty, pagination.page, currentClinic]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -524,6 +544,36 @@ const LabVendors = () => {
   const pendingVendors = stats?.pendingVendors || labVendors.filter((v) => v.status === "pending").length;
   const totalTests = stats?.totalTests || labVendors.reduce((sum, v) => sum + v.totalTests, 0);
 
+  // Handle clinic loading state
+  if (clinicLoading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2 text-gray-600">Loading clinic context...</span>
+      </div>
+    );
+  }
+
+  // Handle no clinic selected state
+  if (!currentClinic && !clinicLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-12">
+          <Building className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Clinic Selected</h2>
+          <p className="text-gray-600 mb-4">
+            Please select a clinic to view and manage lab vendors.
+          </p>
+          {clinicError && (
+            <p className="text-red-600 text-sm">
+              Error: {clinicError}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -533,7 +583,11 @@ const LabVendors = () => {
             Lab Vendors
           </h1>
           <p className="text-gray-600 mt-1">
-            Manage external laboratory partners and vendors
+            {currentClinic ? (
+              <>Manage external laboratory partners and vendors for <span className="font-semibold text-blue-600">{currentClinic.name}</span></>
+            ) : (
+              "Manage external laboratory partners and vendors"
+            )}
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 flex-shrink-0">

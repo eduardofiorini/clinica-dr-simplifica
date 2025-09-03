@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IXrayAnalysis extends Document {
+  clinic_id: mongoose.Types.ObjectId;
   patient_id: mongoose.Types.ObjectId;
   doctor_id: mongoose.Types.ObjectId;
   image_url: string;
@@ -23,6 +24,12 @@ export interface IXrayAnalysis extends Document {
 }
 
 const XrayAnalysisSchema = new Schema<IXrayAnalysis>({
+  clinic_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Clinic',
+    required: [true, 'Clinic ID is required'],
+    index: true
+  },
   patient_id: {
     type: Schema.Types.ObjectId,
     ref: 'Patient',
@@ -90,8 +97,9 @@ XrayAnalysisSchema.pre('save', function(next) {
 });
 
 // Create indexes for better query performance
-XrayAnalysisSchema.index({ patient_id: 1, analysis_date: -1 });
-XrayAnalysisSchema.index({ doctor_id: 1, created_at: -1 });
-XrayAnalysisSchema.index({ status: 1 });
+XrayAnalysisSchema.index({ clinic_id: 1 });
+XrayAnalysisSchema.index({ clinic_id: 1, patient_id: 1, analysis_date: -1 });
+XrayAnalysisSchema.index({ clinic_id: 1, doctor_id: 1, created_at: -1 });
+XrayAnalysisSchema.index({ clinic_id: 1, status: 1 });
 
 export default mongoose.model<IXrayAnalysis>('XrayAnalysis', XrayAnalysisSchema); 

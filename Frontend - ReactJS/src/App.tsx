@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
+import { ClinicProvider } from "@/contexts/ClinicContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import RequireRole from "@/components/RequireRole";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -17,6 +18,7 @@ import Features from "./pages/Features";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import ForgotPassword from "./pages/auth/ForgotPassword";
+import ClinicSelection from "./pages/ClinicSelection";
 import Dashboard from "./pages/dashboard/Dashboard";
 import XrayAnalysis from "./pages/dashboard/xray-analysis/XrayAnalysis";
 import Patients from "./pages/dashboard/patients/Patients";
@@ -30,6 +32,7 @@ import Invoices from "./pages/dashboard/invoices/Invoices";
 import Payments from "./pages/dashboard/payments/Payments";
 import Payroll from "./pages/dashboard/payroll/Payroll";
 import Prescriptions from "./pages/dashboard/prescriptions/Prescriptions";
+import Odontograms from "./pages/dashboard/odontograms/Odontograms";
 import Analytics from "./pages/dashboard/analytics/Analytics";
 import TestReports from "./pages/dashboard/test-reports/TestReports";
 import Tests from "./pages/dashboard/tests/Tests";
@@ -41,11 +44,8 @@ import Category from "./pages/dashboard/test-modules/category/Category";
 import Calendar from "./pages/dashboard/calendar/Calendar";
 
 import Profile from "./pages/dashboard/profile/Profile";
-import Documentation from "./pages/dashboard/documentation/Documentation";
-import DatabaseStructure from "./pages/dashboard/database-structure/DatabaseStructure";
-import Training from "./pages/dashboard/training/Training";
-import TrainingProgress from "./pages/dashboard/training/TrainingProgress";
 import Departments from "./pages/dashboard/departments/Departments";
+import Clinics from "./pages/dashboard/clinics/Clinics";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -97,10 +97,11 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <AuthProvider>
-            <CurrencyProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
+            <ClinicProvider>
+              <CurrencyProvider>
+                <Toaster />
+                <Sonner />
+                <BrowserRouter>
           <Routes>
             {/* Public routes */}
             <Route path="/" element={<Index />} />
@@ -108,6 +109,16 @@ const App = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+
+            {/* Clinic selection - requires auth but no clinic context */}
+            <Route
+              path="/select-clinic"
+              element={
+                <ProtectedRoute requireClinic={false}>
+                  <ClinicSelection />
+                </ProtectedRoute>
+              }
+            />
 
             {/* Protected dashboard routes with role-based access */}
             <Route
@@ -221,6 +232,16 @@ const App = () => {
                 }
               />
 
+              {/* Clinics - admin only */}
+              <Route
+                path="clinics"
+                element={
+                  <RequireRole roles={["admin"]}>
+                    <Clinics />
+                  </RequireRole>
+                }
+              />
+
               {/* Inventory - accessible to admin, nurse */}
               <Route
                 path="inventory"
@@ -247,6 +268,16 @@ const App = () => {
                 element={
                   <RequireRole roles={["admin", "doctor"]}>
                     <Prescriptions />
+                  </RequireRole>
+                }
+              />
+
+              {/* Odontograms - accessible to admin, doctor */}
+              <Route
+                path="odontograms"
+                element={
+                  <RequireRole roles={["admin", "doctor"]}>
+                    <Odontograms />
                   </RequireRole>
                 }
               />
@@ -335,61 +366,7 @@ const App = () => {
                 }
               />
 
-              {/* Documentation - accessible to all authenticated users */}
-              <Route
-                path="documentation"
-                element={
-                  <RequireRole
-                    roles={[
-                      "admin",
-                      "doctor",
-                      "receptionist",
-                      "nurse",
-                      "accountant",
-                    ]}
-                  >
-                    <Documentation />
-                  </RequireRole>
-                }
-              />
 
-              {/* Database Structure - admin only */}
-              <Route
-                path="database-structure"
-                element={
-                  <RequireRole roles={["admin"]}>
-                    <DatabaseStructure />
-                  </RequireRole>
-                }
-              />
-
-              {/* Training - accessible to all authenticated users */}
-              <Route
-                path="training"
-                element={
-                  <RequireRole
-                    roles={[
-                      "admin",
-                      "doctor",
-                      "receptionist",
-                      "nurse",
-                      "accountant",
-                    ]}
-                  >
-                    <Training />
-                  </RequireRole>
-                }
-              />
-
-              {/* Training Progress - admin only */}
-              <Route
-                path="training-progress"
-                element={
-                  <RequireRole roles={["admin"]}>
-                    <TrainingProgress />
-                  </RequireRole>
-                }
-              />
 
 
 
@@ -417,6 +394,7 @@ const App = () => {
           </Routes>
         </BrowserRouter>
         </CurrencyProvider>
+      </ClinicProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

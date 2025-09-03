@@ -1,11 +1,12 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { validationResult } from 'express-validator';
 import { Payroll, User, Department } from '../models';
+import { AuthRequest } from '../types/express';
 import mongoose from 'mongoose';
 
 export class PayrollController {
   // Create a new payroll entry
-  static async createPayroll(req: Request, res: Response): Promise<void> {
+  static async createPayroll(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -17,7 +18,12 @@ export class PayrollController {
         return;
       }
 
-      const payroll = new Payroll(req.body);
+      const payrollData = {
+        ...req.body,
+        clinic_id: req.clinic_id
+      };
+
+      const payroll = new Payroll(payrollData);
       await payroll.save();
 
       const populatedPayroll = await Payroll.findById(payroll._id)
@@ -46,7 +52,7 @@ export class PayrollController {
   }
 
   // Get all payroll entries with filters
-  static async getAllPayrolls(req: Request, res: Response) {
+  static async getAllPayrolls(req: AuthRequest, res: Response) {
     try {
       const { 
         page = 1, 
@@ -58,7 +64,9 @@ export class PayrollController {
         department 
       } = req.query;
 
-      const query: any = {};
+      const query: any = {
+        clinic_id: req.clinic_id
+      };
       
       if (status) query.status = status;
       if (month) query.month = month;
@@ -70,7 +78,10 @@ export class PayrollController {
       // If department filter is applied, get employees from that department first
       let employeeIds: string[] = [];
       if (department) {
-        const employees = await User.find({ department }).select('_id');
+        const employees = await User.find({ 
+          clinic_id: req.clinic_id,
+          department 
+        }).select('_id');
         employeeIds = employees.map(emp => (emp._id as any).toString());
         query.employee_id = { $in: employeeIds };
       }
@@ -105,7 +116,7 @@ export class PayrollController {
   }
 
   // Get payroll by ID
-  static async getPayrollById(req: Request, res: Response): Promise<void> {
+  static async getPayrollById(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
 
@@ -117,8 +128,10 @@ export class PayrollController {
         return;
       }
 
-      const payroll = await Payroll.findById(id)
-        .populate('employee_id', 'first_name last_name email role phone');
+      const payroll = await Payroll.findOne({
+        _id: id,
+        clinic_id: req.clinic_id
+      }).populate('employee_id', 'first_name last_name email role phone');
 
       if (!payroll) {
         res.status(404).json({
@@ -142,7 +155,7 @@ export class PayrollController {
   }
 
   // Update payroll entry
-  static async updatePayroll(req: Request, res: Response): Promise<void> {
+  static async updatePayroll(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const errors = validationResult(req);
@@ -164,10 +177,14 @@ export class PayrollController {
         return;
       }
 
-      const payroll = await Payroll.findByIdAndUpdate(id, req.body, { 
-        new: true, 
-        runValidators: true 
-      }).populate('employee_id', 'first_name last_name email role phone');
+      const payroll = await Payroll.findOneAndUpdate(
+        { _id: id, clinic_id: req.clinic_id }, 
+        req.body, 
+        { 
+          new: true, 
+          runValidators: true 
+        }
+      ).populate('employee_id', 'first_name last_name email role phone');
 
       if (!payroll) {
         res.status(404).json({
@@ -192,7 +209,7 @@ export class PayrollController {
   }
 
   // Update payroll status
-  static async updatePayrollStatus(req: Request, res: Response): Promise<void> {
+  static async updatePayrollStatus(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const { status } = req.body;
@@ -210,8 +227,11 @@ export class PayrollController {
         updateData.pay_date = new Date();
       }
 
-      const payroll = await Payroll.findByIdAndUpdate(id, updateData, { new: true })
-        .populate('employee_id', 'first_name last_name email role phone');
+      const payroll = await Payroll.findOneAndUpdate(
+        { _id: id, clinic_id: req.clinic_id }, 
+        updateData, 
+        { new: true }
+      ).populate('employee_id', 'first_name last_name email role phone');
 
       if (!payroll) {
         res.status(404).json({
@@ -236,7 +256,7 @@ export class PayrollController {
   }
 
   // Generate payroll for all employees for a specific month/year
-  static async generatePayroll(req: Request, res: Response): Promise<void> {
+  static async generatePayroll(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { month, year, employee_ids } = req.body;
 
@@ -248,8 +268,12 @@ export class PayrollController {
         return;
       }
 
-      // Get employees to generate payroll for
-      const query: any = { is_active: true };
+      // Get employees to generate payroll for (filter by clinic)
+      const query: any = { 
+        clinic_id: req.clinic_id,
+        is_active: true 
+      };
+      
       if (employee_ids && employee_ids.length > 0) {
         query._id = { $in: employee_ids };
       }
@@ -259,18 +283,19 @@ export class PayrollController {
       if (employees.length === 0) {
         res.status(400).json({
           success: false,
-          message: 'No active employees found'
+          message: 'No active employees found in this clinic'
         });
         return;
       }
 
-      const generatedPayrolls = [];
-      const errors = [];
+      const generatedPayrolls: any[] = [];
+      const errors: string[] = [];
 
       for (const employee of employees) {
         try {
           // Check if payroll already exists
           const existingPayroll = await Payroll.findOne({
+            clinic_id: req.clinic_id,
             employee_id: employee._id,
             month,
             year
@@ -299,6 +324,7 @@ export class PayrollController {
           const leaves = totalDays - workingDays;
 
           const payrollData = {
+            clinic_id: req.clinic_id,
             employee_id: employee._id,
             month,
             year,
@@ -311,7 +337,7 @@ export class PayrollController {
             working_days: workingDays,
             total_days: totalDays,
             leaves,
-            status: 'draft'
+            status: 'draft' as const
           };
 
           const payroll = new Payroll(payrollData);
@@ -320,7 +346,9 @@ export class PayrollController {
           const populatedPayroll = await Payroll.findById(payroll._id)
             .populate('employee_id', 'first_name last_name email role');
 
-          generatedPayrolls.push(populatedPayroll);
+          if (populatedPayroll) {
+            generatedPayrolls.push(populatedPayroll);
+          }
         } catch (error: any) {
           errors.push(`Failed to generate payroll for ${employee.first_name} ${employee.last_name}: ${error.message}`);
         }
@@ -344,11 +372,13 @@ export class PayrollController {
   }
 
   // Get payroll statistics
-  static async getPayrollStats(req: Request, res: Response) {
+  static async getPayrollStats(req: AuthRequest, res: Response) {
     try {
       const { month, year } = req.query;
 
-      const query: any = {};
+      const clinicFilter = { clinic_id: req.clinic_id };
+      const query: any = { ...clinicFilter };
+      
       if (month) query.month = month;
       if (year) query.year = Number(year);
 
@@ -430,7 +460,7 @@ export class PayrollController {
   }
 
   // Delete payroll entry
-  static async deletePayroll(req: Request, res: Response): Promise<void> {
+  static async deletePayroll(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
 
@@ -442,7 +472,11 @@ export class PayrollController {
         return;
       }
 
-      const payroll = await Payroll.findById(id);
+      const payroll = await Payroll.findOne({
+        _id: id,
+        clinic_id: req.clinic_id
+      });
+
       if (!payroll) {
         res.status(404).json({
           success: false,
@@ -459,7 +493,10 @@ export class PayrollController {
         return;
       }
 
-      await Payroll.findByIdAndDelete(id);
+      await Payroll.findOneAndDelete({
+        _id: id,
+        clinic_id: req.clinic_id
+      });
 
       res.json({
         success: true,
@@ -484,4 +521,4 @@ function getMonthNumber(monthName: string): number {
   return months.indexOf(monthName);
 }
 
-export default PayrollController; 
+export default PayrollController;

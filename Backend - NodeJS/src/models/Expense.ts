@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IExpense extends Document {
+  clinic_id: mongoose.Types.ObjectId;
   title: string;
   description?: string;
   amount: number;
@@ -17,6 +18,12 @@ export interface IExpense extends Document {
 }
 
 const ExpenseSchema: Schema = new Schema({
+  clinic_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Clinic',
+    required: [true, 'Clinic ID is required'],
+    index: true
+  },
   title: {
     type: String,
     required: [true, 'Title is required'],
@@ -77,10 +84,11 @@ const ExpenseSchema: Schema = new Schema({
 });
 
 // Indexes for better query performance
-ExpenseSchema.index({ date: -1 });
-ExpenseSchema.index({ category: 1 });
-ExpenseSchema.index({ status: 1 });
-ExpenseSchema.index({ created_by: 1 });
-ExpenseSchema.index({ date: -1, status: 1 });
+ExpenseSchema.index({ clinic_id: 1 });
+ExpenseSchema.index({ clinic_id: 1, date: -1 });
+ExpenseSchema.index({ clinic_id: 1, category: 1 });
+ExpenseSchema.index({ clinic_id: 1, status: 1 });
+ExpenseSchema.index({ clinic_id: 1, created_by: 1 });
+ExpenseSchema.index({ clinic_id: 1, date: -1, status: 1 });
 
 export default mongoose.model<IExpense>('Expense', ExpenseSchema); 

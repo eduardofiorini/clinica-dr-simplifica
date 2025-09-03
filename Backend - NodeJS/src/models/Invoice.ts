@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IInvoice extends Document {
+  clinic_id: mongoose.Types.ObjectId;
   patient_id: mongoose.Types.ObjectId;
   appointment_id?: mongoose.Types.ObjectId;
   invoice_number: string;
@@ -26,6 +27,11 @@ export interface IInvoice extends Document {
 }
 
 const InvoiceSchema: Schema = new Schema({
+  clinic_id: {
+    type: Schema.Types.ObjectId,
+    ref: 'Clinic',
+    required: [true, 'Clinic ID is required']
+  },
   patient_id: {
     type: Schema.Types.ObjectId,
     ref: 'Patient',
@@ -148,10 +154,11 @@ const InvoiceSchema: Schema = new Schema({
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
 });
 
-// Create indexes for better query performance
-InvoiceSchema.index({ patient_id: 1, created_at: -1 });
-InvoiceSchema.index({ status: 1, due_date: 1 });
-InvoiceSchema.index({ created_at: -1 });
+// Create clinic-aware indexes for better query performance
+InvoiceSchema.index({ clinic_id: 1 });
+InvoiceSchema.index({ clinic_id: 1, patient_id: 1, created_at: -1 });
+InvoiceSchema.index({ clinic_id: 1, status: 1, due_date: 1 });
+InvoiceSchema.index({ clinic_id: 1, created_at: -1 });
 
 // Pre-save middleware to generate invoice number and calculate totals
 InvoiceSchema.pre('save', async function(next) {

@@ -1,6 +1,8 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { SampleTypeController } from '../controllers';
+import { authenticate, requireMedicalStaff } from '../middleware/auth';
+import { clinicContext } from '../middleware/clinicContext';
 
 const router = Router();
 
@@ -20,13 +22,13 @@ const sampleTypeValidation = [
   body('commonTests').optional().isArray().withMessage('Common tests must be an array')
 ];
 
-// Routes
-router.post('/', sampleTypeValidation, SampleTypeController.createSampleType);
-router.get('/', SampleTypeController.getAllSampleTypes);
-router.get('/stats', SampleTypeController.getSampleTypeStats);
-router.get('/:id', SampleTypeController.getSampleTypeById);
-router.put('/:id', sampleTypeValidation, SampleTypeController.updateSampleType);
-router.patch('/:id/toggle', SampleTypeController.toggleStatus);
-router.delete('/:id', SampleTypeController.deleteSampleType);
+// Routes - All sample type operations require authentication and clinic context
+router.post('/', authenticate, clinicContext, sampleTypeValidation, SampleTypeController.createSampleType);
+router.get('/', authenticate, clinicContext, SampleTypeController.getAllSampleTypes);
+router.get('/stats', authenticate, clinicContext, SampleTypeController.getSampleTypeStats);
+router.get('/:id', authenticate, clinicContext, SampleTypeController.getSampleTypeById);
+router.put('/:id', authenticate, clinicContext, sampleTypeValidation, SampleTypeController.updateSampleType);
+router.patch('/:id/toggle', authenticate, clinicContext, SampleTypeController.toggleStatus);
+router.delete('/:id', authenticate, clinicContext, ...requireMedicalStaff, SampleTypeController.deleteSampleType);
 
 export default router; 

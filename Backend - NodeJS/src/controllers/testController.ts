@@ -1,9 +1,10 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { validationResult } from 'express-validator';
 import { Test } from '../models';
+import { AuthRequest } from '../types/express';
 
 export class TestController {
-  static async createTest(req: Request, res: Response): Promise<void> {
+  static async createTest(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -15,7 +16,12 @@ export class TestController {
         return;
       }
 
-      const test = new Test(req.body);
+      const testData = {
+        ...req.body,
+        clinic_id: req.clinic_id
+      };
+
+      const test = new Test(testData);
       await test.save();
 
       res.status(201).json({
@@ -39,13 +45,15 @@ export class TestController {
     }
   }
 
-  static async getAllTests(req: Request, res: Response): Promise<void> {
+  static async getAllTests(req: AuthRequest, res: Response): Promise<void> {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const skip = (page - 1) * limit;
 
-      let filter: any = {};
+      let filter: any = {
+        clinic_id: req.clinic_id
+      };
 
       // Search filter
       if (req.query.search) {
@@ -95,7 +103,7 @@ export class TestController {
     }
   }
 
-  static async getTestById(req: Request, res: Response): Promise<void> {
+  static async getTestById(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const test = await Test.findById(id);
@@ -121,7 +129,7 @@ export class TestController {
     }
   }
 
-  static async updateTest(req: Request, res: Response): Promise<void> {
+  static async updateTest(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -169,7 +177,7 @@ export class TestController {
     }
   }
 
-  static async deleteTest(req: Request, res: Response): Promise<void> {
+  static async deleteTest(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const test = await Test.findByIdAndDelete(id);
@@ -195,7 +203,7 @@ export class TestController {
     }
   }
 
-  static async toggleStatus(req: Request, res: Response): Promise<void> {
+  static async toggleStatus(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
       const test = await Test.findById(id);
@@ -225,7 +233,7 @@ export class TestController {
     }
   }
 
-  static async getTestStats(req: Request, res: Response): Promise<void> {
+  static async getTestStats(req: AuthRequest, res: Response): Promise<void> {
     try {
       const totalTests = await Test.countDocuments();
       const activeTests = await Test.countDocuments({ isActive: true });

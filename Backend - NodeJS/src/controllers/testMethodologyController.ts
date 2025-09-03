@@ -1,9 +1,10 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { validationResult } from 'express-validator';
 import { TestMethodology } from '../models';
+import { AuthRequest } from '../types/express';
 
 export class TestMethodologyController {
-  static async createMethodology(req: Request, res: Response): Promise<void> {
+  static async createMethodology(req: AuthRequest, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -15,7 +16,12 @@ export class TestMethodologyController {
         return;
       }
 
-      const methodology = new TestMethodology(req.body);
+      const methodologyData = {
+        ...req.body,
+        clinic_id: req.clinic_id
+      };
+
+      const methodology = new TestMethodology(methodologyData);
       await methodology.save();
 
       res.status(201).json({
@@ -39,13 +45,15 @@ export class TestMethodologyController {
     }
   }
 
-  static async getAllMethodologies(req: Request, res: Response): Promise<void> {
+  static async getAllMethodologies(req: AuthRequest, res: Response): Promise<void> {
     try {
       const page = parseInt(req.query.page as string) || 1;
       const limit = parseInt(req.query.limit as string) || 10;
       const skip = (page - 1) * limit;
 
-      let filter: any = {};
+      let filter: any = {
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get methodologies from current clinic
+      };
 
       if (req.query.search) {
         filter.$or = [
@@ -92,10 +100,13 @@ export class TestMethodologyController {
     }
   }
 
-  static async getMethodologyById(req: Request, res: Response): Promise<void> {
+  static async getMethodologyById(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const methodology = await TestMethodology.findById(id);
+      const methodology = await TestMethodology.findOne({
+        _id: id,
+        clinic_id: req.clinic_id // CLINIC FILTER: Only get methodology from current clinic
+      });
 
       if (!methodology) {
         res.status(404).json({
@@ -118,11 +129,14 @@ export class TestMethodologyController {
     }
   }
 
-  static async updateMethodology(req: Request, res: Response): Promise<void> {
+  static async updateMethodology(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const methodology = await TestMethodology.findByIdAndUpdate(
-        id,
+      const methodology = await TestMethodology.findOneAndUpdate(
+        {
+          _id: id,
+          clinic_id: req.clinic_id // CLINIC FILTER: Only update methodology from current clinic
+        },
         req.body,
         { new: true, runValidators: true }
       );
@@ -156,10 +170,13 @@ export class TestMethodologyController {
     }
   }
 
-  static async deleteMethodology(req: Request, res: Response): Promise<void> {
+  static async deleteMethodology(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const methodology = await TestMethodology.findByIdAndDelete(id);
+      const methodology = await TestMethodology.findOneAndDelete({
+        _id: id,
+        clinic_id: req.clinic_id // CLINIC FILTER: Only delete methodology from current clinic
+      });
 
       if (!methodology) {
         res.status(404).json({
@@ -182,10 +199,13 @@ export class TestMethodologyController {
     }
   }
 
-  static async toggleStatus(req: Request, res: Response): Promise<void> {
+  static async toggleStatus(req: AuthRequest, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const methodology = await TestMethodology.findById(id);
+      const methodology = await TestMethodology.findOne({
+        _id: id,
+        clinic_id: req.clinic_id // CLINIC FILTER: Only toggle methodology from current clinic
+      });
 
       if (!methodology) {
         res.status(404).json({
@@ -212,13 +232,15 @@ export class TestMethodologyController {
     }
   }
 
-  static async getMethodologyStats(req: Request, res: Response): Promise<void> {
+  static async getMethodologyStats(req: AuthRequest, res: Response): Promise<void> {
     try {
-      const totalMethodologies = await TestMethodology.countDocuments();
-      const activeMethodologies = await TestMethodology.countDocuments({ isActive: true });
-      const categoriesCount = await TestMethodology.distinct('category').then(categories => categories.length);
+      const filter = { clinic_id: req.clinic_id }; // CLINIC FILTER: Only get stats from current clinic
+      const totalMethodologies = await TestMethodology.countDocuments(filter);
+      const activeMethodologies = await TestMethodology.countDocuments({ ...filter, isActive: true });
+      const categoriesCount = await TestMethodology.distinct('category', filter).then(categories => categories.length);
 
       const categoryStats = await TestMethodology.aggregate([
+        { $match: filter },
         {
           $group: {
             _id: '$category',

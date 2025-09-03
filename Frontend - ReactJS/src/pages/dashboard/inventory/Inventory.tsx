@@ -56,6 +56,7 @@ import EditItemModal from "@/components/modals/EditItemModal";
 import DeleteConfirmModal from "@/components/modals/DeleteConfirmModal";
 import AdvancedFiltersModal from "@/components/modals/AdvancedFiltersModal";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useClinic } from "@/contexts/ClinicContext";
 import { CurrencyDisplay } from "@/components/ui/CurrencyDisplay";
 import { apiService, type InventoryItem } from "@/services/api";
 
@@ -66,6 +67,7 @@ const Inventory = () => {
     {},
   );
   const { formatAmount } = useCurrency();
+  const { currentClinic, loading: clinicLoading, error: clinicError } = useClinic();
 
   // API state
   const [medicines, setMedicines] = useState<Medicine[]>([]);
@@ -125,6 +127,13 @@ const Inventory = () => {
 
   // Load inventory from API
   const fetchInventory = async (showRefreshIndicator = false) => {
+    if (!currentClinic) {
+      console.warn("No clinic selected, skipping inventory fetch");
+      setIsLoading(false);
+      setIsRefreshing(false);
+      return;
+    }
+
     try {
       if (showRefreshIndicator) {
         setIsRefreshing(true);
@@ -152,11 +161,19 @@ const Inventory = () => {
       setStats(statsResponse);
     } catch (error) {
       console.error("Error fetching inventory:", error);
+      const errorMessage = error instanceof Error && error.message.includes('401') 
+        ? "Access denied. Please check your clinic permissions." 
+        : error instanceof Error && error.message.includes('403')
+        ? "Insufficient permissions to view inventory for this clinic."
+        : "Failed to load inventory. Please try again.";
+      
       toast({
         title: "Error",
-        description: "Failed to load inventory. Please try again.",
+        description: errorMessage,
         variant: "destructive",
       });
+      setMedicines([]);
+      setStats(null);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);

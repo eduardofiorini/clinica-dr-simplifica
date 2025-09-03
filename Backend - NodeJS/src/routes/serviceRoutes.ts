@@ -9,8 +9,14 @@ import {
   getServiceStats,
   toggleServiceStatus
 } from '../controllers/serviceController';
+import { authenticate } from '../middleware/auth';
+import { clinicContext } from '../middleware/clinicContext';
 
 const router = Router();
+
+// Apply authentication middleware first, then clinic context to all routes
+router.use(authenticate);
+router.use(clinicContext);
 
 // Validation rules for service creation/update
 const serviceValidation = [

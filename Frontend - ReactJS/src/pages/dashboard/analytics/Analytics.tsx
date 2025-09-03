@@ -67,6 +67,7 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { useClinic } from "@/contexts/ClinicContext";
 import { CurrencyDisplay } from "@/components/ui/CurrencyDisplay";
 // Import analytics hooks
 import {
@@ -75,7 +76,7 @@ import {
   useDepartmentAnalytics,
   useAppointmentAnalytics,
   usePatientDemographics,
-  useTopServices,
+  useServiceAnalytics,
   usePaymentMethodAnalytics,
 } from "@/hooks/useDashboard";
 
@@ -83,19 +84,83 @@ const Analytics = () => {
   const [selectedTimeframe, setSelectedTimeframe] = useState("3months");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
   const { formatAmount, currencyInfo } = useCurrency();
+  const { currentClinic, loading: clinicLoading } = useClinic();
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('📊 Analytics - Component state:', {
+      selectedTimeframe,
+      currentClinic: currentClinic?.name || null,
+      clinicId: currentClinic?._id || null,
+      clinicLoading
+    });
+  }, [selectedTimeframe, currentClinic, clinicLoading]);
 
   // Fetch analytics data using hooks
-  const { data: analyticsOverview, isLoading: overviewLoading, error: overviewError } = useAnalyticsOverview(selectedTimeframe);
-  const { data: analyticsStats, isLoading: statsLoading, error: statsError } = useAnalyticsStats();
-  const { data: departmentData, isLoading: departmentLoading, error: departmentError } = useDepartmentAnalytics();
-  const { data: appointmentStatusData, isLoading: appointmentLoading, error: appointmentError } = useAppointmentAnalytics();
-  const { data: demographicsData, isLoading: demographicsLoading, error: demographicsError } = usePatientDemographics();
-  const { data: topServicesData, isLoading: servicesLoading, error: servicesError } = useTopServices();
-  const { data: paymentMethodsData, isLoading: paymentsLoading, error: paymentsError } = usePaymentMethodAnalytics();
+  const { data: analyticsOverview, isLoading: overviewLoading, error: overviewError, refetch: refetchOverview } = useAnalyticsOverview(selectedTimeframe);
+  const { data: analyticsStats, isLoading: statsLoading, error: statsError, refetch: refetchStats } = useAnalyticsStats();
+  const { data: departmentData, isLoading: departmentLoading, error: departmentError, refetch: refetchDepartments } = useDepartmentAnalytics();
+  const { data: appointmentStatusData, isLoading: appointmentLoading, error: appointmentError, refetch: refetchAppointments } = useAppointmentAnalytics();
+  const { data: demographicsData, isLoading: demographicsLoading, error: demographicsError, refetch: refetchDemographics } = usePatientDemographics();
+  const { data: topServicesData, isLoading: servicesLoading, error: servicesError, refetch: refetchServices } = useServiceAnalytics();
+  const { data: paymentMethodsData, isLoading: paymentsLoading, error: paymentsError, refetch: refetchPayments } = usePaymentMethodAnalytics();
 
   // Loading and error states
-  const isLoading = overviewLoading || statsLoading || departmentLoading || appointmentLoading || demographicsLoading || servicesLoading || paymentsLoading;
-  const hasError = overviewError || statsError || departmentError || appointmentError || demographicsError || servicesError || paymentsError;
+  const isLoading = clinicLoading || overviewLoading || statsLoading || departmentLoading || appointmentLoading || demographicsLoading || servicesLoading || paymentsLoading;
+  
+  // Check for actual errors with messages
+  const actualErrors = [
+    overviewError,
+    statsError,
+    departmentError,
+    appointmentError,
+    demographicsError,
+    servicesError,
+    paymentsError
+  ].filter(error => error && error.message);
+
+  // Debug error logging
+  React.useEffect(() => {
+    if (actualErrors.length > 0) {
+      console.error('📊 Analytics - Actual errors detected:', {
+        count: actualErrors.length,
+        errors: actualErrors.map(error => ({
+          message: error.message,
+          name: error.name,
+          status: (error as any).response?.status
+        }))
+      });
+    }
+  }, [actualErrors]);
+
+  // Retry all failed queries
+  const retryAll = () => {
+    console.log('📊 Analytics - Retrying all queries');
+    const refetchPromises = [];
+    
+    if (overviewError && overviewError.message) refetchPromises.push(refetchOverview());
+    if (statsError && statsError.message) refetchPromises.push(refetchStats());
+    if (departmentError && departmentError.message) refetchPromises.push(refetchDepartments());
+    if (appointmentError && appointmentError.message) refetchPromises.push(refetchAppointments());
+    if (demographicsError && demographicsError.message) refetchPromises.push(refetchDemographics());
+    if (servicesError && servicesError.message) refetchPromises.push(refetchServices());
+    if (paymentsError && paymentsError.message) refetchPromises.push(refetchPayments());
+    
+    if (refetchPromises.length === 0) {
+      // If no specific errors, refetch all
+      Promise.all([
+        refetchOverview(),
+        refetchStats(),
+        refetchDepartments(),
+        refetchAppointments(),
+        refetchDemographics(),
+        refetchServices(),
+        refetchPayments()
+      ]);
+    } else {
+      Promise.all(refetchPromises);
+    }
+  };
 
   // Transform API data or use defaults
   const revenueData = analyticsOverview?.revenueExpenseData || [
@@ -134,12 +199,34 @@ const Analytics = () => {
     return `${value.toFixed(2)}%`;
   };
 
+  // Chart data
+  const departmentChartData = departmentData || [];
+  const appointmentChartData = appointmentStatusData || [];
+  const demographicsChartData = demographicsData || [];
+  const servicesChartData = topServicesData || [];
+  const paymentMethodsChartData = paymentMethodsData || [];
+
+  const COLORS = ["#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#8B5CF6", "#06B6D4"];
+
   const generateReport = (type: string) => {
     toast({
       title: "Report Generated",
       description: `${type} report is being prepared for download.`,
     });
   };
+
+  // Show clinic selection required
+  if (!currentClinic && !clinicLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <AlertTriangle className="h-8 w-8 text-orange-500 mx-auto mb-4" />
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Clinic Selection Required</h3>
+          <p className="text-gray-600 mb-4">Please select a clinic to view analytics data.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Show loading state
   if (isLoading) {
@@ -148,21 +235,45 @@ const Analytics = () => {
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
           <p className="text-gray-600">Loading analytics data...</p>
+          {currentClinic && (
+            <p className="text-sm text-gray-500 mt-2">For {currentClinic.name}</p>
+          )}
         </div>
       </div>
     );
   }
 
-  // Show error state
-  if (hasError) {
+  // Show error state only if there are actual errors with messages
+  if (actualErrors.length > 0) {
+    const errorDetails = actualErrors.map(error => error.message).join(', ');
+    
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
+        <div className="text-center max-w-md">
           <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-4" />
-          <p className="text-red-600 mb-4">Error loading analytics data</p>
-          <Button onClick={() => window.location.reload()}>
-            Try Again
-          </Button>
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Analytics</h3>
+          <p className="text-red-600 mb-4">
+            Failed to load {actualErrors.length} analytics module{actualErrors.length > 1 ? 's' : ''}
+          </p>
+          {currentClinic && (
+            <p className="text-sm text-gray-600 mb-4">For clinic: {currentClinic.name}</p>
+          )}
+          <details className="text-left mb-4">
+            <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-800">
+              Show error details
+            </summary>
+            <div className="mt-2 text-xs text-gray-600 bg-gray-50 p-2 rounded">
+              {errorDetails}
+            </div>
+          </details>
+          <div className="space-x-2">
+            <Button onClick={retryAll} variant="default">
+              Retry Failed Modules
+            </Button>
+            <Button onClick={() => window.location.reload()} variant="outline">
+              Reload Page
+            </Button>
+          </div>
         </div>
       </div>
     );

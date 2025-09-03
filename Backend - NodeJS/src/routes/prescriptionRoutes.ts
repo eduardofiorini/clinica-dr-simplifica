@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 import { PrescriptionController } from '../controllers';
 import { authenticate, requireMedicalStaff } from '../middleware/auth';
+import { clinicContext } from '../middleware/clinicContext';
 
 const router = Router();
 
@@ -39,16 +40,16 @@ const statusValidation = [
   body('status').isIn(['active', 'completed', 'pending', 'cancelled', 'expired']).withMessage('Invalid status')
 ];
 
-// Routes - All prescription operations require authentication
-router.post('/', authenticate, prescriptionValidation, PrescriptionController.createPrescription);
-router.get('/', authenticate, PrescriptionController.getAllPrescriptions);
-router.get('/stats', authenticate, PrescriptionController.getPrescriptionStats);
-router.get('/patient/:patientId', authenticate, PrescriptionController.getPrescriptionsByPatient);
-router.get('/doctor/:doctorId', authenticate, PrescriptionController.getPrescriptionsByDoctor);
-router.get('/:id', authenticate, PrescriptionController.getPrescriptionById);
-router.put('/:id', authenticate, prescriptionValidation, PrescriptionController.updatePrescription);
-router.patch('/:id/status', authenticate, statusValidation, PrescriptionController.updatePrescriptionStatus);
-router.patch('/:id/send-to-pharmacy', authenticate, PrescriptionController.sendToPharmacy);
-router.delete('/:id', authenticate, PrescriptionController.deletePrescription);
+// Routes - All prescription operations require authentication and clinic context
+router.post('/', authenticate, clinicContext, prescriptionValidation, PrescriptionController.createPrescription);
+router.get('/', authenticate, clinicContext, PrescriptionController.getAllPrescriptions);
+router.get('/stats', authenticate, clinicContext, PrescriptionController.getPrescriptionStats);
+router.get('/patient/:patientId', authenticate, clinicContext, PrescriptionController.getPrescriptionsByPatient);
+router.get('/doctor/:doctorId', authenticate, clinicContext, PrescriptionController.getPrescriptionsByDoctor);
+router.get('/:id', authenticate, clinicContext, PrescriptionController.getPrescriptionById);
+router.put('/:id', authenticate, clinicContext, prescriptionValidation, PrescriptionController.updatePrescription);
+router.patch('/:id/status', authenticate, clinicContext, statusValidation, PrescriptionController.updatePrescriptionStatus);
+router.patch('/:id/send-to-pharmacy', authenticate, clinicContext, PrescriptionController.sendToPharmacy);
+router.delete('/:id', authenticate, clinicContext, PrescriptionController.deletePrescription);
 
 export default router; 
