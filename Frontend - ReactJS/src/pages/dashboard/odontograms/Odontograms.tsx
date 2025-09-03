@@ -226,7 +226,7 @@ const Odontograms = () => {
   };
 
   const handleViewHistory = (patientId: string) => {
-    const odontogram = odontograms.find(o => o.patient_id._id === patientId);
+    const odontogram = odontograms.find(o => o.patient_id?._id === patientId);
     setSelectedPatientId(patientId);
     setSelectedPatientName(odontogram ? getPatientFullName(odontogram.patient_id) : "");
     setHistoryModalOpen(true);
@@ -277,10 +277,12 @@ const Odontograms = () => {
   };
 
   const getPatientFullName = (patient: any) => {
-    return `${patient.first_name} ${patient.last_name}`;
+    if (!patient) return 'Unknown Patient';
+    return `${patient.first_name || ''} ${patient.last_name || ''}`.trim() || 'Unknown Patient';
   };
 
-  const calculateAge = (dateOfBirth: string | Date) => {
+  const calculateAge = (dateOfBirth: string | Date | null) => {
+    if (!dateOfBirth) return 'N/A';
     const today = new Date();
     const birthDate = new Date(dateOfBirth);
     let age = today.getFullYear() - birthDate.getFullYear();
@@ -496,7 +498,7 @@ const Odontograms = () => {
                             <div>
                               <div className="font-medium">{getPatientFullName(odontogram.patient_id)}</div>
                               <div className="text-sm text-gray-500">
-                                {t("Age:")}: {calculateAge(odontogram.patient_id.date_of_birth)}
+                                {t("Age:")}: {calculateAge(odontogram.patient_id?.date_of_birth)}
                               </div>
                             </div>
                           </div>
@@ -572,9 +574,10 @@ const Odontograms = () => {
                             <Button 
                               variant="outline" 
                               size="sm"
-                              onClick={() => handleViewHistory(odontogram.patient_id._id)}
+                              onClick={() => odontogram.patient_id?._id && handleViewHistory(odontogram.patient_id._id)}
+                              disabled={!odontogram.patient_id}
                               className="h-8 px-2 text-xs"
-                              title="View History"
+                              title={odontogram.patient_id ? "View History" : "No patient data"}
                             >
                               <History className="h-3 w-3 mr-1" />
                               {t("History")}
@@ -631,7 +634,7 @@ const Odontograms = () => {
                         </div>
                         <div>
                           <div className="font-semibold text-base">{getPatientFullName(odontogram.patient_id)}</div>
-                          <div className="text-sm text-muted-foreground">{t("Age:")}: {calculateAge(odontogram.patient_id.date_of_birth)}</div>
+                          <div className="text-sm text-muted-foreground">{t("Age:")}: {calculateAge(odontogram.patient_id?.date_of_birth)}</div>
                         </div>
                       </div>
                       <div className="flex flex-col items-end space-y-2">
@@ -700,7 +703,8 @@ const Odontograms = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          onClick={() => handleViewHistory(odontogram.patient_id._id)}
+                          onClick={() => odontogram.patient_id?._id && handleViewHistory(odontogram.patient_id._id)}
+                          disabled={!odontogram.patient_id}
                           className="flex-1"
                         >
                           <History className="h-4 w-4 mr-2" />

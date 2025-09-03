@@ -9,6 +9,7 @@ import {
   ToothSurface,
   SurfaceCondition
 } from "@/types";
+import ToothImage from "@/components/teeth/ToothImage";
 
 // Color mapping for different dental conditions
 const conditionColors: ConditionColorMap = {
@@ -219,21 +220,31 @@ const Tooth: React.FC<ToothProps> = ({
       onClick={onClick}
       title={`${toothName} - ${condition.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}`}
     >
-      {/* Tooth shape with surface areas */}
+      {/* Tooth Image with surface areas */}
       <div 
         className={cn(
-          sizeClasses[size],
-          "relative rounded-t-lg border-2 transition-all duration-200 overflow-hidden",
+          "relative transition-all duration-200",
           isSelected && "ring-2 ring-blue-500 ring-offset-2",
           isHighlighted && "ring-2 ring-yellow-400 ring-offset-1",
           onClick && "hover:shadow-lg"
         )}
-        style={{ 
-          backgroundColor: condition === "missing" ? "transparent" : color,
-          borderColor: condition === "missing" ? "#d1d5db" : color,
-          borderStyle: condition === "missing" ? "dashed" : "solid"
-        }}
       >
+        {/* Real Tooth Image */}
+        <ToothImage
+          toothNumber={number}
+          condition={condition}
+          size={size}
+          isChild={isChild}
+          className="relative z-0"
+        />
+        
+        {/* Overlay container for surface interactions */}
+        <div 
+          className={cn(
+            sizeClasses[size],
+            "absolute inset-0 z-10"
+          )}
+        >
         {/* Surface areas for interaction */}
         {editable && condition !== "missing" && (
           <>
@@ -306,15 +317,21 @@ const Tooth: React.FC<ToothProps> = ({
 
         {/* Tooth number label */}
         {showLabels && (
-          <div className={cn(
-            "absolute inset-0 flex items-center justify-center font-semibold pointer-events-none",
-            textSizeClasses[size],
-            condition === "healthy" || condition === "missing" ? "text-gray-700" : "text-white",
-            "z-10"
-          )}>
+          <div 
+            className={cn(
+              "absolute inset-0 flex items-center justify-center font-bold pointer-events-none",
+              textSizeClasses[size],
+              condition === "missing" ? "text-gray-400" : "text-gray-800",
+              "z-20"
+            )}
+            style={{
+              textShadow: "1px 1px 2px rgba(255,255,255,0.8)"
+            }}
+          >
             {getDisplayNumber()}
           </div>
         )}
+        </div>
       </div>
       
       {/* Surface condition indicators */}

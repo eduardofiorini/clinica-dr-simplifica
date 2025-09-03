@@ -533,14 +533,16 @@ const OdontogramDetailModal: React.FC<OdontogramDetailModalProps> = ({
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
             <div className="min-w-0 flex-1">
               <DialogTitle className="text-lg md:text-xl truncate">
-                Dental Chart - {odontogram.patient_id.first_name} {odontogram.patient_id.last_name}
+                Dental Chart - {odontogram.patient_id 
+                  ? `${odontogram.patient_id.first_name || ''} ${odontogram.patient_id.last_name || ''}`.trim() || 'Unknown Patient'
+                  : 'Unknown Patient'}
               </DialogTitle>
               <div className="space-y-1">
                 <p className="text-xs md:text-sm text-gray-500">
-                  Age: {odontogram.patient_id.age} • {odontogram.patient_id.gender} • DOB: {formatDate(odontogram.patient_id.date_of_birth)}
+                  Age: {odontogram.patient_id?.age || 'N/A'} • {odontogram.patient_id?.gender || 'N/A'} • DOB: {formatDate(odontogram.patient_id?.date_of_birth)}
                 </p>
                 <p className="text-xs md:text-sm text-gray-500">
-                  📞 {odontogram.patient_id.phone} • ✉️ {odontogram.patient_id.email}
+                  📞 {odontogram.patient_id?.phone || 'N/A'} • ✉️ {odontogram.patient_id?.email || 'N/A'}
                 </p>
                 <p className="text-xs md:text-sm text-gray-500">
                   🏥 {(odontogram.clinic_id as any)?.name || 'N/A'} • Examined: {formatDate(odontogram.examination_date)}

@@ -725,7 +725,7 @@ export interface Odontogram {
     email?: string;
     date_of_birth: Date;
     gender: 'male' | 'female' | 'other';
-  };
+  } | null; // Allow patient_id to be null
   doctor_id: {
     _id: string;
     first_name: string;
