@@ -3,10 +3,17 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: "admin" | "doctor" | "staff" | "receptionist";
+  role: "admin" | "doctor" | "nurse" | "receptionist" | "accountant" | "staff";
   avatar?: string;
   phone?: string;
+  address?: string;
+  bio?: string;
+  dateOfBirth?: string;
+  specialization?: string;
+  licenseNumber?: string;
+  department?: string;
   createdAt: Date;
+  updatedAt?: Date;
 }
 
 export interface Patient {
@@ -30,6 +37,11 @@ export interface Patient {
   weight?: number;
   createdAt: Date;
   updatedAt: Date;
+  // Additional UI properties
+  avatar?: string;
+  lastVisit?: Date;
+  totalVisits?: number;
+  status?: string;
 }
 
 export interface Department {

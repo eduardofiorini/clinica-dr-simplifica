@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { apiService, User as ApiUser } from '@/services/api';
+import { apiService, User as ApiUser, WorkSchedule } from '@/services/api';
 import { toast } from '@/hooks/use-toast';
 
 // Transform API User to frontend Staff type
@@ -15,7 +15,7 @@ export const transformUserToStaff = (user: ApiUser) => ({
   joiningDate: new Date(user.created_at),
   address: '', // This would need to be added to the backend User model
   qualifications: [], // This would need to be added to the backend User model
-  schedule: { // Default schedule - could be enhanced with a schedule field
+  schedule: user.schedule || { // Use schedule from backend or default
     monday: { start: '09:00', end: '17:00', isWorking: true },
     tuesday: { start: '09:00', end: '17:00', isWorking: true },
     wednesday: { start: '09:00', end: '17:00', isWorking: true },
@@ -210,6 +210,36 @@ export const useStaff = () => {
     }
   };
 
+  const updateStaffSchedule = async (id: string, schedule: WorkSchedule) => {
+    setLoading(true);
+    try {
+      const updatedUser = await apiService.updateUserSchedule(id, schedule);
+      const transformedStaff = transformUserToStaff(updatedUser);
+      
+      setStaff(prev => prev.map(member => 
+        member.id === id ? transformedStaff : member
+      ));
+      
+      toast({
+        title: "Success",
+        description: "Work schedule updated successfully",
+      });
+      
+      return transformedStaff;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update work schedule';
+      setError(errorMessage);
+      toast({
+        title: "Error",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const getStaffStats = () => {
     const totalStaff = staff.length;
     const activeStaff = staff.filter(s => s.isActive).length;
@@ -240,6 +270,7 @@ export const useStaff = () => {
     updateStaff,
     activateStaff,
     deactivateStaff,
+    updateStaffSchedule,
     getStaffStats,
     refetch: fetchStaff,
   };

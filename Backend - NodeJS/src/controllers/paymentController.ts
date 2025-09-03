@@ -265,31 +265,58 @@ export class PaymentController {
         if (end_date) dateFilter.payment_date.$lte = new Date(end_date as string);
       }
 
-      const stats = await Payment.aggregate([
-        { $match: dateFilter },
-        {
-          $group: {
-            _id: null,
-            total_payments: { $sum: 1 },
-            total_revenue: { 
-              $sum: { 
-                $cond: [{ $eq: ['$status', 'completed'] }, '$amount', 0] 
-              } 
-            },
-            completed_payments: {
-              $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
-            },
-            failed_payments: {
-              $sum: { $cond: [{ $eq: ['$status', 'failed'] }, 1, 0] }
-            },
-            pending_payments: {
-              $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] }
-            },
-            processing_payments: {
-              $sum: { $cond: [{ $eq: ['$status', 'processing'] }, 1, 0] }
+      // Get current month dates for monthly revenue calculation
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+      const [stats, monthlyStats] = await Promise.all([
+        // Total stats calculation
+        Payment.aggregate([
+          { $match: dateFilter },
+          {
+            $group: {
+              _id: null,
+              total_payments: { $sum: 1 },
+              total_revenue: { 
+                $sum: { 
+                  $cond: [{ $eq: ['$status', 'completed'] }, '$amount', 0] 
+                } 
+              },
+              completed_payments: {
+                $sum: { $cond: [{ $eq: ['$status', 'completed'] }, 1, 0] }
+              },
+              failed_payments: {
+                $sum: { $cond: [{ $eq: ['$status', 'failed'] }, 1, 0] }
+              },
+              pending_payments: {
+                $sum: { $cond: [{ $eq: ['$status', 'pending'] }, 1, 0] }
+              },
+              processing_payments: {
+                $sum: { $cond: [{ $eq: ['$status', 'processing'] }, 1, 0] }
+              }
             }
           }
-        }
+        ]),
+        // Current month revenue calculation
+        Payment.aggregate([
+          { 
+            $match: { 
+              status: 'completed',
+              payment_date: { 
+                $gte: startOfMonth,
+                $lt: startOfNextMonth
+              }
+            } 
+          },
+          {
+            $group: {
+              _id: null,
+              monthly_revenue: { $sum: '$amount' },
+              monthly_payments_count: { $sum: 1 }
+            }
+          }
+        ])
       ]);
 
       const methodStats = await Payment.aggregate([
@@ -306,13 +333,17 @@ export class PaymentController {
       res.json({
         success: true,
         data: {
-          overview: stats[0] || {
-            total_payments: 0,
-            total_revenue: 0,
-            completed_payments: 0,
-            failed_payments: 0,
-            pending_payments: 0,
-            processing_payments: 0
+          overview: {
+            ...(stats[0] || {
+              total_payments: 0,
+              total_revenue: 0,
+              completed_payments: 0,
+              failed_payments: 0,
+              pending_payments: 0,
+              processing_payments: 0
+            }),
+            monthly_revenue: monthlyStats[0]?.monthly_revenue || 0,
+            monthly_payments_count: monthlyStats[0]?.monthly_payments_count || 0
           },
           by_method: methodStats
         }

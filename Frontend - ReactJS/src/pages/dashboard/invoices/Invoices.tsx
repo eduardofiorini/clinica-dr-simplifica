@@ -44,6 +44,7 @@ import {
   Trash2,
   CheckCircle,
   Clock,
+  Calendar,
   AlertTriangle,
   TrendingUp,
   FileText,
@@ -64,6 +65,7 @@ const Invoices = () => {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedDateRange, setSelectedDateRange] = useState("all");
   const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [invoiceStats, setInvoiceStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -85,6 +87,7 @@ const Invoices = () => {
   // Load invoices data
   useEffect(() => {
     loadInvoices();
+    loadInvoiceStats();
   }, [currentPage, selectedStatus, searchTerm]);
 
   const loadInvoices = async () => {
@@ -114,8 +117,18 @@ const Invoices = () => {
     }
   };
 
+  const loadInvoiceStats = async () => {
+    try {
+      const stats = await apiService.getInvoiceStats();
+      setInvoiceStats(stats);
+    } catch (error) {
+      console.error('Error loading invoice stats:', error);
+    }
+  };
+
   const handleRefresh = () => {
     loadInvoices();
+    loadInvoiceStats();
   };
 
   // Mock invoice data for fallback
@@ -298,14 +311,14 @@ const Invoices = () => {
     loadInvoices(); // Reload invoices after delete
   };
 
-  // Calculate stats - use safe calculations
-  const totalInvoices = invoices?.length || 0;
-  const totalRevenue = (invoices || []).reduce(
-    (sum, invoice) => sum + (invoice?.total_amount || 0),
-    0,
-  );
-  const paidInvoices = (invoices || []).filter((i) => i?.status === "paid").length;
-  const overdueInvoices = (invoices || []).filter((i) => i?.status === "overdue").length;
+  // Calculate stats - use API stats when available, fallback to local calculations
+  const totalInvoices = invoiceStats?.totalInvoices || invoices?.length || 0;
+  const totalRevenue = invoiceStats?.totalRevenue || (invoices || [])
+    .filter((i) => i?.status === "paid")
+    .reduce((sum, invoice) => sum + (invoice?.total_amount || 0), 0);
+  const monthlyRevenue = invoiceStats?.monthlyRevenue || 0;
+  const paidInvoices = invoiceStats?.paidInvoices || (invoices || []).filter((i) => i?.status === "paid").length;
+  const overdueInvoices = invoiceStats?.overdueInvoices || (invoices || []).filter((i) => i?.status === "overdue").length;
 
   return (
     <div className="space-y-4 sm:space-y-6 lg:space-y-8">
@@ -329,11 +342,6 @@ const Invoices = () => {
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
             <span className="hidden sm:inline">Refresh</span>
-          </Button>
-          <Button variant="outline" size="sm" className="h-9">
-            <Download className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Export</span>
-            <span className="sm:hidden">Export</span>
           </Button>
           <CreateInvoiceModal 
             trigger={
@@ -377,7 +385,24 @@ const Invoices = () => {
                  <CurrencyDisplay amount={totalRevenue} variant="default" />
                )}
              </div>
-            <p className="text-xs text-muted-foreground">Total earnings</p>
+            <p className="text-xs text-muted-foreground">All time earnings</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-xs sm:text-sm font-medium">Monthly Revenue</CardTitle>
+            <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-xl sm:text-2xl font-bold text-green-600">
+              {loading ? (
+                <Loader2 className="h-6 w-6 animate-spin" />
+              ) : (
+                <CurrencyDisplay amount={monthlyRevenue} variant="default" />
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">This month</p>
           </CardContent>
         </Card>
         

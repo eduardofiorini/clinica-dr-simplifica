@@ -26,8 +26,6 @@ import {
   Building,
   Clock,
   DollarSign,
-  Bell,
-  Shield,
   Save,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
@@ -75,22 +73,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ trigger }) => {
     defaultDiscount: 0,
   });
 
-  const [notificationSettings, setNotificationSettings] = useState({
-    emailNotifications: true,
-    smsNotifications: true,
-    appointmentReminders: true,
-    paymentReminders: true,
-    lowStockAlerts: true,
-    systemAlerts: true,
-  });
-
-  const [securitySettings, setSecuritySettings] = useState({
-    twoFactorAuth: false,
-    sessionTimeout: 60,
-    passwordExpiry: 90,
-    backupFrequency: "daily",
-  });
-
   // Load settings data when component mounts or data changes
   useEffect(() => {
     if (settingsData) {
@@ -114,8 +96,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ trigger }) => {
       setWorkingHours(newWorkingHours);
       
       setFinancialSettings(settingsData.financial);
-      setNotificationSettings(settingsData.notifications);
-      setSecuritySettings(settingsData.security);
     }
   }, [settingsData]);
 
@@ -138,17 +118,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ trigger }) => {
     setFinancialSettings((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleNotificationChange = (field: string, value: boolean) => {
-    setNotificationSettings((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleSecurityChange = (
-    field: string,
-    value: string | number | boolean,
-  ) => {
-    setSecuritySettings((prev) => ({ ...prev, [field]: value }));
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -157,8 +126,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ trigger }) => {
         clinic: clinicSettings,
         workingHours,
         financial: financialSettings,
-        notifications: notificationSettings,
-        security: securitySettings,
       });
 
       setOpen(false);
@@ -203,7 +170,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ trigger }) => {
           <div className="flex-1 min-h-0 flex flex-col">
             <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
               <div className="px-4 sm:px-6 pt-4 border-b flex-shrink-0">
-                <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 h-auto p-1">
+                <TabsList className="grid w-full grid-cols-3 h-auto p-1">
                   <TabsTrigger value="clinic" className="flex items-center gap-1 text-xs sm:text-sm px-2 py-2">
                     <Building className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="hidden sm:inline">Clinic</span>
@@ -215,14 +182,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ trigger }) => {
                   <TabsTrigger value="financial" className="flex items-center gap-1 text-xs sm:text-sm px-2 py-2">
                     <DollarSign className="h-3 w-3 sm:h-4 sm:w-4" />
                     <span className="hidden sm:inline">Financial</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="notifications" className="flex items-center gap-1 text-xs sm:text-sm px-2 py-2">
-                    <Bell className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Notifications</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="security" className="flex items-center gap-1 text-xs sm:text-sm px-2 py-2">
-                    <Shield className="h-3 w-3 sm:h-4 sm:w-4" />
-                    <span className="hidden sm:inline">Security</span>
                   </TabsTrigger>
                 </TabsList>
               </div>
@@ -471,126 +430,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ trigger }) => {
                                   onChange={(e) => handleFinancialChange("defaultDiscount", parseFloat(e.target.value))}
                                   className="h-9 sm:h-10"
                                 />
-                              </div>
-                            </div>
-                          </>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  {/* Notification Settings Tab */}
-                  <TabsContent value="notifications" className="space-y-4 sm:space-y-6 mt-0">
-                    <Card className="border border-border">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base sm:text-lg flex items-center">
-                          <Bell className="h-4 w-4 mr-2" />
-                          Notification Settings
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3 sm:space-y-4">
-                        {isLoadingSettings ? (
-                          <div className="space-y-3">
-                            {Array.from({ length: 6 }).map((_, i) => (
-                              <Skeleton key={i} className="h-12 w-full" />
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="space-y-3 sm:space-y-4">
-                            {[
-                              { key: "emailNotifications", label: "Email Notifications", description: "Receive email notifications for important events" },
-                              { key: "smsNotifications", label: "SMS Notifications", description: "Receive SMS notifications for urgent matters" },
-                              { key: "appointmentReminders", label: "Appointment Reminders", description: "Send reminders to patients before appointments" },
-                              { key: "paymentReminders", label: "Payment Reminders", description: "Send payment due reminders to patients" },
-                              { key: "lowStockAlerts", label: "Low Stock Alerts", description: "Get notified when inventory is running low" },
-                              { key: "systemAlerts", label: "System Alerts", description: "Receive system maintenance and update notifications" },
-                            ].map((setting) => (
-                              <div key={setting.key} className="flex items-center justify-between p-3 sm:p-4 border rounded-lg">
-                                <div className="flex-1 min-w-0 mr-3">
-                                  <Label className="text-sm font-medium">{setting.label}</Label>
-                                  <p className="text-xs text-muted-foreground mt-1">{setting.description}</p>
-                                </div>
-                                <Switch
-                                  checked={notificationSettings[setting.key as keyof typeof notificationSettings]}
-                                  onCheckedChange={(checked) => handleNotificationChange(setting.key, checked)}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-
-                  {/* Security Settings Tab */}
-                  <TabsContent value="security" className="space-y-4 sm:space-y-6 mt-0">
-                    <Card className="border border-border">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-base sm:text-lg flex items-center">
-                          <Shield className="h-4 w-4 mr-2" />
-                          Security Settings
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-3 sm:space-y-4">
-                        {isLoadingSettings ? (
-                          <div className="space-y-3">
-                            {Array.from({ length: 4 }).map((_, i) => (
-                              <Skeleton key={i} className="h-10 w-full" />
-                            ))}
-                          </div>
-                        ) : (
-                          <>
-                            <div className="flex items-center justify-between p-3 sm:p-4 border rounded-lg">
-                              <div className="flex-1 min-w-0 mr-3">
-                                <Label className="text-sm font-medium">Two-Factor Authentication</Label>
-                                <p className="text-xs text-muted-foreground mt-1">Enable 2FA for enhanced security</p>
-                              </div>
-                              <Switch
-                                checked={securitySettings.twoFactorAuth}
-                                onCheckedChange={(checked) => handleSecurityChange("twoFactorAuth", checked)}
-                              />
-                            </div>
-
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                              <div className="space-y-2">
-                                <Label htmlFor="sessionTimeout" className="text-sm font-medium">Session Timeout (minutes)</Label>
-                                <Input
-                                  id="sessionTimeout"
-                                  type="number"
-                                  min="5"
-                                  max="480"
-                                  value={securitySettings.sessionTimeout}
-                                  onChange={(e) => handleSecurityChange("sessionTimeout", parseInt(e.target.value))}
-                                  className="h-9 sm:h-10"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="passwordExpiry" className="text-sm font-medium">Password Expiry (days)</Label>
-                                <Input
-                                  id="passwordExpiry"
-                                  type="number"
-                                  min="30"
-                                  max="365"
-                                  value={securitySettings.passwordExpiry}
-                                  onChange={(e) => handleSecurityChange("passwordExpiry", parseInt(e.target.value))}
-                                  className="h-9 sm:h-10"
-                                />
-                              </div>
-                              <div className="space-y-2">
-                                <Label htmlFor="backupFrequency" className="text-sm font-medium">Backup Frequency</Label>
-                                <Select
-                                  value={securitySettings.backupFrequency}
-                                  onValueChange={(value) => handleSecurityChange("backupFrequency", value)}
-                                >
-                                  <SelectTrigger className="h-9 sm:h-10">
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="daily">Daily</SelectItem>
-                                    <SelectItem value="weekly">Weekly</SelectItem>
-                                    <SelectItem value="monthly">Monthly</SelectItem>
-                                  </SelectContent>
-                                </Select>
                               </div>
                             </div>
                           </>

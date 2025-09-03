@@ -624,20 +624,6 @@ const Prescriptions = () => {
                                   <Edit className="mr-2 h-4 w-4" />
                                   Edit Prescription
                                 </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() => handlePrintPrescription(prescription._id)}
-                                >
-                                  <Printer className="mr-2 h-4 w-4" />
-                                  Print Prescription
-                                </DropdownMenuItem>
-                                {!prescription.pharmacy_dispensed && (
-                                  <DropdownMenuItem
-                                    onClick={() => handleSendToPharmacy(prescription._id)}
-                                  >
-                                    <Send className="mr-2 h-4 w-4" />
-                                    Send to Pharmacy
-                                  </DropdownMenuItem>
-                                )}
                                 {prescription.status === "active" && (
                                   <DropdownMenuItem
                                     onClick={() => handleStatusUpdate(prescription._id, "completed")}
@@ -794,20 +780,6 @@ const Prescriptions = () => {
                               <Edit className="mr-2 h-4 w-4" />
                               Edit Prescription
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handlePrintPrescription(prescription._id)}
-                            >
-                              <Printer className="mr-2 h-4 w-4" />
-                              Print Prescription
-                            </DropdownMenuItem>
-                            {!prescription.pharmacy_dispensed && (
-                              <DropdownMenuItem
-                                onClick={() => handleSendToPharmacy(prescription._id)}
-                              >
-                                <Send className="mr-2 h-4 w-4" />
-                                Send to Pharmacy
-                              </DropdownMenuItem>
-                            )}
                             {prescription.status === "active" && (
                               <DropdownMenuItem
                                 onClick={() => handleStatusUpdate(prescription._id, "completed")}

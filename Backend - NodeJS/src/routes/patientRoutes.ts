@@ -14,11 +14,14 @@ const patientValidation = [
   body('phone').notEmpty().withMessage('Phone number is required'),
   body('email').isEmail().withMessage('Please provide a valid email'),
   body('address').notEmpty().withMessage('Address is required'),
-  body('emergency_contact.name').notEmpty().withMessage('Emergency contact name is required'),
-  body('emergency_contact.relationship').notEmpty().withMessage('Emergency contact relationship is required'),
-  body('emergency_contact.phone').notEmpty().withMessage('Emergency contact phone is required'),
-  body('insurance_info.provider').notEmpty().withMessage('Insurance provider is required'),
-  body('insurance_info.policy_number').notEmpty().withMessage('Policy number is required')
+  body('emergency_contact.name').optional().isString().withMessage('Emergency contact name must be a string'),
+  body('emergency_contact.relationship').optional().isString().withMessage('Emergency contact relationship must be a string'),
+  body('emergency_contact.phone').optional().isString().withMessage('Emergency contact phone must be a string'),
+  body('emergency_contact.email').optional().isEmail().withMessage('Please provide a valid emergency contact email'),
+  body('insurance_info.provider').optional().isString().withMessage('Insurance provider must be a string'),
+  body('insurance_info.policy_number').optional().isString().withMessage('Policy number must be a string'),
+  body('insurance_info.group_number').optional().isString().withMessage('Group number must be a string'),
+  body('insurance_info.expiry_date').optional().isISO8601().withMessage('Please provide a valid expiry date')
 ];
 
 // Routes - All routes require authentication and medical staff access

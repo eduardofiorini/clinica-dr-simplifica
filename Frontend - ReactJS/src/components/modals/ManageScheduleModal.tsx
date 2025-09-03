@@ -24,7 +24,7 @@ interface ManageScheduleModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   staff: ReturnType<typeof transformUserToStaff> | null;
-  onUpdate: (id: string, data: any) => Promise<void>;
+  onUpdate: (id: string, schedule: any) => Promise<void>;
 }
 
 const ManageScheduleModal: React.FC<ManageScheduleModalProps> = ({
@@ -138,19 +138,14 @@ const ManageScheduleModal: React.FC<ManageScheduleModalProps> = ({
     setIsLoading(true);
 
     try {
-      // Note: This would need backend support for schedule updates
-      // For now, we'll just show a success message
-      toast({
-        title: "Schedule Updated",
-        description: `Work schedule for ${staff.firstName} ${staff.lastName} has been updated successfully.`,
-      });
-
+      // Call the backend API to update the schedule
+      await onUpdate(staff.id, schedule);
       onOpenChange(false);
     } catch (error) {
       console.error('Error updating schedule:', error);
       toast({
         title: "Error",
-        description: "Failed to update schedule. This feature requires backend support.",
+        description: "Failed to update schedule. Please try again.",
         variant: "destructive",
       });
     } finally {

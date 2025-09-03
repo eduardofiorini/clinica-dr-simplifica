@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import { body } from 'express-validator';
 import { UserController } from '../controllers';
+import { s3AvatarUpload } from '../utils/s3';
 import { CurrencyUtils } from '../utils/currency';
-import { authenticate, requireAdmin, requireMedicalStaff } from '../middleware/auth';
+import { authenticate, requireAdmin, requireMedicalStaff, requireAllRoles } from '../middleware/auth';
 
 const router = Router();
 
@@ -37,10 +38,32 @@ const adminChangePasswordValidation = [
     .withMessage('New password must contain at least one uppercase letter, one lowercase letter, and one number')
 ];
 
+const updateScheduleValidation = [
+  body('schedule').isObject().withMessage('Schedule must be an object'),
+  body('schedule.monday').isObject().withMessage('Monday schedule is required'),
+  body('schedule.tuesday').isObject().withMessage('Tuesday schedule is required'),
+  body('schedule.wednesday').isObject().withMessage('Wednesday schedule is required'),
+  body('schedule.thursday').isObject().withMessage('Thursday schedule is required'),
+  body('schedule.friday').isObject().withMessage('Friday schedule is required'),
+  body('schedule.saturday').isObject().withMessage('Saturday schedule is required'),
+  body('schedule.sunday').isObject().withMessage('Sunday schedule is required'),
+  // Validate each day has required fields
+  body('schedule.*.start').optional().matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('Start time must be in HH:MM format'),
+  body('schedule.*.end').optional().matches(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/).withMessage('End time must be in HH:MM format'),
+  body('schedule.*.isWorking').isBoolean().withMessage('isWorking must be a boolean'),
+];
+
 // Profile routes (require authentication middleware)
 router.get('/profile', authenticate, UserController.getProfile);
 router.put('/profile', authenticate, updateProfileValidation, UserController.updateProfile);
 router.put('/change-password', authenticate, changePasswordValidation, UserController.changePassword);
+
+// Avatar routes
+router.post('/avatar', authenticate, s3AvatarUpload.single('avatar'), UserController.uploadAvatar);
+router.delete('/avatar', authenticate, UserController.removeAvatar);
+
+// Schedule routes
+router.put('/:id/schedule', authenticate, updateScheduleValidation, UserController.updateUserSchedule);
 
 // Currency routes
 router.get('/currencies', (req, res) => {
@@ -59,7 +82,7 @@ router.get('/doctors', requireMedicalStaff, UserController.getDoctors);
 router.get('/nurses', requireMedicalStaff, UserController.getNurses);
 
 // Admin routes (require admin authorization middleware)
-router.get('/', requireAdmin, UserController.getAllUsers);
+router.get('/', requireAllRoles, UserController.getAllUsers);
 router.get('/:id', requireAdmin, UserController.getUserById);
 router.put('/:id', requireAdmin, UserController.updateUser);
 router.patch('/:id/deactivate', requireAdmin, UserController.deactivateUser);

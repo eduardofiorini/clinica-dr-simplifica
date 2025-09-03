@@ -164,4 +164,5 @@ export const requireAdmin = [authenticate, authorize('admin')];
 export const requireDoctor = [authenticate, authorize('admin', 'doctor')];
 export const requireMedicalStaff = [authenticate, authorize('admin', 'doctor', 'nurse')];
 export const requireStaff = [authenticate, authorize('admin', 'doctor', 'nurse', 'receptionist', 'staff')];
-export const requireAnalyticsAccess = [authenticate, authorize('admin', 'accountant')]; 
+export const requireAnalyticsAccess = [authenticate, authorize('admin', 'accountant')];
+export const requireAllRoles = [authenticate, authorize('admin', 'doctor', 'nurse', 'receptionist', 'accountant', 'staff')]; 

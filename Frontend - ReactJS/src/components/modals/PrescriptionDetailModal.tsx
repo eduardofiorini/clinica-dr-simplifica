@@ -425,16 +425,6 @@ const PrescriptionDetailModal: React.FC<PrescriptionDetailModalProps> = ({
             Last updated: {formatDate(prescription.updated_at)} at {formatTime(prescription.updated_at)}
           </div>
           <div className="flex space-x-3">
-            <Button variant="outline" onClick={handlePrint}>
-              <Printer className="h-4 w-4 mr-2" />
-              Print
-            </Button>
-            {!prescription.pharmacy_dispensed && (
-              <Button onClick={handleSendToPharmacy}>
-                <Send className="h-4 w-4 mr-2" />
-                Send to Pharmacy
-              </Button>
-            )}
             <Button variant="outline" onClick={() => onOpenChange(false)}>
               Close
             </Button>

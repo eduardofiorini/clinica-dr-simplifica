@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { apiService } from "@/services/api";
 import {
   Card,
   CardContent,
@@ -52,6 +53,7 @@ const Profile = () => {
   const { user, updateUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [isAvatarUploading, setIsAvatarUploading] = useState(false);
   const [profileData, setProfileData] = useState({
     firstName: user?.firstName || "",
     lastName: user?.lastName || "",
@@ -59,7 +61,7 @@ const Profile = () => {
     phone: user?.phone || "",
     address: user?.address || "",
     bio: user?.bio || "",
-    dateOfBirth: user?.dateOfBirth || "",
+    dateOfBirth: user?.dateOfBirth ? (user.dateOfBirth.includes('T') ? user.dateOfBirth.split('T')[0] : user.dateOfBirth) : "",
     specialization: user?.specialization || "",
     licenseNumber: user?.licenseNumber || "",
     department: user?.department || "",
@@ -80,23 +82,30 @@ const Profile = () => {
   const handleSave = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
       // Prepare the data for API
-      const updateData = {
+      const updateData: any = {
         first_name: profileData.firstName,
         last_name: profileData.lastName,
         phone: profileData.phone,
         address: profileData.address,
         bio: profileData.bio,
-        date_of_birth: profileData.dateOfBirth,
         specialization: profileData.specialization,
         license_number: profileData.licenseNumber,
         department: profileData.department,
       };
+
+      // Handle date of birth separately - only include if provided and format correctly
+      if (profileData.dateOfBirth) {
+        // Ensure the date is in YYYY-MM-DD format for the API
+        const dateValue = profileData.dateOfBirth;
+        if (dateValue.includes('T')) {
+          // If it's an ISO string, extract just the date part
+          updateData.date_of_birth = dateValue.split('T')[0];
+        } else {
+          // If it's already in YYYY-MM-DD format, use as is
+          updateData.date_of_birth = dateValue;
+        }
+      }
 
       // Remove empty fields
       Object.keys(updateData).forEach(key => {
@@ -105,38 +114,21 @@ const Profile = () => {
         }
       });
 
-      const response = await fetch('/api/users/profile', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(updateData),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        if (updateUser) {
-          updateUser(result.data.user);
-        }
-        toast({
-          title: "Profile Updated",
-          description: "Your profile has been updated successfully.",
-        });
-        setIsEditing(false);
-      } else {
-        toast({
-          title: "Error",
-          description: result.message || "Failed to update profile.",
-          variant: "destructive",
-        });
+      const updatedUser = await apiService.updateProfile(updateData);
+      
+      if (updateUser) {
+        updateUser(updatedUser);
       }
-    } catch (error) {
+      toast({
+        title: "Profile Updated",
+        description: "Your profile has been updated successfully.",
+      });
+      setIsEditing(false);
+    } catch (error: any) {
       console.error('Profile update error:', error);
       toast({
         title: "Error",
-        description: "Failed to update profile. Please try again.",
+        description: error?.response?.data?.message || "Failed to update profile. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -152,7 +144,7 @@ const Profile = () => {
       phone: user?.phone || "",
       address: user?.address || "",
       bio: user?.bio || "",
-      dateOfBirth: user?.dateOfBirth || "",
+      dateOfBirth: user?.dateOfBirth ? (user.dateOfBirth.includes('T') ? user.dateOfBirth.split('T')[0] : user.dateOfBirth) : "",
       specialization: user?.specialization || "",
       licenseNumber: user?.licenseNumber || "",
       department: user?.department || "",
@@ -237,50 +229,25 @@ const Profile = () => {
 
     setIsPasswordLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('No authentication token found');
-      }
-
-      const response = await fetch('/api/users/change-password', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          current_password: passwordData.currentPassword,
-          new_password: passwordData.newPassword,
-        }),
+      await apiService.changePassword(passwordData.currentPassword, passwordData.newPassword);
+      
+      toast({
+        title: "Success",
+        description: "Password changed successfully.",
       });
-
-      const result = await response.json();
-
-      if (result.success) {
-        toast({
-          title: "Success",
-          description: "Password changed successfully.",
-        });
-        
-        // Reset form and close modal
-        setPasswordData({
-          currentPassword: "",
-          newPassword: "",
-          confirmPassword: "",
-        });
-        setIsPasswordModalOpen(false);
-      } else {
-        toast({
-          title: "Error",
-          description: result.message || "Failed to change password.",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
+      
+      // Reset form and close modal
+      setPasswordData({
+        currentPassword: "",
+        newPassword: "",
+        confirmPassword: "",
+      });
+      setIsPasswordModalOpen(false);
+    } catch (error: any) {
       console.error('Password change error:', error);
       toast({
         title: "Error",
-        description: "Failed to change password. Please try again.",
+        description: error?.response?.data?.message || "Failed to change password. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -298,6 +265,85 @@ const Profile = () => {
     setShowNewPassword(false);
     setShowConfirmPassword(false);
     setIsPasswordModalOpen(false);
+  };
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "Error",
+        description: "Please select a valid image file (JPEG, PNG, WebP).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "Error",
+        description: "File size must be less than 5MB.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAvatarUploading(true);
+    try {
+      const result = await apiService.uploadAvatar(file);
+      
+      console.log('🎉 Avatar upload successful!');
+      console.log('New avatar URL:', result.avatar);
+      console.log('Current user avatar before update:', user?.avatar);
+      
+      // Add timestamp to prevent caching issues
+      const avatarUrlWithTimestamp = `${result.avatar}?t=${Date.now()}`;
+      updateUser({ avatar: avatarUrlWithTimestamp });
+      
+      console.log('User context updated with new avatar:', avatarUrlWithTimestamp);
+      toast({
+        title: "Success",
+        description: "Profile picture updated successfully.",
+      });
+    } catch (error: any) {
+      console.error('Avatar upload error:', error);
+      toast({
+        title: "Error",
+        description: error?.response?.data?.message || "Failed to upload profile picture. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAvatarUploading(false);
+      // Reset the input
+      event.target.value = '';
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    setIsAvatarUploading(true);
+    try {
+      await apiService.removeAvatar();
+      
+      console.log('🗑️ Avatar removed successfully');
+      updateUser({ avatar: undefined });
+      toast({
+        title: "Success",
+        description: "Profile picture removed successfully.",
+      });
+    } catch (error: any) {
+      console.error('Avatar removal error:', error);
+      toast({
+        title: "Error",
+        description: error?.response?.data?.message || "Failed to remove profile picture. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAvatarUploading(false);
+    }
   };
 
   return (
@@ -340,19 +386,54 @@ const Profile = () => {
               <div className="flex flex-col items-center text-center">
                 <div className="relative">
                   <Avatar className="h-24 w-24">
-                    <AvatarImage src={user?.avatar} alt={user?.firstName} />
+                    <AvatarImage 
+                      src={user?.avatar} 
+                      alt={user?.firstName}
+                      className="object-cover"
+                      onLoad={() => console.log('✅ Avatar image loaded successfully:', user?.avatar)}
+                      onError={(e) => console.log('❌ Avatar image failed to load:', user?.avatar, e)}
+                    />
                     <AvatarFallback className="text-2xl">
                       {user?.firstName?.charAt(0)}
                       {user?.lastName?.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
-                  >
-                    <Camera className="h-4 w-4" />
-                  </Button>
+                  <div className="absolute -bottom-2 -right-2 flex space-x-1">
+                    {user?.avatar && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-6 w-6 rounded-full p-0"
+                        onClick={handleRemoveAvatar}
+                        disabled={isAvatarUploading}
+                        title="Remove avatar"
+                      >
+                        <span className="text-xs">×</span>
+                      </Button>
+                    )}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8 w-8 rounded-full p-0"
+                      disabled={isAvatarUploading}
+                      onClick={() => document.getElementById('avatar-upload')?.click()}
+                      title="Change avatar"
+                    >
+                      <Camera className="h-4 w-4" />
+                    </Button>
+                    <input
+                      id="avatar-upload"
+                      type="file"
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                    />
+                  </div>
+                  {isAvatarUploading && (
+                    <div className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center">
+                      <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    </div>
+                  )}
                 </div>
                 <div className="mt-4 space-y-2">
                   <h3 className="text-xl font-semibold">
@@ -468,6 +549,25 @@ const Profile = () => {
                     </div>
                   )}
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                {isEditing ? (
+                  <Input
+                    id="dateOfBirth"
+                    type="date"
+                    value={profileData.dateOfBirth ? new Date(profileData.dateOfBirth).toISOString().split('T')[0] : ''}
+                    onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
+                  />
+                ) : (
+                  <div className="text-sm p-3 bg-gray-50 rounded-md">
+                    {profileData.dateOfBirth 
+                      ? new Date(profileData.dateOfBirth).toLocaleDateString()
+                      : "Not provided"
+                    }
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">

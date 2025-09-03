@@ -53,6 +53,7 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
+  Calendar,
   Eye,
   Receipt,
   Banknote,
@@ -592,6 +593,7 @@ const Payments = () => {
   const totalRevenue = stats?.overview?.total_revenue || payments
     .filter((p) => p.status === "completed")
     .reduce((sum, payment) => sum + payment.amount, 0);
+  const monthlyRevenue = stats?.overview?.monthly_revenue || 0;
   const completedPayments = stats?.overview?.completed_payments || payments.filter(
     (p) => p.status === "completed",
   ).length;
@@ -654,13 +656,35 @@ const Payments = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-600">
-                    Total Revenue
+                    Total Revenue (All Time)
                   </p>
                   <p className="text-3xl font-bold text-green-600">
                     <CurrencyDisplay amount={totalRevenue} variant="large" />
                   </p>
                 </div>
                 <DollarSign className="h-8 w-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.15 }}
+        >
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    This Month Revenue
+                  </p>
+                  <p className="text-3xl font-bold text-green-600">
+                    <CurrencyDisplay amount={monthlyRevenue} variant="large" />
+                  </p>
+                </div>
+                <Calendar className="h-8 w-8 text-green-600" />
               </div>
             </CardContent>
           </Card>

@@ -308,16 +308,6 @@ const Documentation = () => {
             Comprehensive guides, workflows, and help resources for ClinicPro
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 flex-shrink-0">
-          <Button variant="outline" className="w-full sm:w-auto">
-            <Download className="h-4 w-4 mr-2" />
-            Download PDF
-          </Button>
-          <Button className="w-full sm:w-auto">
-            <MessageCircle className="h-4 w-4 mr-2" />
-            Get Support
-          </Button>
-        </div>
       </div>
       {/* Quick Access */}
       <Card>
@@ -347,7 +337,6 @@ const Documentation = () => {
                     </p>
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <span>{guide.time}</span>
-                      <ArrowRight className="h-3 w-3" />
                     </div>
                   </CardContent>
                 </Card>

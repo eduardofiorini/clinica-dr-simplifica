@@ -211,24 +211,52 @@ export class InvoiceController {
         due_date: { $lt: new Date() }
       });
 
-      const revenueData = await Invoice.aggregate([
-        { $match: { status: 'paid' } },
-        {
-          $group: {
-            _id: null,
-            totalRevenue: { $sum: '$total_amount' },
-            averageInvoice: { $avg: '$total_amount' }
+      // Get current month dates for monthly revenue calculation
+      const now = new Date();
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+
+      const [revenueData, monthlyRevenueData] = await Promise.all([
+        // Total revenue calculation
+        Invoice.aggregate([
+          { $match: { status: 'paid', paid_at: { $exists: true } } },
+          {
+            $group: {
+              _id: null,
+              totalRevenue: { $sum: '$total_amount' },
+              averageInvoice: { $avg: '$total_amount' }
+            }
           }
-        }
+        ]),
+        // Current month revenue calculation  
+        Invoice.aggregate([
+          { 
+            $match: { 
+              status: 'paid', 
+              paid_at: { 
+                $gte: startOfMonth,
+                $lt: startOfNextMonth,
+                $exists: true 
+              } 
+            } 
+          },
+          {
+            $group: {
+              _id: null,
+              monthlyRevenue: { $sum: '$total_amount' },
+              monthlyInvoicesCount: { $sum: 1 }
+            }
+          }
+        ])
       ]);
 
       const monthlyRevenue = await Invoice.aggregate([
-        { $match: { status: 'paid' } },
+        { $match: { status: 'paid', paid_at: { $exists: true } } },
         {
           $group: {
             _id: {
-              year: { $year: '$payment_date' },
-              month: { $month: '$payment_date' }
+              year: { $year: '$paid_at' },
+              month: { $month: '$paid_at' }
             },
             revenue: { $sum: '$total_amount' },
             count: { $sum: 1 }
@@ -247,7 +275,9 @@ export class InvoiceController {
           overdueInvoices,
           totalRevenue: revenueData[0]?.totalRevenue || 0,
           averageInvoice: revenueData[0]?.averageInvoice || 0,
-          monthlyRevenue
+          monthlyRevenue: monthlyRevenueData[0]?.monthlyRevenue || 0,
+          monthlyInvoicesCount: monthlyRevenueData[0]?.monthlyInvoicesCount || 0,
+          historicalMonthlyRevenue: monthlyRevenue
         }
       });
     } catch (error) {

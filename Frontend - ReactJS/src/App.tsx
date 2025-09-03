@@ -39,7 +39,7 @@ import TurnaroundTime from "./pages/dashboard/test-modules/turnaround-time/Turna
 import SampleType from "./pages/dashboard/test-modules/sample-type/SampleType";
 import Category from "./pages/dashboard/test-modules/category/Category";
 import Calendar from "./pages/dashboard/calendar/Calendar";
-import Settings from "./pages/dashboard/settings/Settings";
+
 import Profile from "./pages/dashboard/profile/Profile";
 import Documentation from "./pages/dashboard/documentation/Documentation";
 import DatabaseStructure from "./pages/dashboard/database-structure/DatabaseStructure";
@@ -121,11 +121,11 @@ const App = () => {
               {/* Dashboard - accessible to all authenticated users */}
               <Route index element={<Dashboard />} />
 
-              {/* AI X-ray Analysis - accessible to admin, doctor */}
+              {/* AI X-ray Analysis - accessible to admin, doctor, nurse */}
               <Route
                 path="xray-analysis"
                 element={
-                  <RequireRole roles={["admin", "doctor"]}>
+                  <RequireRole roles={["admin", "doctor", "nurse"]}>
                     <XrayAnalysis />
                   </RequireRole>
                 }
@@ -391,15 +391,7 @@ const App = () => {
                 }
               />
 
-              {/* Settings - admin only */}
-              <Route
-                path="settings"
-                element={
-                  <RequireRole roles={["admin"]}>
-                    <Settings />
-                  </RequireRole>
-                }
-              />
+
 
               {/* Profile - accessible to all authenticated users */}
               <Route

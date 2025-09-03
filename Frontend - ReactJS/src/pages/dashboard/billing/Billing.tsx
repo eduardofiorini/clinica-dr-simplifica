@@ -45,6 +45,7 @@ import {
   FileText,
   Receipt,
   TrendingUp,
+  Calendar,
   Eye,
   Edit,
   Trash2,
@@ -53,9 +54,10 @@ import CreateInvoiceModal from "@/components/modals/CreateInvoiceModal";
 import ViewInvoiceModal from "@/components/modals/ViewInvoiceModal";
 import EditInvoiceModal from "@/components/modals/EditInvoiceModal";
 import DeleteInvoiceModal from "@/components/modals/DeleteInvoiceModal";
+import ViewPaymentModal from "@/components/modals/ViewPaymentModal";
 import { CurrencyDisplay } from "@/components/ui/CurrencyDisplay";
 import { toast } from "@/hooks/use-toast";
-import { apiService, type Invoice, type Payment, type PaymentStats } from "@/services/api";
+import { apiService, type Invoice, type Payment, type PaymentStats, type InvoiceStats } from "@/services/api";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const Billing = () => {
@@ -65,6 +67,7 @@ const Billing = () => {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [payments, setPayments] = useState<Payment[]>([]);
   const [paymentStats, setPaymentStats] = useState<PaymentStats | null>(null);
+  const [invoiceStats, setInvoiceStats] = useState<InvoiceStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -74,6 +77,8 @@ const Billing = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedInvoiceId, setSelectedInvoiceId] = useState<string | null>(null);
+  const [viewPaymentModalOpen, setViewPaymentModalOpen] = useState(false);
+  const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
 
   // Load data on component mount and when filters change
   useEffect(() => {
@@ -87,6 +92,7 @@ const Billing = () => {
         loadInvoices(),
         loadPayments(),
         loadPaymentStats(),
+        loadInvoiceStats(),
       ]);
     } catch (error) {
       console.error('Error loading billing data:', error);
@@ -147,6 +153,15 @@ const Billing = () => {
       setPaymentStats(stats);
     } catch (error) {
       console.error('Error loading payment stats:', error);
+    }
+  };
+
+  const loadInvoiceStats = async () => {
+    try {
+      const stats = await apiService.getInvoiceStats();
+      setInvoiceStats(stats);
+    } catch (error) {
+      console.error('Error loading invoice stats:', error);
     }
   };
 
@@ -301,6 +316,7 @@ const Billing = () => {
         description: `Invoice ${invoiceId} has been marked as paid.`,
       });
       loadInvoices(); // Reload invoices
+      loadInvoiceStats(); // Reload invoice stats to reflect the status change
     } catch (error) {
       toast({
         title: "Error",
@@ -325,11 +341,18 @@ const Billing = () => {
     setDeleteModalOpen(true);
   };
 
+  const handleViewPayment = (paymentId: string) => {
+    setSelectedPaymentId(paymentId);
+    setViewPaymentModalOpen(true);
+  };
+
   const handleModalClose = () => {
     setSelectedInvoiceId(null);
     setViewModalOpen(false);
     setEditModalOpen(false);
     setDeleteModalOpen(false);
+    setSelectedPaymentId(null);
+    setViewPaymentModalOpen(false);
   };
 
   const handleModalSuccess = () => {
@@ -354,20 +377,19 @@ const Billing = () => {
     }
   };
 
-  // Calculate stats from API data or fallback to local calculations
-  const totalRevenue = paymentStats?.overview?.total_revenue || 
-    (invoices || []).filter(i => i?.status === "paid").reduce((sum, invoice) => sum + (invoice?.total_amount || 0), 0);
+  // Use stats from API for accurate data
+  const totalRevenue = invoiceStats?.totalRevenue || 0;
+  const monthlyRevenue = invoiceStats?.monthlyRevenue || 0;
+  const pendingInvoicesCount = invoiceStats?.pendingInvoices || 0;
+  const overdueInvoicesCount = invoiceStats?.overdueInvoices || 0;
+  const totalInvoicesCount = invoiceStats?.totalInvoices || 0;
   
-  const paidAmount = paymentStats?.overview?.total_revenue || 
-    (invoices || []).filter(i => i?.status === "paid").reduce((sum, invoice) => sum + (invoice?.total_amount || 0), 0);
-  
+  // Calculate pending amount - we need to get this from the current invoices as backend doesn't provide it
   const pendingAmount = (invoices || []).filter(i => i?.status === "pending").reduce((sum, invoice) => sum + (invoice?.total_amount || 0), 0);
-  
-  const overdueAmount = (invoices || []).filter(i => i?.status === "overdue").reduce((sum, invoice) => sum + (invoice?.total_amount || 0), 0);
 
   const totalPayments = paymentStats?.overview?.total_payments || payments.length;
   const completedPayments = paymentStats?.overview?.completed_payments || payments.filter(p => p?.status === "completed").length;
-  const failedPayments = paymentStats?.overview?.failed_payments || payments.filter(p => p?.status === "failed").length;
+  const processingPayments = paymentStats?.overview?.processing_payments || 0;
 
   return (
     <div className="space-y-3 xs:space-y-4 sm:space-y-6">
@@ -393,16 +415,35 @@ const Billing = () => {
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm font-medium text-gray-600">
-                  Total Revenue
+                  Total Revenue (All Time)
                 </p>
                 <p className="text-xl xs:text-2xl font-bold text-green-600 mt-1">
                   <CurrencyDisplay 
-                    amount={paymentStats?.overview?.total_revenue || 0} 
+                    amount={totalRevenue} 
                     className="text-xl xs:text-2xl font-bold"
                   />
                 </p>
               </div>
               <TrendingUp className="h-6 w-6 xs:h-8 xs:w-8 text-green-600 flex-shrink-0 ml-2" />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-3 xs:p-4 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div className="min-w-0 flex-1">
+                <p className="text-xs sm:text-sm font-medium text-gray-600">
+                  This Month Revenue
+                </p>
+                <p className="text-xl xs:text-2xl font-bold text-green-600 mt-1">
+                  <CurrencyDisplay 
+                    amount={monthlyRevenue} 
+                    className="text-xl xs:text-2xl font-bold"
+                  />
+                </p>
+              </div>
+              <Calendar className="h-6 w-6 xs:h-8 xs:w-8 text-green-600 flex-shrink-0 ml-2" />
             </div>
           </CardContent>
         </Card>
@@ -434,7 +475,7 @@ const Billing = () => {
                   Total Invoices
                 </p>
                 <p className="text-xl xs:text-2xl font-bold text-gray-900 mt-1">
-                  {loading ? "..." : invoices.length}
+                  {loading ? "..." : totalInvoicesCount}
                 </p>
               </div>
               <FileText className="h-6 w-6 xs:h-8 xs:w-8 text-blue-600 flex-shrink-0 ml-2" />
@@ -450,7 +491,7 @@ const Billing = () => {
                   Processing Payments
                 </p>
                 <p className="text-xl xs:text-2xl font-bold text-purple-600 mt-1">
-                  {paymentStats?.overview?.processing_payments || 0}
+                  {processingPayments}
                 </p>
               </div>
               <DollarSign className="h-6 w-6 xs:h-8 xs:w-8 text-purple-600 flex-shrink-0 ml-2" />
@@ -497,7 +538,7 @@ const Billing = () => {
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="invoices" className="text-xs xs:text-sm">
-            Invoices ({invoices.length})
+            Invoices ({totalInvoicesCount})
           </TabsTrigger>
           <TabsTrigger value="payments" className="text-xs xs:text-sm">
             Payments ({payments.length})
@@ -805,7 +846,7 @@ const Billing = () => {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleViewPayment(payment._id)}>
                                   <Eye className="mr-2 h-4 w-4" />
                                   View Details
                                 </DropdownMenuItem>
@@ -889,7 +930,7 @@ const Billing = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewPayment(payment._id)}>
                               <Eye className="mr-2 h-4 w-4" />
                               View Details
                             </DropdownMenuItem>
@@ -960,6 +1001,12 @@ const Billing = () => {
         isOpen={deleteModalOpen}
         onClose={handleModalClose}
         onSuccess={handleModalSuccess}
+      />
+
+      <ViewPaymentModal
+        paymentId={selectedPaymentId}
+        isOpen={viewPaymentModalOpen}
+        onClose={handleModalClose}
       />
     </div>
   );

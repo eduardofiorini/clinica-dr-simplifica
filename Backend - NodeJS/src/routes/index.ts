@@ -25,6 +25,7 @@ import settingsRoutes from './settingsRoutes';
 import trainingRoutes from './trainingRoutes';
 import receptionistRoutes from './receptionistRoutes';
 import xrayAnalysisRoutes from './xrayAnalysisRoutes';
+import { getConnectionState, isConnectionHealthy } from '../config/database';
 
 const router = Router();
 
@@ -56,13 +57,80 @@ router.use('/training', trainingRoutes);
 router.use('/receptionist', receptionistRoutes);
 router.use('/xray-analysis', xrayAnalysisRoutes);
 
-// Health check route
+// Basic health check route
 router.get('/health', (req, res) => {
   res.json({
     success: true,
     message: 'Clinic Management API is running',
     timestamp: new Date().toISOString()
   });
+});
+
+// Database health check route
+router.get('/health/database', async (req, res) => {
+  try {
+    const connectionState = getConnectionState();
+    const isHealthy = await isConnectionHealthy();
+    
+    const healthStatus = {
+      success: true,
+      message: isHealthy ? 'Database connection is healthy' : 'Database connection issues detected',
+      timestamp: new Date().toISOString(),
+      database: {
+        healthy: isHealthy,
+        connected: connectionState.isConnected,
+        connecting: connectionState.isConnecting,
+        host: connectionState.host,
+        database: connectionState.database,
+        readyState: connectionState.mongooseReadyState,
+        readyStateLabel: connectionState.mongooseReadyStateLabel,
+        collections: connectionState.collections,
+        connectionAttempts: connectionState.connectionAttempts,
+        lastConnectionTime: connectionState.lastConnectionTime,
+        lastError: connectionState.lastError ? {
+          message: connectionState.lastError.message,
+          timestamp: connectionState.lastConnectionTime
+        } : null
+      },
+      uptime: process.uptime(),
+      memoryUsage: process.memoryUsage(),
+      nodeVersion: process.version
+    };
+
+    // Set appropriate HTTP status based on health
+    const statusCode = isHealthy ? 200 : 503;
+    res.status(statusCode).json(healthStatus);
+    
+  } catch (error) {
+    console.error('Health check error:', error);
+    res.status(503).json({
+      success: false,
+      message: 'Health check failed',
+      timestamp: new Date().toISOString(),
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Connection state monitoring endpoint (for debugging)
+router.get('/health/connection-state', async (req, res) => {
+  try {
+    const connectionState = getConnectionState();
+    res.json({
+      success: true,
+      message: 'Connection state retrieved successfully',
+      timestamp: new Date().toISOString(),
+      connectionState
+    });
+  } catch (error) {
+    console.error('Connection state error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve connection state',
+      timestamp: new Date().toISOString(),
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
 });
 
 export default router; 

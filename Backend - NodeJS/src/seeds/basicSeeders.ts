@@ -72,18 +72,145 @@ export async function seedTraining(): Promise<void> {
     
     await Training.insertMany([
       {
-        role: 'doctor', name: 'Doctor Onboarding', description: 'Comprehensive training for doctors',
-        overview: 'Complete orientation program for medical staff',
+        role: 'admin',
+        name: 'Administrator Training',
+        description: 'Complete system management training',
+        overview: 'As an Administrator, you have complete access to all system features. Learn to manage users, configure settings, and oversee clinic operations.',
         modules: [
-          { title: 'EMR System', duration: '2 hours', lessons: ['Login', 'Patient records', 'Prescriptions'], order: 1 },
-          { title: 'Protocols', duration: '3 hours', lessons: ['Emergency procedures', 'Documentation'], order: 2 }
+          {
+            title: 'Getting Started',
+            duration: '15 mins',
+            lessons: ['Dashboard Overview', 'Navigation Basics', 'User Interface Elements', 'Quick Actions'],
+            order: 1
+          },
+          {
+            title: 'User Management',
+            duration: '25 mins',
+            lessons: ['Adding New Users', 'Role Assignment', 'Permission Management', 'User Deactivation'],
+            order: 2
+          },
+          {
+            title: 'System Configuration',
+            duration: '30 mins',
+            lessons: ['Clinic Settings', 'Working Hours', 'Payment Methods', 'Notification Settings'],
+            order: 3
+          },
+          {
+            title: 'Analytics & Reports',
+            duration: '20 mins',
+            lessons: ['Revenue Analysis', 'Patient Analytics', 'Performance Metrics', 'Exporting Data'],
+            order: 4
+          }
         ]
       },
       {
-        role: 'nurse', name: 'Nurse Onboarding', description: 'Training program for nursing staff',
-        overview: 'Essential skills and procedures for nurses',
+        role: 'doctor',
+        name: 'Doctor Training',
+        description: 'Comprehensive training for doctors',
+        overview: 'Learn how to efficiently manage patients, appointments, and medical records using ClinicPro.',
         modules: [
-          { title: 'Patient Care', duration: '4 hours', lessons: ['Vital signs', 'Medication admin'], order: 1 }
+          {
+            title: 'Patient Management',
+            duration: '20 mins',
+            lessons: ['Patient Registration', 'Medical History', 'Document Upload', 'Patient Search'],
+            order: 1
+          },
+          {
+            title: 'Appointment Scheduling',
+            duration: '15 mins',
+            lessons: ['Creating Appointments', 'Calendar Management', 'Rescheduling', 'Cancellations'],
+            order: 2
+          },
+          {
+            title: 'Prescriptions',
+            duration: '18 mins',
+            lessons: ['Digital Prescriptions', 'Medication Database', 'Dosage Guidelines', 'Prescription History'],
+            order: 3
+          },
+          {
+            title: 'Test Management',
+            duration: '22 mins',
+            lessons: ['Ordering Tests', 'Lab Integration', 'Report Review', 'Result Communication'],
+            order: 4
+          }
+        ]
+      },
+      {
+        role: 'nurse',
+        name: 'Nurse Training',
+        description: 'Training program for nursing staff',
+        overview: 'Master the essential features for patient care, inventory management, and clinical support.',
+        modules: [
+          {
+            title: 'Patient Care',
+            duration: '18 mins',
+            lessons: ['Vital Signs Entry', 'Care Plans', 'Medication Administration', 'Patient Communication'],
+            order: 1
+          },
+          {
+            title: 'Inventory Management',
+            duration: '25 mins',
+            lessons: ['Stock Monitoring', 'Supply Ordering', 'Expiry Tracking', 'Usage Recording'],
+            order: 2
+          },
+          {
+            title: 'Test Support',
+            duration: '20 mins',
+            lessons: ['Sample Collection', 'Lab Preparation', 'Quality Control', 'Report Distribution'],
+            order: 3
+          }
+        ]
+      },
+      {
+        role: 'receptionist',
+        name: 'Receptionist Training',
+        description: 'Front desk operations training',
+        overview: 'Learn front desk operations, appointment management, and patient communication.',
+        modules: [
+          {
+            title: 'Front Desk Operations',
+            duration: '20 mins',
+            lessons: ['Patient Check-in', 'Insurance Verification', 'Payment Processing', 'Document Management'],
+            order: 1
+          },
+          {
+            title: 'Appointment Management',
+            duration: '15 mins',
+            lessons: ['Booking Appointments', 'Calendar Coordination', 'Reminder Calls', 'Waitlist Management'],
+            order: 2
+          },
+          {
+            title: 'Lead Management',
+            duration: '18 mins',
+            lessons: ['Lead Capture', 'Follow-up Scheduling', 'Conversion Tracking', 'Communication Templates'],
+            order: 3
+          }
+        ]
+      },
+      {
+        role: 'accountant',
+        name: 'Accountant Training',
+        description: 'Financial management training',
+        overview: 'Master financial management, billing, and reporting features of the system.',
+        modules: [
+          {
+            title: 'Billing & Invoicing',
+            duration: '25 mins',
+            lessons: ['Invoice Creation', 'Payment Recording', 'Insurance Claims', 'Billing Reports'],
+            order: 1
+          },
+          {
+            title: 'Financial Reports',
+            duration: '20 mins',
+            lessons: ['Revenue Analysis', 'Expense Tracking', 'Profit Margins', 'Tax Reporting'],
+            order: 2
+          },
+          {
+            title: 'Payroll Management',
+            duration: '22 mins',
+            lessons: ['Staff Payments', 'Salary Calculations', 'Deductions', 'Payroll Reports'],
+            order: 3
+          }
         ]
       }
     ]);

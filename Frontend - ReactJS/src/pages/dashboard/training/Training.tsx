@@ -212,19 +212,49 @@ const Training = () => {
     }
 
     try {
-      const currentTrainingFromAPI = trainings.find(t => t.role === selectedRole);
+      // First ensure we have training data loaded
+      if (!trainings || trainings.length === 0) {
+        await fetchTrainings();
+      }
+
+      let currentTrainingFromAPI = trainings.find(t => t.role === selectedRole);
+      
+             // If no training found in API, try to create/get one for the role
+       if (!currentTrainingFromAPI) {
+         try {
+           const training = await getTrainingByRole(selectedRole);
+           currentTrainingFromAPI = training;
+           // Refresh trainings to include the new one
+           await fetchTrainings();
+         } catch (err) {
+           console.error('Error getting training by role:', err);
+           toast.error("No training program found for your role. Please contact administrator.");
+           return;
+         }
+       }
+
       let currentProgress = currentTrainingFromAPI ? getProgressForTraining(currentTrainingFromAPI._id) : null;
 
       // If no progress exists, start training first
       if (!currentProgress && currentTrainingFromAPI) {
-        await startTraining(currentTrainingFromAPI._id, selectedRole);
-        // Refetch progress after starting
-        await fetchUserProgress();
-        currentProgress = getProgressForTraining(currentTrainingFromAPI._id);
+        try {
+          const newProgress = await startTraining(currentTrainingFromAPI._id, selectedRole);
+          if (newProgress) {
+            currentProgress = newProgress;
+          } else {
+            // Refetch progress after starting
+            await fetchUserProgress();
+            currentProgress = getProgressForTraining(currentTrainingFromAPI._id);
+          }
+        } catch (startError: any) {
+          console.error('Error starting training:', startError);
+          toast.error(startError.message || "Failed to start training");
+          return;
+        }
       }
 
       if (!currentProgress) {
-        toast.error("Failed to initialize training progress");
+        toast.error("Failed to initialize training progress. Please try refreshing the page.");
         return;
       }
 

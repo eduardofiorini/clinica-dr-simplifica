@@ -80,7 +80,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           href: "/dashboard/xray-analysis",
           icon: Brain,
           badge: "AI",
-          roles: ["admin", "doctor"],
+          roles: ["admin", "doctor", "nurse"],
         },
       ],
     },
@@ -227,12 +227,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           icon: Database,
           roles: ["admin"],
         },
-        {
-          name: "Settings",
-          href: "/dashboard/settings",
-          icon: Settings,
-          roles: ["admin"],
-        },
       ],
     },
   ];
@@ -248,6 +242,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             title: "My Dashboard",
             items: [
               { name: "Dashboard", href: "/dashboard", icon: Home },
+              {
+                name: "AI X-ray Analysis",
+                href: "/dashboard/xray-analysis",
+                icon: Brain,
+                badge: "AI",
+              },
               { name: "My Patients", href: "/dashboard/patients", icon: Users },
               {
                 name: "Appointments",
@@ -305,6 +305,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             title: "Nursing",
             items: [
               { name: "Dashboard", href: "/dashboard", icon: Home },
+              {
+                name: "AI X-ray Analysis",
+                href: "/dashboard/xray-analysis",
+                icon: Brain,
+                badge: "AI",
+              },
               {
                 name: "Assigned Patients",
                 href: "/dashboard/patients",

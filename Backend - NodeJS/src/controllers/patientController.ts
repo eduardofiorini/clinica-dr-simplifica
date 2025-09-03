@@ -64,33 +64,43 @@ export class PatientController {
       let totalPatients: number;
 
       if (roleFilter._requiresDoctorPatientFilter && req.user?.role === 'doctor') {
-        // For doctors, find patients they have appointments or prescriptions with
-        const doctorId = roleFilter._doctorId;
-        
-        // Get patient IDs from appointments
-        const appointmentPatients = await Appointment.distinct('patient_id', { doctor_id: doctorId });
-        
-        // Get patient IDs from prescriptions
-        const prescriptionPatients = await Prescription.distinct('patient_id', { doctor_id: doctorId });
-        
-        // Combine patient IDs
-        const patientIds = [...new Set([...appointmentPatients, ...prescriptionPatients])];
-        
-        if (patientIds.length === 0) {
-          // Doctor has no patients assigned
-          patients = [];
-          totalPatients = 0;
-        } else {
-          // Add patient ID filter to existing filters
-          filter._id = { $in: patientIds };
-          
-          patients = await Patient.find(filter)
-            .skip(skip)
-            .limit(limit)
-            .sort({ created_at: -1 });
+        // TEMPORARY: Allow doctors to see all patients for development
+        // TODO: Restore role-based filtering for production
+        patients = await Patient.find(filter)
+          .skip(skip)
+          .limit(limit)
+          .sort({ created_at: -1 });
 
-          totalPatients = await Patient.countDocuments(filter);
-        }
+        totalPatients = await Patient.countDocuments(filter);
+        
+        // ORIGINAL CODE (commented out for development):
+        // For doctors, find patients they have appointments or prescriptions with
+        // const doctorId = roleFilter._doctorId;
+        // 
+        // // Get patient IDs from appointments
+        // const appointmentPatients = await Appointment.distinct('patient_id', { doctor_id: doctorId });
+        // 
+        // // Get patient IDs from prescriptions
+        // const prescriptionPatients = await Prescription.distinct('patient_id', { doctor_id: doctorId });
+        // 
+        // // Combine patient IDs
+        // const patientIds = [...new Set([...appointmentPatients, ...prescriptionPatients])];
+        // 
+        // if (patientIds.length === 0) {
+        //   // Doctor has no patients assigned
+        //   patients = [];
+        //   totalPatients = 0;
+        // } else {
+        //   // Add patient ID filter to existing filters
+        //   filter._id = { $in: patientIds };
+        //   
+        //   patients = await Patient.find(filter)
+        //     .skip(skip)
+        //     .limit(limit)
+        //     .sort({ created_at: -1 });
+        // 
+        //   totalPatients = await Patient.countDocuments(filter);
+        // }
       } else if (roleFilter._requiresNursePatientFilter && req.user?.role === 'nurse') {
         // For nurses, find patients they have appointments with (as assigned nurse)
         const nurseId = roleFilter._nurseId;

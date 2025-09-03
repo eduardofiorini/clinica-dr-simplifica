@@ -14,6 +14,13 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       clientPort: mode === 'development' ? 5173 : undefined, // HMR port
     },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   plugins: [react()],
   resolve: {

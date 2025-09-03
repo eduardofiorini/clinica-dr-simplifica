@@ -78,17 +78,27 @@ export class XrayAnalysisController {
       console.log('Custom prompt length:', custom_prompt?.length || 0);
 
       // Default prompt if none provided
-      const defaultPrompt = `Analyze this dental X-ray image and provide a comprehensive report. Please examine the following:
-1. Presence of cavities or decay
-2. Wisdom teeth condition and positioning
-3. Bone density and structure
-4. Signs of infection or inflammation
-5. Any abnormal structures or findings
-6. Overall dental health assessment
+             const defaultPrompt = `You are an expert dental radiologist. Analyze the uploaded dental X-ray image. Based on the visual details, provide the following:
+ 
+ 1. A short summary of the condition of the teeth shown in the X-ray (e.g., decay, infection, root condition, bone loss, fillings, etc.)
+ 2. Identify any problematic areas (e.g., tooth number and the issue).
+ 3. Mention whether there's a need for further diagnosis (e.g., CBCT, clinical exam).
+ 4. Suggest suitable medications if needed (e.g., antibiotics, painkillers) with dosage and purpose.
+ 5. Avoid overly technical jargon. Keep it understandable for both dentist and patient.
+ 6. Do **not** generate any fake data if the image is unclear. Instead, mention "Image not clear enough for diagnosis".
+ 7. Do **not** include phrases like "Detailed Analysis:", "Of course. As a dental radiologist, here is my analysis of the provided dental X-ray." or similar introductory statements. Start directly with the analysis content.
+ 
+ Respond in this format:
+ - **Condition Summary**:
+ - **Identified Issues**:
+ - **Suggested Medications**:
+ - **Additional Notes**:
+ `;
 
-Provide a detailed professional medical analysis suitable for a dental practice.`;
-
-      const analysisPrompt = custom_prompt || defaultPrompt;
+      // Always merge custom prompt with default prompt
+      const analysisPrompt = custom_prompt && custom_prompt.trim() 
+        ? `${defaultPrompt}\n\n--- Additional Custom Instructions ---\n${custom_prompt}`
+        : defaultPrompt;
 
       // Initialize Gemini AI client
       const apiKey = process.env.GEMINI_API_KEY || '';

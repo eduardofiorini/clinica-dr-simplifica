@@ -52,7 +52,6 @@ import AddPatientModal from "@/components/modals/AddPatientModal";
 import ViewDetailsModal from "@/components/modals/ViewDetailsModal";
 import EditItemModal from "@/components/modals/EditItemModal";
 import DeleteConfirmModal from "@/components/modals/DeleteConfirmModal";
-import NewAppointmentModal from "@/components/modals/NewAppointmentModal";
 
 const Patients = () => {
   const { user } = useAuth();
@@ -94,11 +93,6 @@ const Patients = () => {
     item: Patient | null;
   }>({ open: false, item: null });
 
-  const [appointmentModal, setAppointmentModal] = useState<{
-    open: boolean;
-    patientId: string | null;
-  }>({ open: false, patientId: null });
-
   // Action handlers
   const handleViewDetails = (patient: Patient) => {
     setViewDetailsModal({ open: true, item: patient });
@@ -110,10 +104,6 @@ const Patients = () => {
 
   const handleDelete = (patient: Patient) => {
     setDeleteModal({ open: true, item: patient });
-  };
-
-  const handleScheduleAppointment = (patient: Patient) => {
-    setAppointmentModal({ open: true, patientId: patient.id });
   };
 
   const handleSaveEdit = async (updatedData: Record<string, any>) => {
@@ -208,17 +198,10 @@ const Patients = () => {
     }
   };
 
-  // Convert API patients to local Patient type with additional edit fields
-  type ExtendedPatient = Patient & { 
-    avatar?: string; 
-    lastVisit?: Date; 
-    totalVisits?: number; 
-    status?: string; 
-  };
-
-  const convertApiPatientToLocal = (apiPatient: ApiPatient): ExtendedPatient => {
-    const patient: ExtendedPatient = {
-      id: apiPatient._id || String(apiPatient.id || ''),
+  // Convert API patients to local Patient type
+  const convertApiPatientToLocal = (apiPatient: ApiPatient): Patient => {
+    const patient: Patient = {
+      id: apiPatient._id || '',
       firstName: apiPatient.first_name,
       lastName: apiPatient.last_name,
       email: apiPatient.email,
@@ -408,11 +391,6 @@ const Patients = () => {
             onClick: () => handleEdit(patient),
           },
           {
-            label: "Schedule Appointment",
-            icon: Calendar,
-            onClick: () => handleScheduleAppointment(patient),
-          },
-          {
             label: "Delete Patient",
             icon: Trash2,
             onClick: () => handleDelete(patient),
@@ -440,10 +418,6 @@ const Patients = () => {
               <DropdownMenuItem onClick={() => handleEdit(patient)}>
                 <Edit className="mr-2 h-4 w-4" />
                 Edit Patient
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleScheduleAppointment(patient)}>
-                <Calendar className="mr-2 h-4 w-4" />
-                Schedule Appointment
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => handleDelete(patient)}
@@ -712,12 +686,6 @@ const Patients = () => {
         title="Delete Patient"
         description={`Are you sure you want to delete this patient? This action cannot be undone.`}
         itemName={`${deleteModal.item?.firstName || ''} ${deleteModal.item?.lastName || ''}`.trim() || 'this patient'}
-      />
-
-      <NewAppointmentModal
-        open={appointmentModal.open}
-        onOpenChange={(open) => setAppointmentModal({ open, patientId: open ? appointmentModal.patientId : null })}
-        preSelectedPatientId={appointmentModal.patientId || undefined}
       />
     </ResponsiveContainer>
   );

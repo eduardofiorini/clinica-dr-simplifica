@@ -57,6 +57,7 @@ import UpdateSalaryModal from "@/components/modals/UpdateSalaryModal";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { CurrencyDisplay } from "@/components/ui/CurrencyDisplay";
 import { useStaff, StaffFilters, transformUserToStaff } from "@/hooks/useStaff";
+import { apiService, type Payroll } from "@/services/api";
 import { toast } from "@/hooks/use-toast";
 
 const Staff = () => {
@@ -72,6 +73,10 @@ const Staff = () => {
   const [salaryModalOpen, setSalaryModalOpen] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<ReturnType<typeof transformUserToStaff> | null>(null);
 
+  // Payroll data for salary calculations
+  const [payrollData, setPayrollData] = useState<Payroll[]>([]);
+  const [loadingPayroll, setLoadingPayroll] = useState(false);
+
   // Use the staff hook
   const {
     staff,
@@ -79,11 +84,65 @@ const Staff = () => {
     error,
     fetchStaff,
     updateStaff,
+    updateStaffSchedule,
     activateStaff,
     deactivateStaff,
     getStaffStats,
     refetch
   } = useStaff();
+
+  // Fetch payroll data to get actual salary information
+  const fetchPayrollData = async () => {
+    try {
+      setLoadingPayroll(true);
+      const response = await apiService.getPayrolls({ limit: 100 }); // Get more payroll entries
+      setPayrollData(response.data.items || []);
+    } catch (error) {
+      console.error('Error fetching payroll data:', error);
+    } finally {
+      setLoadingPayroll(false);
+    }
+  };
+
+  // Calculate staff member salary from payroll data
+  const getStaffSalary = (staffId: string): number => {
+    const payrollEntries = payrollData.filter(entry => {
+      const employeeId = typeof entry.employee_id === 'string' 
+        ? entry.employee_id 
+        : entry.employee_id._id;
+      return employeeId === staffId;
+    });
+
+    if (payrollEntries.length === 0) return 0;
+
+    // Get the most recent payroll entry for base salary
+    const latestEntry = payrollEntries.sort((a, b) => 
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )[0];
+
+    return latestEntry.base_salary || 0;
+  };
+
+  // Enhanced stats calculation with real salary data
+  const getEnhancedStaffStats = () => {
+    const baseStats = getStaffStats();
+    
+    // Calculate total salary budget from payroll data
+    const staffWithSalaries = staff.map(member => ({
+      ...member,
+      actualSalary: getStaffSalary(member.id)
+    }));
+
+    const totalSalaryBudget = staffWithSalaries.reduce((sum, member) => 
+      sum + member.actualSalary, 0
+    );
+
+    return {
+      ...baseStats,
+      totalSalaryBudget,
+      staffWithSalaries
+    };
+  };
 
   // Effect to fetch staff when filters change
   useEffect(() => {
@@ -94,6 +153,11 @@ const Staff = () => {
     };
     fetchStaff(filters);
   }, [searchTerm, selectedRole, selectedDepartment]);
+
+  // Effect to fetch payroll data on component mount
+  useEffect(() => {
+    fetchPayrollData();
+  }, []);
 
   const departments = [
     "all",
@@ -153,8 +217,8 @@ const Staff = () => {
     return Object.values(schedule).filter((day: any) => day.isWorking).length;
   };
 
-  // Calculate stats using the hook
-  const stats = getStaffStats();
+  // Calculate stats using the enhanced version with payroll data
+  const stats = getEnhancedStaffStats();
 
   // Add handlers for staff actions
   const handleActivateStaff = async (id: string) => {
@@ -175,6 +239,7 @@ const Staff = () => {
 
   const handleRefresh = () => {
     refetch();
+    fetchPayrollData(); // Also refresh payroll data
     toast({
       title: "Staff list refreshed",
       description: "Staff data has been updated from the server.",
@@ -212,6 +277,15 @@ const Staff = () => {
     }
   };
 
+  const handleScheduleUpdate = async (id: string, schedule: any) => {
+    try {
+      await updateStaffSchedule(id, schedule);
+      handleRefresh();
+    } catch (error) {
+      // Error handling is done in the hook
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -225,8 +299,8 @@ const Staff = () => {
           </p>
         </div>
         <div className="flex-shrink-0 flex gap-2">
-          <Button variant="outline" onClick={handleRefresh} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+          <Button variant="outline" onClick={handleRefresh} disabled={loading || loadingPayroll}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${(loading || loadingPayroll) ? 'animate-spin' : ''}`} />
             Refresh
           </Button>
           <AddStaffModal onStaffAdded={handleRefresh} />
@@ -306,7 +380,11 @@ const Staff = () => {
                     Salary Budget
                   </p>
                   <p className="text-3xl font-bold text-purple-600">
-                    <CurrencyDisplay amount={stats.totalSalaryBudget} variant="large" />
+                    {loadingPayroll ? (
+                      <span className="text-sm">Loading...</span>
+                    ) : (
+                      <CurrencyDisplay amount={stats.totalSalaryBudget} variant="large" />
+                    )}
                   </p>
                 </div>
                 <DollarSign className="h-8 w-8 text-purple-600" />
@@ -473,9 +551,12 @@ const Staff = () => {
                       <TableCell>{member.department}</TableCell>
                       <TableCell>
                         <div className="font-medium">
-                          {formatCurrency(member.salary)}
+                          {getStaffSalary(member.id) > 0 
+                            ? formatCurrency(getStaffSalary(member.id)) 
+                            : 'Not set'
+                          }
                         </div>
-                        <div className="text-sm text-gray-500">Annual</div>
+                        <div className="text-sm text-gray-500">Base Salary</div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
@@ -586,7 +667,10 @@ const Staff = () => {
                         Salary
                       </div>
                       <div className="text-sm font-medium">
-                        {member.salary > 0 ? formatCurrency(member.salary) : 'Not set'}
+                        {getStaffSalary(member.id) > 0 
+                          ? formatCurrency(getStaffSalary(member.id)) 
+                          : 'Not set'
+                        }
                       </div>
                     </div>
                   </div>
@@ -675,14 +759,19 @@ const Staff = () => {
         open={scheduleModalOpen}
         onOpenChange={setScheduleModalOpen}
         staff={selectedStaff}
-        onUpdate={handleStaffUpdate}
+        onUpdate={handleScheduleUpdate}
       />
 
       <UpdateSalaryModal
         open={salaryModalOpen}
         onOpenChange={setSalaryModalOpen}
-        staff={selectedStaff}
-        onUpdate={handleStaffUpdate}
+        employeeId={selectedStaff?.id || null}
+        onUpdate={() => {
+          // Refresh staff data after salary update
+          fetchStaff();
+          setSalaryModalOpen(false);
+          setSelectedStaff(null);
+        }}
       />
     </div>
   );

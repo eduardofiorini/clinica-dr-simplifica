@@ -292,10 +292,6 @@ const ReceptionistDashboard = () => {
             <Users className="h-3 w-3 mr-1" />
             Receptionist
           </Badge>
-          <Button size="sm" className="hidden sm:flex">
-            <Plus className="h-4 w-4 mr-2" />
-            New Appointment
-          </Button>
         </div>
       </div>
 
@@ -594,36 +590,6 @@ const ReceptionistDashboard = () => {
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg sm:text-xl">Quick Actions</CardTitle>
-          <CardDescription className="text-xs sm:text-sm">
-            Common tasks and shortcuts
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="px-4 sm:px-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            <Button variant="outline" className="h-16 sm:h-20 flex-col">
-              <Calendar className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
-              <span className="text-xs sm:text-sm">Schedule</span>
-            </Button>
-            <Button variant="outline" className="h-16 sm:h-20 flex-col">
-              <UserPlus className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
-              <span className="text-xs sm:text-sm">New Patient</span>
-            </Button>
-            <Button variant="outline" className="h-16 sm:h-20 flex-col">
-              <Phone className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
-              <span className="text-xs sm:text-sm">Call Patient</span>
-            </Button>
-            <Button variant="outline" className="h-16 sm:h-20 flex-col">
-              <MessageSquare className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
-              <span className="text-xs sm:text-sm">Send Message</span>
-            </Button>
-          </div>
         </CardContent>
       </Card>
 

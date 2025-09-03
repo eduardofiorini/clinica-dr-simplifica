@@ -54,6 +54,23 @@ export interface XrayAnalysis {
   updated_at: string;
 }
 
+// Work Schedule Types
+export interface DaySchedule {
+  start: string;
+  end: string;
+  isWorking: boolean;
+}
+
+export interface WorkSchedule {
+  monday: DaySchedule;
+  tuesday: DaySchedule;
+  wednesday: DaySchedule;
+  thursday: DaySchedule;
+  friday: DaySchedule;
+  saturday: DaySchedule;
+  sunday: DaySchedule;
+}
+
 export interface XrayAnalysisStats {
   total_analyses: number;
   completed_analyses: number;
@@ -189,6 +206,14 @@ export interface User {
   phone?: string;
   is_active: boolean;
   base_currency: string;
+  avatar?: string;
+  address?: string;
+  bio?: string;
+  date_of_birth?: string;
+  specialization?: string;
+  license_number?: string;
+  department?: string;
+  schedule?: WorkSchedule;
   created_at: string;
   updated_at: string;
 }
@@ -359,11 +384,32 @@ export interface PaymentStats {
     failed_payments: number;
     pending_payments: number;
     processing_payments: number;
+    monthly_revenue: number;
+    monthly_payments_count: number;
   };
   by_method: Array<{
     _id: string;
     count: number;
     total_amount: number;
+  }>;
+}
+
+export interface InvoiceStats {
+  totalInvoices: number;
+  paidInvoices: number;
+  pendingInvoices: number;
+  overdueInvoices: number;
+  totalRevenue: number;
+  averageInvoice: number;
+  monthlyRevenue: number;
+  monthlyInvoicesCount: number;
+  historicalMonthlyRevenue: Array<{
+    _id: {
+      year: number;
+      month: number;
+    };
+    revenue: number;
+    count: number;
   }>;
 }
 
@@ -595,6 +641,11 @@ class ApiService {
     return response.data.data!.user;
   }
 
+  async updateUserSchedule(id: string, schedule: WorkSchedule): Promise<User> {
+    const response = await apiClient.put<ApiResponse<{ user: User }>>(`/users/${id}/schedule`, { schedule });
+    return response.data.data!.user;
+  }
+
   async activateUser(id: string): Promise<User> {
     const response = await apiClient.patch<ApiResponse<{ user: User }>>(`/users/${id}/activate`);
     return response.data.data!.user;
@@ -607,6 +658,31 @@ class ApiService {
 
   async adminChangeUserPassword(id: string, newPassword: string): Promise<void> {
     await apiClient.put(`/users/${id}/password`, { new_password: newPassword });
+  }
+
+  // Avatar management
+  async uploadAvatar(file: File): Promise<{ avatar: string }> {
+    const formData = new FormData();
+    formData.append('avatar', file);
+    
+    const response = await apiClient.post<ApiResponse<{ avatar: string }>>('/users/avatar', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data.data!;
+  }
+
+  async removeAvatar(): Promise<void> {
+    await apiClient.delete('/users/avatar');
+  }
+
+  // Password management
+  async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+    await apiClient.put('/users/change-password', {
+      current_password: currentPassword,
+      new_password: newPassword,
+    });
   }
 
   // Appointments
@@ -704,6 +780,11 @@ class ApiService {
 
   async deleteInvoice(id: string): Promise<void> {
     await apiClient.delete(`/invoices/${id}`);
+  }
+
+  async getInvoiceStats(): Promise<InvoiceStats> {
+    const response = await apiClient.get<{ success: boolean; data: InvoiceStats }>('/invoices/stats');
+    return response.data.data;
   }
 
   // Inventory

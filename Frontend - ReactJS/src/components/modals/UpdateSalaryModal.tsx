@@ -2,350 +2,598 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   DollarSign,
-  TrendingUp,
+  Briefcase,
   Calendar,
-  Loader2,
+  Calculator,
+  Save,
+  X,
+  CheckCircle,
+  Clock,
+  FileText,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import { transformUserToStaff } from "@/hooks/useStaff";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { CurrencyDisplay } from "@/components/ui/CurrencyDisplay";
+import { apiService, type Payroll, type User } from "@/services/api";
 
 interface UpdateSalaryModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  staff: ReturnType<typeof transformUserToStaff> | null;
-  onUpdate: (id: string, data: any) => Promise<void>;
+  employeeId: string | null;
+  onUpdate: () => void;
 }
 
 const UpdateSalaryModal: React.FC<UpdateSalaryModalProps> = ({
   open,
   onOpenChange,
-  staff,
+  employeeId,
   onUpdate,
 }) => {
+  const [employeeData, setEmployeeData] = useState<User | null>(null);
+  const [payrollData, setPayrollData] = useState<Payroll | null>(null);
+  const [editForm, setEditForm] = useState<Partial<Payroll>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [isFetching, setIsFetching] = useState(false);
   const { formatAmount } = useCurrency();
-  const [formData, setFormData] = useState({
-    currentSalary: 0,
-    newSalary: "",
-    adjustmentType: "raise",
-    effectiveDate: "",
-    reason: "",
-    notes: "",
-  });
 
-  const adjustmentTypes = [
-    { value: "raise", label: "Salary Raise" },
-    { value: "promotion", label: "Promotion" },
-    { value: "adjustment", label: "Market Adjustment" },
-    { value: "bonus", label: "Performance Bonus" },
-    { value: "correction", label: "Salary Correction" },
-  ];
+  // Helper function to parse numeric input values
+  const parseNumericValue = (value: string): number => {
+    if (value === '' || value === null || value === undefined) {
+      return 0;
+    }
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? 0 : parsed;
+  };
 
-  // Initialize form data when staff changes
+  // Helper function to parse integer input values
+  const parseIntegerValue = (value: string): number => {
+    if (value === '' || value === null || value === undefined) {
+      return 0;
+    }
+    const parsed = parseInt(value, 10);
+    return isNaN(parsed) ? 0 : parsed;
+  };
+
+  // Calculate net salary automatically
+  const calculateNetSalary = (formData: Partial<Payroll>) => {
+    const baseSalary = formData.base_salary || 0;
+    const overtime = formData.overtime || 0;
+    const bonus = formData.bonus || 0;
+    const allowances = formData.allowances || 0;
+    const tax = formData.tax || 0;
+    const deductions = formData.deductions || 0;
+
+    const grossSalary = baseSalary + overtime + bonus + allowances;
+    const totalDeductions = tax + deductions;
+    return grossSalary - totalDeductions;
+  };
+
+  // Update edit form with automatic net salary calculation
+  const updateEditForm = (updates: Partial<Payroll>) => {
+    const newFormData = { ...editForm, ...updates };
+    const calculatedNetSalary = calculateNetSalary(newFormData);
+    
+    setEditForm({
+      ...newFormData,
+      net_salary: calculatedNetSalary
+    });
+  };
+
+  // Load employee and payroll data
   useEffect(() => {
-    if (staff) {
-      setFormData(prev => ({
-        ...prev,
-        currentSalary: staff.salary,
-        effectiveDate: new Date().toISOString().split('T')[0], // Today's date
-      }));
+    if (open && employeeId) {
+      loadEmployeeData();
     }
-  }, [staff]);
+  }, [open, employeeId]);
 
-  const handleChange = (field: string, value: string | number) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const calculateIncrease = () => {
-    const current = formData.currentSalary;
-    const newSalary = parseFloat(formData.newSalary) || 0;
-    const increase = newSalary - current;
-    const percentage = current > 0 ? ((increase / current) * 100) : 0;
-    
-    return {
-      amount: increase,
-      percentage: percentage.toFixed(2),
-      isIncrease: increase >= 0,
-    };
-  };
-
-  const validateForm = () => {
-    const newSalary = parseFloat(formData.newSalary);
-    
-    if (!formData.newSalary || isNaN(newSalary)) {
-      toast({
-        title: "Validation Error",
-        description: "Please enter a valid salary amount",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    if (newSalary < 0) {
-      toast({
-        title: "Validation Error",
-        description: "Salary cannot be negative",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    if (!formData.effectiveDate) {
-      toast({
-        title: "Validation Error",
-        description: "Please select an effective date",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    if (!formData.reason.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Please provide a reason for the salary change",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!staff || !validateForm()) {
-      return;
-    }
-
-    setIsLoading(true);
-
+  const loadEmployeeData = async () => {
     try {
-      // Note: This would need backend support for salary updates
-      // For now, we'll just show a success message
-      const increase = calculateIncrease();
+      setIsFetching(true);
       
-      toast({
-        title: "Salary Updated",
-        description: `Salary for ${staff.firstName} ${staff.lastName} has been updated to ${formatAmount(parseFloat(formData.newSalary))} (${increase.isIncrease ? '+' : ''}${formatAmount(increase.amount)}, ${increase.percentage}%).`,
-      });
+      // Fetch employee data and payroll data in parallel
+      const [userResponse, payrollResponse] = await Promise.allSettled([
+        apiService.getUser(employeeId!),
+        apiService.getPayrolls({ employee_id: employeeId, limit: 10 })
+      ]);
 
-      onOpenChange(false);
-    } catch (error) {
-      console.error('Error updating salary:', error);
+      // Handle employee data
+      if (userResponse.status === 'fulfilled') {
+        setEmployeeData(userResponse.value);
+      } else {
+        console.error('Error fetching employee data:', userResponse.reason);
+        toast({
+          title: "Error",
+          description: "Failed to load employee data. Please try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Handle payroll data
+      if (payrollResponse.status === 'fulfilled' && 
+          payrollResponse.value.data.items && 
+          payrollResponse.value.data.items.length > 0) {
+        
+        // Find the most recent payroll entry
+        const latestPayroll = payrollResponse.value.data.items.reduce((latest, current) => {
+          const latestDate = new Date(latest.created_at || latest.updated_at);
+          const currentDate = new Date(current.created_at || current.updated_at);
+          return currentDate > latestDate ? current : latest;
+        });
+        
+        setPayrollData(latestPayroll);
+        
+        // Set the edit form with calculated net salary
+        const calculatedNetSalary = calculateNetSalary(latestPayroll);
+        setEditForm({
+          ...latestPayroll,
+          net_salary: calculatedNetSalary
+        });
+      } else {
+        // No existing payroll found, create a new one
+        const currentDate = new Date();
+        const newPayrollData: Partial<Payroll> = {
+          employee_id: employeeId,
+          month: currentDate.toLocaleString('default', { month: 'long' }),
+          year: currentDate.getFullYear(),
+          base_salary: 0,
+          overtime: 0,
+          bonus: 0,
+          allowances: 0,
+          tax: 0,
+          deductions: 0,
+          net_salary: 0,
+          working_days: 22,
+          total_days: 30,
+          leaves: 0,
+          status: 'draft'
+        };
+        
+        setPayrollData(null);
+        setEditForm(newPayrollData);
+      }
+    } catch (error: any) {
+      console.error('Error loading employee/payroll data:', error);
       toast({
         title: "Error",
-        description: "Failed to update salary. This feature requires backend support.",
+        description: "Failed to load employee data. Please try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsFetching(false);
+    }
+  };
+
+  const getEmployeeDisplay = (employee: string | User) => {
+    if (typeof employee === 'string') {
+      return employee;
+    }
+    return `${employee.first_name} ${employee.last_name}`;
+  };
+
+  const getEmployeeEmail = (employee: string | User) => {
+    if (typeof employee === 'string') {
+      return employee;
+    }
+    return employee.email || '';
+  };
+
+  const getEmployeeRole = (employee: string | User) => {
+    if (typeof employee === 'string') {
+      return 'Staff Member';
+    }
+    return employee.role || 'Staff Member';
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "paid":
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case "processed":
+        return <Clock className="h-4 w-4 text-blue-600" />;
+      case "pending":
+        return <Clock className="h-4 w-4 text-orange-600" />;
+      case "draft":
+        return <FileText className="h-4 w-4 text-gray-600" />;
+      default:
+        return <Clock className="h-4 w-4 text-gray-600" />;
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "paid":
+        return "bg-green-100 text-green-800";
+      case "processed":
+        return "bg-blue-100 text-blue-800";
+      case "pending":
+        return "bg-orange-100 text-orange-800";
+      case "draft":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  const handleSavePayroll = async () => {
+    if (!editForm || !employeeId) return;
+
+    try {
+      setIsLoading(true);
+      
+      // Prepare the payload
+      const payload = {
+        ...editForm,
+        employee_id: employeeId
+      };
+
+      let updatedPayroll: Payroll;
+
+      if (payrollData?._id) {
+        // Update existing payroll
+        updatedPayroll = await apiService.updatePayroll(payrollData._id, payload);
+        toast({
+          title: "Success",
+          description: "Payroll details updated successfully.",
+        });
+      } else {
+        // Create new payroll
+        updatedPayroll = await apiService.createPayroll(payload as Omit<Payroll, '_id' | 'created_at' | 'updated_at'>);
+        toast({
+          title: "Success",
+          description: "New payroll record created successfully.",
+        });
+      }
+
+      onUpdate();
+      onOpenChange(false);
+    } catch (error: any) {
+      console.error('Error saving payroll:', error);
+      
+      // Handle validation errors specifically
+      if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        const errorMessages = error.response.data.errors.map((err: any) => 
+          `${err.path}: ${err.msg}`
+        ).join(', ');
+        
+        toast({
+          title: "Validation Error",
+          description: `Please check the following fields: ${errorMessages}`,
+          variant: "destructive",
+        });
+      } else if (error.response?.data?.message) {
+        toast({
+          title: "Error",
+          description: error.response.data.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to save payroll details. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (!staff) return null;
+  const closeModal = () => {
+    setEmployeeData(null);
+    setPayrollData(null);
+    setEditForm({});
+    onOpenChange(false);
+  };
 
-  const salaryIncrease = calculateIncrease();
+  if (!open) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={closeModal}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center text-xl">
-            <DollarSign className="h-5 w-5 mr-2 text-green-600" />
-            Update Salary
+          <DialogTitle>
+            Update Salary & Payroll Details
           </DialogTitle>
           <DialogDescription>
-            Adjust salary for {staff.firstName} {staff.lastName}
+            {payrollData 
+              ? 'Edit payroll information. Only non-paid entries can be modified.'
+              : 'Create new payroll record for this employee.'}
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Current Salary Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center">
-                <DollarSign className="h-4 w-4 mr-2" />
-                Current Salary Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {isFetching ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <span className="ml-2">Loading employee data...</span>
+          </div>
+        ) : editForm && (
+          <div className="space-y-6">
+            {/* Employee Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center">
+                <Briefcase className="h-5 w-5 mr-2 text-blue-600" />
+                Employee Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                 <div>
-                  <Label className="text-sm text-gray-500">Current Annual Salary</Label>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {formData.currentSalary > 0 ? formatAmount(formData.currentSalary) : 'Not set'}
-                  </div>
+                  <Label className="text-sm font-medium text-gray-600">Name</Label>
+                  <p className="text-sm font-semibold">
+                    {employeeData ? getEmployeeDisplay(employeeData) : 'Loading...'}
+                  </p>
                 </div>
                 <div>
-                  <Label className="text-sm text-gray-500">Role</Label>
-                  <div className="text-lg font-medium text-gray-700 capitalize">
-                    {staff.role}
-                  </div>
+                  <Label className="text-sm font-medium text-gray-600">Email</Label>
+                  <p className="text-sm">
+                    {employeeData ? getEmployeeEmail(employeeData) : 'Loading...'}
+                  </p>
                 </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Role</Label>
+                  <p className="text-sm">
+                    {employeeData ? getEmployeeRole(employeeData) : 'Loading...'}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Employee ID</Label>
+                  <p className="text-sm">
+                    {employeeId}
+                  </p>
+                </div>
+                {payrollData && (
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Status</Label>
+                    <div className="flex items-center space-x-2 mt-1">
+                      {getStatusIcon(payrollData.status)}
+                      <Badge className={getStatusColor(payrollData.status)}>
+                        {payrollData.status}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Salary Update Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center">
-                <TrendingUp className="h-4 w-4 mr-2" />
-                Salary Adjustment
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="newSalary">New Annual Salary *</Label>
+            {/* Pay Period Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center">
+                <Calendar className="h-5 w-5 mr-2 text-blue-600" />
+                Pay Period Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Month & Year</Label>
+                  <p className="text-sm font-semibold">
+                    {editForm.month} {editForm.year}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Working Days</Label>
                   <Input
-                    id="newSalary"
                     type="number"
-                    value={formData.newSalary}
-                    onChange={(e) => handleChange("newSalary", e.target.value)}
-                    placeholder="75000"
+                    value={editForm.working_days ?? 0}
+                    onChange={(e) => updateEditForm({
+                      working_days: parseIntegerValue(e.target.value)
+                    })}
+                    className="mt-1"
                     min="0"
-                    step="1000"
-                    required
+                    max="31"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="adjustmentType">Adjustment Type *</Label>
-                  <Select value={formData.adjustmentType} onValueChange={(value) => handleChange("adjustmentType", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select adjustment type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {adjustmentTypes.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div>
+                  <Label className="text-sm font-medium text-gray-600">Leaves Taken</Label>
+                  <Input
+                    type="number"
+                    value={editForm.leaves ?? 0}
+                    onChange={(e) => updateEditForm({
+                      leaves: parseIntegerValue(e.target.value)
+                    })}
+                    className="mt-1"
+                    min="0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Salary Information */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold flex items-center">
+                <DollarSign className="h-5 w-5 mr-2 text-green-600" />
+                Salary Breakdown
+              </h3>
+              
+              {/* Base Salary */}
+              <div className="p-4 bg-gray-50 rounded-lg">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Base Salary</Label>
+                    <Input
+                      type="number"
+                      value={editForm.base_salary ?? 0}
+                      onChange={(e) => updateEditForm({
+                        base_salary: parseNumericValue(e.target.value)
+                      })}
+                      className="mt-1"
+                      min="0"
+                      step="0.01"
+                      placeholder="Enter base salary"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Total Days</Label>
+                    <Input
+                      type="number"
+                      value={editForm.total_days ?? 30}
+                      onChange={(e) => updateEditForm({
+                        total_days: parseIntegerValue(e.target.value)
+                      })}
+                      className="mt-1"
+                      min="1"
+                      max="31"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="effectiveDate">Effective Date *</Label>
-                <Input
-                  id="effectiveDate"
-                  type="date"
-                  value={formData.effectiveDate}
-                  onChange={(e) => handleChange("effectiveDate", e.target.value)}
-                  required
-                />
+              {/* Additions */}
+              <div className="p-4 bg-green-50 rounded-lg">
+                <h4 className="font-semibold text-green-800 mb-3">Additions</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Overtime</Label>
+                    <Input
+                      type="number"
+                      value={editForm.overtime ?? 0}
+                      onChange={(e) => updateEditForm({
+                        overtime: parseNumericValue(e.target.value)
+                      })}
+                      className="mt-1"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Bonus</Label>
+                    <Input
+                      type="number"
+                      value={editForm.bonus ?? 0}
+                      onChange={(e) => updateEditForm({
+                        bonus: parseNumericValue(e.target.value)
+                      })}
+                      className="mt-1"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Allowances</Label>
+                    <Input
+                      type="number"
+                      value={editForm.allowances ?? 0}
+                      onChange={(e) => updateEditForm({
+                        allowances: parseNumericValue(e.target.value)
+                      })}
+                      className="mt-1"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="reason">Reason for Change *</Label>
-                <Input
-                  id="reason"
-                  value={formData.reason}
-                  onChange={(e) => handleChange("reason", e.target.value)}
-                  placeholder="Annual performance review, promotion, market adjustment, etc."
-                  required
-                />
+              {/* Deductions */}
+              <div className="p-4 bg-red-50 rounded-lg">
+                <h4 className="font-semibold text-red-800 mb-3">Deductions</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Tax</Label>
+                    <Input
+                      type="number"
+                      value={editForm.tax ?? 0}
+                      onChange={(e) => updateEditForm({
+                        tax: parseNumericValue(e.target.value)
+                      })}
+                      className="mt-1"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">Other Deductions</Label>
+                    <Input
+                      type="number"
+                      value={editForm.deductions ?? 0}
+                      onChange={(e) => updateEditForm({
+                        deductions: parseNumericValue(e.target.value)
+                      })}
+                      className="mt-1"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="notes">Additional Notes</Label>
-                <Textarea
-                  id="notes"
-                  value={formData.notes}
-                  onChange={(e) => handleChange("notes", e.target.value)}
-                  placeholder="Any additional notes about this salary change..."
-                  rows={3}
-                />
+              {/* Net Salary */}
+              <div className="p-4 bg-blue-50 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label className="text-sm font-medium text-gray-600">
+                      Net Salary
+                      <span className="ml-2 text-xs text-blue-600 font-normal">
+                        <Calculator className="inline h-3 w-3 mr-1" />
+                        Auto-calculated
+                      </span>
+                    </Label>
+                    <p className="text-2xl font-bold text-blue-700">
+                      <CurrencyDisplay 
+                        amount={editForm.net_salary ?? 0} 
+                        variant="large" 
+                      />
+                    </p>
+                  </div>
+                  {payrollData?.pay_date && (
+                    <div className="text-right">
+                      <Label className="text-sm font-medium text-gray-600">Pay Date</Label>
+                      <p className="text-sm font-semibold">
+                        {new Date(payrollData.pay_date).toLocaleDateString()}
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
 
-          {/* Salary Change Summary */}
-          {formData.newSalary && !isNaN(parseFloat(formData.newSalary)) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Change Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-                  <div className="p-3 bg-gray-50 rounded-lg">
-                    <div className="text-sm text-gray-500">Current</div>
+            {/* Current vs New Salary Comparison */}
+            {payrollData && editForm.base_salary !== payrollData.base_salary && (
+              <div className="p-4 bg-yellow-50 rounded-lg">
+                <h4 className="font-semibold text-yellow-800 mb-3">Salary Change Summary</h4>
+                <div className="grid grid-cols-2 gap-4 text-center">
+                  <div className="p-3 bg-white rounded-lg">
+                    <div className="text-sm text-gray-500">Previous Base Salary</div>
                     <div className="text-lg font-semibold">
-                      {formatAmount(formData.currentSalary)}
+                      <CurrencyDisplay amount={payrollData.base_salary} />
                     </div>
                   </div>
-                  <div className="p-3 bg-blue-50 rounded-lg">
-                    <div className="text-sm text-gray-500">New</div>
+                  <div className="p-3 bg-white rounded-lg">
+                    <div className="text-sm text-gray-500">New Base Salary</div>
                     <div className="text-lg font-semibold text-blue-600">
-                      {formatAmount(parseFloat(formData.newSalary))}
-                    </div>
-                  </div>
-                  <div className={`p-3 rounded-lg ${salaryIncrease.isIncrease ? 'bg-green-50' : 'bg-red-50'}`}>
-                    <div className="text-sm text-gray-500">Change</div>
-                    <div className={`text-lg font-semibold ${salaryIncrease.isIncrease ? 'text-green-600' : 'text-red-600'}`}>
-                      {salaryIncrease.isIncrease ? '+' : ''}{formatAmount(salaryIncrease.amount)}
-                    </div>
-                  </div>
-                  <div className={`p-3 rounded-lg ${salaryIncrease.isIncrease ? 'bg-green-50' : 'bg-red-50'}`}>
-                    <div className="text-sm text-gray-500">Percentage</div>
-                    <div className={`text-lg font-semibold ${salaryIncrease.isIncrease ? 'text-green-600' : 'text-red-600'}`}>
-                      {salaryIncrease.isIncrease ? '+' : ''}{salaryIncrease.percentage}%
+                      <CurrencyDisplay amount={editForm.base_salary ?? 0} />
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Form Actions */}
-          <div className="flex justify-end space-x-4 pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => onOpenChange(false)}
-              disabled={isLoading}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Updating...
-                </>
-              ) : (
-                <>
-                  <DollarSign className="h-4 w-4 mr-2" />
-                  Update Salary
-                </>
-              )}
-            </Button>
+              </div>
+            )}
           </div>
-        </form>
+        )}
+
+        <DialogFooter className="space-x-2">
+          <Button variant="outline" onClick={closeModal} disabled={isLoading}>
+            <X className="h-4 w-4 mr-2" />
+            Cancel
+          </Button>
+          <Button onClick={handleSavePayroll} disabled={isLoading || isFetching}>
+            <Save className="h-4 w-4 mr-2" />
+            {isLoading ? 'Saving...' : payrollData ? 'Update Payroll' : 'Create Payroll'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

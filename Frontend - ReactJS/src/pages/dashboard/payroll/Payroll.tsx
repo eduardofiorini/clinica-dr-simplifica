@@ -30,6 +30,10 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   Dialog,
@@ -60,6 +64,7 @@ import {
   Edit,
   Save,
   X,
+  RefreshCw,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -84,6 +89,49 @@ const Payroll = () => {
   const [selectedPayroll, setSelectedPayroll] = useState<Payroll | null>(null);
   const [editForm, setEditForm] = useState<Partial<Payroll>>({});
   const [isLoading, setIsLoading] = useState(false);
+
+  // Calculate net salary automatically
+  const calculateNetSalary = (formData: Partial<Payroll>) => {
+    const baseSalary = formData.base_salary || 0;
+    const overtime = formData.overtime || 0;
+    const bonus = formData.bonus || 0;
+    const allowances = formData.allowances || 0;
+    const tax = formData.tax || 0;
+    const deductions = formData.deductions || 0;
+
+    const grossSalary = baseSalary + overtime + bonus + allowances;
+    const totalDeductions = tax + deductions;
+    return grossSalary - totalDeductions;
+  };
+
+  // Helper function to parse numeric input values
+  const parseNumericValue = (value: string): number => {
+    if (value === '' || value === null || value === undefined) {
+      return 0;
+    }
+    const parsed = parseFloat(value);
+    return isNaN(parsed) ? 0 : parsed;
+  };
+
+  // Helper function to parse integer input values
+  const parseIntegerValue = (value: string): number => {
+    if (value === '' || value === null || value === undefined) {
+      return 0;
+    }
+    const parsed = parseInt(value, 10);
+    return isNaN(parsed) ? 0 : parsed;
+  };
+
+  // Update edit form with automatic net salary calculation
+  const updateEditForm = (updates: Partial<Payroll>) => {
+    const newFormData = { ...editForm, ...updates };
+    const calculatedNetSalary = calculateNetSalary(newFormData);
+    
+    setEditForm({
+      ...newFormData,
+      net_salary: calculatedNetSalary
+    });
+  };
 
   // Load payroll data
   useEffect(() => {
@@ -323,10 +371,11 @@ const Payroll = () => {
       setSelectedPayroll(payrollData);
       setModalMode('view');
       setIsModalOpen(true);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error loading payroll details:', error);
       toast({
         title: "Error",
-        description: "Failed to load payroll details.",
+        description: error.response?.data?.message || "Failed to load payroll details. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -339,13 +388,21 @@ const Payroll = () => {
       setIsLoading(true);
       const payrollData = await apiService.getPayroll(payrollId);
       setSelectedPayroll(payrollData);
-      setEditForm(payrollData);
+      
+      // Set the edit form with calculated net salary
+      const calculatedNetSalary = calculateNetSalary(payrollData);
+      setEditForm({
+        ...payrollData,
+        net_salary: calculatedNetSalary
+      });
+      
       setModalMode('edit');
       setIsModalOpen(true);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error loading payroll details for editing:', error);
       toast({
         title: "Error",
-        description: "Failed to load payroll details for editing.",
+        description: error.response?.data?.message || "Failed to load payroll details for editing. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -358,7 +415,21 @@ const Payroll = () => {
 
     try {
       setIsLoading(true);
-      const updatedPayroll = await apiService.updatePayroll(selectedPayroll._id, editForm);
+      
+      // Prepare the update payload, ensuring employee_id is sent as string
+      const updatePayload = {
+        ...editForm,
+        employee_id: typeof editForm.employee_id === 'string' 
+          ? editForm.employee_id 
+          : editForm.employee_id?._id || selectedPayroll.employee_id
+      };
+
+      // Remove any employee object if it exists
+      if (typeof updatePayload.employee_id === 'object') {
+        updatePayload.employee_id = updatePayload.employee_id._id;
+      }
+
+      const updatedPayroll = await apiService.updatePayroll(selectedPayroll._id, updatePayload);
       
       // Update the payroll in the list
       setPayrollEntries(prev => 
@@ -375,12 +446,33 @@ const Payroll = () => {
       setIsModalOpen(false);
       setSelectedPayroll(null);
       setEditForm({});
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update payroll details.",
-        variant: "destructive",
-      });
+    } catch (error: any) {
+      console.error('Error updating payroll:', error);
+      
+      // Handle validation errors specifically
+      if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        const errorMessages = error.response.data.errors.map((err: any) => 
+          `${err.path}: ${err.msg}`
+        ).join(', ');
+        
+        toast({
+          title: "Validation Error",
+          description: `Please check the following fields: ${errorMessages}`,
+          variant: "destructive",
+        });
+      } else if (error.response?.data?.message) {
+        toast({
+          title: "Error",
+          description: error.response.data.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to update payroll details. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
@@ -403,13 +495,91 @@ const Payroll = () => {
         title: "Payment Processed",
         description: "Payment has been processed successfully.",
       });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to process payment.",
-        variant: "destructive",
-      });
+    } catch (error: any) {
+      console.error('Error processing payment:', error);
+      
+      // Handle specific error messages
+      if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        const errorMessages = error.response.data.errors.map((err: any) => 
+          `${err.path}: ${err.msg}`
+        ).join(', ');
+        
+        toast({
+          title: "Validation Error",
+          description: `Cannot process payment: ${errorMessages}`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.response?.data?.message || "Failed to process payment. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
+  };
+
+  const handleStatusUpdate = async (payrollId: string, newStatus: string) => {
+    try {
+      await apiService.updatePayrollStatus(payrollId, newStatus);
+      
+      // Update the payroll in the list
+      setPayrollEntries(prev => 
+        prev.map(entry => {
+          if (entry._id === payrollId) {
+            const updatedEntry = { ...entry, status: newStatus as any };
+            // If status is changed to paid, set pay date
+            if (newStatus === 'paid') {
+              updatedEntry.pay_date = new Date().toISOString();
+            }
+            // If status is changed from paid to something else, clear pay date
+            if (entry.status === 'paid' && newStatus !== 'paid') {
+              updatedEntry.pay_date = null;
+            }
+            return updatedEntry;
+          }
+          return entry;
+        })
+      );
+
+      toast({
+        title: "Status Updated",
+        description: `Payroll status has been updated to ${newStatus}.`,
+      });
+    } catch (error: any) {
+      console.error('Error updating status:', error);
+      
+      // Handle specific error messages
+      if (error.response?.data?.errors && Array.isArray(error.response.data.errors)) {
+        const errorMessages = error.response.data.errors.map((err: any) => 
+          `${err.path}: ${err.msg}`
+        ).join(', ');
+        
+        toast({
+          title: "Validation Error",
+          description: `Cannot update status: ${errorMessages}`,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: error.response?.data?.message || "Failed to update status. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const getAvailableStatuses = (currentStatus: string) => {
+    const allStatuses = [
+      { value: 'draft', label: 'Draft', description: 'Initial draft state' },
+      { value: 'pending', label: 'Pending', description: 'Ready for processing' },
+      { value: 'processed', label: 'Processed', description: 'Calculated and verified' },
+      { value: 'paid', label: 'Paid', description: 'Payment completed' }
+    ];
+    
+    // Return all statuses except the current one
+    return allStatuses.filter(status => status.value !== currentStatus);
   };
 
   const closeModal = () => {
@@ -689,6 +859,23 @@ const Payroll = () => {
                                 Process Payment
                               </DropdownMenuItem>
                             )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuSub>
+                              <DropdownMenuSubTrigger>
+                                Update Status
+                              </DropdownMenuSubTrigger>
+                              <DropdownMenuSubContent>
+                                {getAvailableStatuses(entry.status).map((status) => (
+                                  <DropdownMenuItem
+                                    key={status.value}
+                                    onClick={() => handleStatusUpdate(entry._id, status.value)}
+                                  >
+                                    <CheckCircle className="mr-2 h-4 w-4" />
+                                    {status.label}
+                                  </DropdownMenuItem>
+                                ))}
+                              </DropdownMenuSubContent>
+                            </DropdownMenuSub>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -855,6 +1042,23 @@ const Payroll = () => {
                             Process Payment
                           </DropdownMenuItem>
                         )}
+                        <DropdownMenuSeparator />
+                        <DropdownMenuSub>
+                          <DropdownMenuSubTrigger>
+                            Update Status
+                          </DropdownMenuSubTrigger>
+                          <DropdownMenuSubContent>
+                            {getAvailableStatuses(entry.status).map((status) => (
+                              <DropdownMenuItem
+                                key={status.value}
+                                onClick={() => handleStatusUpdate(entry._id, status.value)}
+                              >
+                                <CheckCircle className="mr-2 h-4 w-4" />
+                                {status.label}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuSubContent>
+                        </DropdownMenuSub>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -935,10 +1139,9 @@ const Payroll = () => {
                     {modalMode === 'edit' ? (
                       <Input
                         type="number"
-                        value={editForm.working_days || selectedPayroll.working_days}
-                        onChange={(e) => setEditForm({
-                          ...editForm,
-                          working_days: parseInt(e.target.value) || 0
+                        value={editForm.working_days ?? selectedPayroll.working_days}
+                        onChange={(e) => updateEditForm({
+                          working_days: parseIntegerValue(e.target.value)
                         })}
                         className="mt-1"
                         min="0"
@@ -955,10 +1158,9 @@ const Payroll = () => {
                     {modalMode === 'edit' ? (
                       <Input
                         type="number"
-                        value={editForm.leaves || selectedPayroll.leaves}
-                        onChange={(e) => setEditForm({
-                          ...editForm,
-                          leaves: parseInt(e.target.value) || 0
+                        value={editForm.leaves ?? selectedPayroll.leaves}
+                        onChange={(e) => updateEditForm({
+                          leaves: parseIntegerValue(e.target.value)
                         })}
                         className="mt-1"
                         min="0"
@@ -985,10 +1187,9 @@ const Payroll = () => {
                       {modalMode === 'edit' ? (
                         <Input
                           type="number"
-                          value={editForm.base_salary || selectedPayroll.base_salary}
-                          onChange={(e) => setEditForm({
-                            ...editForm,
-                            base_salary: parseFloat(e.target.value) || 0
+                          value={editForm.base_salary ?? selectedPayroll.base_salary}
+                          onChange={(e) => updateEditForm({
+                            base_salary: parseNumericValue(e.target.value)
                           })}
                           className="mt-1"
                           min="0"
@@ -1021,10 +1222,9 @@ const Payroll = () => {
                       {modalMode === 'edit' ? (
                         <Input
                           type="number"
-                          value={editForm.overtime || selectedPayroll.overtime}
-                          onChange={(e) => setEditForm({
-                            ...editForm,
-                            overtime: parseFloat(e.target.value) || 0
+                          value={editForm.overtime ?? selectedPayroll.overtime}
+                          onChange={(e) => updateEditForm({
+                            overtime: parseNumericValue(e.target.value)
                           })}
                           className="mt-1"
                           min="0"
@@ -1041,10 +1241,9 @@ const Payroll = () => {
                       {modalMode === 'edit' ? (
                         <Input
                           type="number"
-                          value={editForm.bonus || selectedPayroll.bonus}
-                          onChange={(e) => setEditForm({
-                            ...editForm,
-                            bonus: parseFloat(e.target.value) || 0
+                          value={editForm.bonus ?? selectedPayroll.bonus}
+                          onChange={(e) => updateEditForm({
+                            bonus: parseNumericValue(e.target.value)
                           })}
                           className="mt-1"
                           min="0"
@@ -1061,10 +1260,9 @@ const Payroll = () => {
                       {modalMode === 'edit' ? (
                         <Input
                           type="number"
-                          value={editForm.allowances || selectedPayroll.allowances}
-                          onChange={(e) => setEditForm({
-                            ...editForm,
-                            allowances: parseFloat(e.target.value) || 0
+                          value={editForm.allowances ?? selectedPayroll.allowances}
+                          onChange={(e) => updateEditForm({
+                            allowances: parseNumericValue(e.target.value)
                           })}
                           className="mt-1"
                           min="0"
@@ -1088,10 +1286,9 @@ const Payroll = () => {
                       {modalMode === 'edit' ? (
                         <Input
                           type="number"
-                          value={editForm.tax || selectedPayroll.tax}
-                          onChange={(e) => setEditForm({
-                            ...editForm,
-                            tax: parseFloat(e.target.value) || 0
+                          value={editForm.tax ?? selectedPayroll.tax}
+                          onChange={(e) => updateEditForm({
+                            tax: parseNumericValue(e.target.value)
                           })}
                           className="mt-1"
                           min="0"
@@ -1108,10 +1305,9 @@ const Payroll = () => {
                       {modalMode === 'edit' ? (
                         <Input
                           type="number"
-                          value={editForm.deductions || selectedPayroll.deductions}
-                          onChange={(e) => setEditForm({
-                            ...editForm,
-                            deductions: parseFloat(e.target.value) || 0
+                          value={editForm.deductions ?? selectedPayroll.deductions}
+                          onChange={(e) => updateEditForm({
+                            deductions: parseNumericValue(e.target.value)
                           })}
                           className="mt-1"
                           min="0"
@@ -1130,9 +1326,23 @@ const Payroll = () => {
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label className="text-sm font-medium text-gray-600">Net Salary</Label>
+                      <Label className="text-sm font-medium text-gray-600">
+                        Net Salary
+                        {modalMode === 'edit' && (
+                          <span className="ml-2 text-xs text-blue-600 font-normal">
+                            <Calculator className="inline h-3 w-3 mr-1" />
+                            Auto-calculated
+                          </span>
+                        )}
+                      </Label>
                       <p className="text-2xl font-bold text-blue-700">
-                        <CurrencyDisplay amount={selectedPayroll.net_salary} variant="large" />
+                        <CurrencyDisplay 
+                          amount={modalMode === 'edit' 
+                            ? (editForm.net_salary ?? selectedPayroll.net_salary) 
+                            : selectedPayroll.net_salary
+                          } 
+                          variant="large" 
+                        />
                       </p>
                     </div>
                     {selectedPayroll.pay_date && (

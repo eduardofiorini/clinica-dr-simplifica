@@ -330,19 +330,6 @@ const ViewInvoiceModal: React.FC<ViewInvoiceModalProps> = ({
           <Button variant="outline" onClick={onClose}>
             Close
           </Button>
-          {invoice && invoice.status === "pending" && (
-            <Button 
-              onClick={() => {
-                // You can add mark as paid functionality here
-                toast({
-                  title: "Feature Available",
-                  description: "Mark as paid functionality can be accessed from the billing page.",
-                });
-              }}
-            >
-              Mark as Paid
-            </Button>
-          )}
         </div>
       </DialogContent>
     </Dialog>

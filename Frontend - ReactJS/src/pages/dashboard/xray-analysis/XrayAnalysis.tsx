@@ -350,6 +350,46 @@ const XrayAnalysis: React.FC = () => {
     return <>{formattedLines}</>;
   };
 
+  // Download sample X-ray
+  const handleDownloadSampleXray = async () => {
+    try {
+      const sampleImageUrl = "https://res.cloudinary.com/doztc8x6p/image/upload/v1753355248/64e9731d7af8da9c45eccd9b_X_Ray_1_pnuppt.jpg";
+      
+      // Create a link element and trigger download
+      const link = document.createElement('a');
+      link.href = sampleImageUrl;
+      link.download = 'sample-dental-xray.jpg';
+      link.target = '_blank';
+      
+      // For cross-origin images, we need to fetch and create blob
+      const response = await fetch(sampleImageUrl);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      
+      link.href = blobUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      // Clean up the blob URL
+      setTimeout(() => URL.revokeObjectURL(blobUrl), 100);
+
+      toast({
+        title: "Download started",
+        description: "Sample X-ray image is being downloaded for testing.",
+      });
+    } catch (error) {
+      console.error('Sample download error:', error);
+      // Fallback: open in new tab if download fails
+      window.open("https://res.cloudinary.com/doztc8x6p/image/upload/v1753355248/64e9731d7af8da9c45eccd9b_X_Ray_1_pnuppt.jpg", '_blank');
+      
+      toast({
+        title: "Download initiated",
+        description: "Sample X-ray opened in new tab. Right-click to save the image.",
+      });
+    }
+  };
+
   // Action handlers
   const handleViewReport = (analysis: XrayAnalysisType) => {
     setViewModalAnalysis(analysis);
@@ -482,21 +522,6 @@ Generated on: ${new Date().toLocaleString()}
           <p className="text-gray-600 mt-1">
             Upload dental X-rays and get AI-powered analysis reports
           </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-            <Zap className="w-4 h-4 mr-1" />
-            Powered by Gemini AI
-          </Badge>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleHealthCheck}
-            className="text-xs"
-          >
-            <CheckCircle className="w-3 h-3 mr-1" />
-            Test API
-          </Button>
         </div>
       </div>
 
@@ -633,6 +658,32 @@ Generated on: ${new Date().toLocaleString()}
                     </label>
                   </div>
                 )}
+              </div>
+
+              {/* Sample X-ray Download */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="flex-shrink-0">
+                    <FileImage className="w-5 h-5 text-blue-600 mt-0.5" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-sm font-medium text-blue-900 mb-1">
+                      Need a sample X-ray for testing?
+                    </h4>
+                    <p className="text-sm text-blue-700 mb-3">
+                      Download our sample dental X-ray image to test the AI analysis feature.
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleDownloadSampleXray}
+                      className="border-blue-300 text-blue-700 hover:bg-blue-100"
+                    >
+                      <Download className="w-4 h-4 mr-2" />
+                      Download Sample X-ray
+                    </Button>
+                  </div>
+                </div>
               </div>
 
               {/* Patient Selection */}

@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { validationResult } from 'express-validator';
 import { User } from '../models';
 import { AuthRequest } from '../types/express';
+import { S3Service, s3AvatarUpload } from '../utils/s3';
 
 export class UserController {
   // Register a new user
@@ -193,7 +194,8 @@ export class UserController {
         'date_of_birth',
         'specialization',
         'license_number',
-        'department'
+        'department',
+        'avatar'
       ];
 
       const updates: any = {};
@@ -599,4 +601,238 @@ export class UserController {
       });
     }
   }
+
+  // Upload avatar
+  static async uploadAvatar(req: AuthRequest, res: Response) {
+    try {
+      // Validate S3 configuration
+      if (!S3Service.validateConfiguration()) {
+        res.status(500).json({
+          success: false,
+          message: 'S3 configuration is incomplete. Please check AWS credentials.'
+        });
+        return;
+      }
+
+      if (!req.file) {
+        res.status(400).json({
+          success: false,
+          message: 'No avatar file provided'
+        });
+        return;
+      }
+
+      // Get current user to check for existing avatar
+      const currentUser = await User.findById(req.user?.id);
+      if (!currentUser) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+        return;
+      }
+
+      // Delete old avatar from S3 if it exists
+      if (currentUser.avatar && currentUser.avatar.includes('s3.')) {
+        try {
+          await S3Service.deleteFile(currentUser.avatar);
+        } catch (deleteError) {
+          console.warn('Failed to delete old avatar from S3:', deleteError);
+          // Continue with upload even if old file deletion fails
+        }
+      }
+
+      // Upload new avatar to S3
+      const avatarUrl = await S3Service.uploadFile(req.file, 'avatars');
+      
+      // Update user's avatar in database
+      const user = await User.findByIdAndUpdate(
+        req.user?.id,
+        { avatar: avatarUrl },
+        { new: true, runValidators: true }
+      );
+
+      res.json({
+        success: true,
+        message: 'Avatar uploaded successfully',
+        data: { 
+          avatar: avatarUrl,
+          user 
+        }
+      });
+    } catch (error) {
+      console.error('Upload avatar error:', error);
+
+      res.status(500).json({
+        success: false,
+        message: error instanceof Error ? error.message : 'Internal server error'
+      });
+    }
+  }
+
+  // Remove avatar
+  static async removeAvatar(req: AuthRequest, res: Response) {
+    try {
+      const user = await User.findById(req.user?.id);
+
+      if (!user) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+        return;
+      }
+
+      // Remove avatar file from S3 if it exists
+      if (user.avatar && user.avatar.includes('s3.')) {
+        try {
+          await S3Service.deleteFile(user.avatar);
+        } catch (deleteError) {
+          console.warn('Failed to delete avatar from S3:', deleteError);
+          // Continue with database update even if S3 deletion fails
+        }
+      }
+
+      // Update user to remove avatar
+      user.avatar = undefined;
+      await user.save();
+
+      res.json({
+        success: true,
+        message: 'Avatar removed successfully',
+        data: { user }
+      });
+    } catch (error) {
+      console.error('Remove avatar error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
+    }
+  }
+
+  // Update user schedule (admin only or self)
+  static async updateUserSchedule(req: AuthRequest, res: Response) {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+        return;
+      }
+
+      const { id } = req.params;
+      const { schedule } = req.body;
+
+      // Check authorization - admin can update any user's schedule, users can update their own
+      if (req.user?.role !== 'admin' && req.user?.id !== id) {
+        res.status(403).json({
+          success: false,
+          message: 'Access denied. You can only update your own schedule or need admin privileges.'
+        });
+        return;
+      }
+
+      // Validate schedule structure
+      const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+      
+      if (!schedule || typeof schedule !== 'object') {
+        res.status(400).json({
+          success: false,
+          message: 'Schedule is required and must be an object'
+        });
+        return;
+      }
+
+      // Validate each day in the schedule
+      for (const day of daysOfWeek) {
+        if (!schedule[day]) {
+          res.status(400).json({
+            success: false,
+            message: `Schedule for ${day} is required`
+          });
+          return;
+        }
+
+        const daySchedule = schedule[day];
+        
+        if (typeof daySchedule.isWorking !== 'boolean') {
+          res.status(400).json({
+            success: false,
+            message: `isWorking field for ${day} must be a boolean`
+          });
+          return;
+        }
+
+        // If working day, validate time format
+        if (daySchedule.isWorking) {
+          const timeRegex = /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/;
+          
+          if (!timeRegex.test(daySchedule.start)) {
+            res.status(400).json({
+              success: false,
+              message: `Invalid start time format for ${day}. Use HH:MM format`
+            });
+            return;
+          }
+
+          if (!timeRegex.test(daySchedule.end)) {
+            res.status(400).json({
+              success: false,
+              message: `Invalid end time format for ${day}. Use HH:MM format`
+            });
+            return;
+          }
+
+          // Validate that end time is after start time
+          const startMinutes = timeToMinutes(daySchedule.start);
+          const endMinutes = timeToMinutes(daySchedule.end);
+          
+          if (endMinutes <= startMinutes) {
+            res.status(400).json({
+              success: false,
+              message: `End time must be after start time for ${day}`
+            });
+            return;
+          }
+        }
+      }
+
+      // Update user's schedule
+      const user = await User.findByIdAndUpdate(
+        id,
+        { schedule },
+        { new: true, runValidators: true }
+      );
+
+      if (!user) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found'
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: 'Schedule updated successfully',
+        data: { user }
+      });
+    } catch (error) {
+      console.error('Update user schedule error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error'
+      });
+    }
+  }
+}
+
+// Helper function to convert time string to minutes
+function timeToMinutes(time: string): number {
+  const [hours, minutes] = time.split(':').map(Number);
+  return hours * 60 + minutes;
 } 

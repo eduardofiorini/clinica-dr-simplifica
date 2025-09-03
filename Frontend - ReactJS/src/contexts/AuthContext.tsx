@@ -12,7 +12,8 @@ export type UserRole =
   | "doctor"
   | "receptionist"
   | "nurse"
-  | "accountant";
+  | "accountant"
+  | "staff";
 
 export interface User {
   id: string;
@@ -22,10 +23,16 @@ export interface User {
   role: UserRole;
   avatar?: string;
   phone?: string;
+  address?: string;
+  bio?: string;
+  dateOfBirth?: string;
+  specialization?: string;
+  licenseNumber?: string;
   department?: string;
   permissions: string[];
   baseCurrency: string;
   createdAt: Date;
+  updatedAt?: Date;
 }
 
 interface AuthContextType {
@@ -34,6 +41,7 @@ interface AuthContextType {
   register: (userData: RegisterData) => Promise<boolean>;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  updateUser: (userData: Partial<User>) => void;
   loading: boolean;
   isAuthenticated: boolean;
   hasPermission: (permission: string) => boolean;
@@ -120,9 +128,17 @@ const convertApiUserToContextUser = (apiUser: ApiUser): User => {
     lastName: apiUser.last_name,
     role: apiUser.role,
     phone: apiUser.phone,
+    avatar: apiUser.avatar,
+    address: apiUser.address,
+    bio: apiUser.bio,
+    dateOfBirth: apiUser.date_of_birth,
+    specialization: apiUser.specialization,
+    licenseNumber: apiUser.license_number,
+    department: apiUser.department,
     permissions: ROLE_PERMISSIONS[apiUser.role] || [],
     baseCurrency: apiUser.base_currency || 'USD',
     createdAt: new Date(apiUser.created_at),
+    updatedAt: new Date(apiUser.updated_at),
   };
 };
 
@@ -232,12 +248,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     return roleArray.includes(user.role);
   };
 
+  const updateUser = (userData: Partial<User>) => {
+    if (user) {
+      const updatedUser = { ...user, ...userData };
+      setUser(updatedUser);
+      localStorage.setItem("clinic_user", JSON.stringify(updatedUser));
+    }
+  };
+
   const value: AuthContextType = {
     user,
     login,
     register,
     logout,
     refreshUser,
+    updateUser,
     loading,
     isAuthenticated: !!user,
     hasPermission,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
   Card,
   CardContent,
@@ -32,6 +33,7 @@ import { PrescriptionStats } from "@/types";
 import { toast } from "@/hooks/use-toast";
 
 const DoctorDashboard = () => {
+  const navigate = useNavigate();
   const [prescriptionStats, setPrescriptionStats] = useState<PrescriptionStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [statsError, setStatsError] = useState<string | null>(null);
@@ -250,10 +252,6 @@ const DoctorDashboard = () => {
             <Stethoscope className="h-3 w-3 mr-1" />
             Doctor
           </Badge>
-          <Button size="sm" className="hidden sm:flex">
-            <Plus className="h-4 w-4 mr-2" />
-            New Prescription
-          </Button>
         </div>
       </div>
 
@@ -325,6 +323,7 @@ const DoctorDashboard = () => {
                   variant="outline"
                   size="sm"
                   className="self-start sm:self-auto"
+                  onClick={() => navigate("/dashboard/calendar")}
                 >
                   <Eye className="h-4 w-4 mr-2" />
                   View Calendar
@@ -386,7 +385,11 @@ const DoctorDashboard = () => {
                 </div>
               )}
               <div className="mt-4 pt-4 border-t">
-                <Button variant="outline" className="w-full">
+                <Button 
+                  variant="outline" 
+                  className="w-full"
+                  onClick={() => navigate("/dashboard/appointments")}
+                >
                   <Calendar className="h-4 w-4 mr-2" />
                   View Full Schedule
                 </Button>
@@ -461,36 +464,6 @@ const DoctorDashboard = () => {
           </Card>
         </div>
       </div>
-
-      {/* Quick Actions */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg sm:text-xl">Quick Actions</CardTitle>
-          <CardDescription className="text-xs sm:text-sm">
-            Common tasks and shortcuts
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="px-4 sm:px-6">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-            <Button variant="outline" className="h-16 sm:h-20 flex-col">
-              <FileText className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
-              <span className="text-xs sm:text-sm">New Prescription</span>
-            </Button>
-            <Button variant="outline" className="h-16 sm:h-20 flex-col">
-              <Calendar className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
-              <span className="text-xs sm:text-sm">Schedule</span>
-            </Button>
-            <Button variant="outline" className="h-16 sm:h-20 flex-col">
-              <Users className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
-              <span className="text-xs sm:text-sm">Patient Records</span>
-            </Button>
-            <Button variant="outline" className="h-16 sm:h-20 flex-col">
-              <Activity className="h-5 w-5 sm:h-6 sm:w-6 mb-1 sm:mb-2" />
-              <span className="text-xs sm:text-sm">Test Results</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Performance Overview */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">

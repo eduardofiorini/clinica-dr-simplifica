@@ -1,6 +1,23 @@
 import mongoose, { Document, Schema, Types } from 'mongoose';
 import bcrypt from 'bcryptjs';
 
+// Define the schedule structure
+interface DaySchedule {
+  start: string;
+  end: string;
+  isWorking: boolean;
+}
+
+interface WorkSchedule {
+  monday: DaySchedule;
+  tuesday: DaySchedule;
+  wednesday: DaySchedule;
+  thursday: DaySchedule;
+  friday: DaySchedule;
+  saturday: DaySchedule;
+  sunday: DaySchedule;
+}
+
 export interface IUser extends Document {
   _id: Types.ObjectId;
   email: string;
@@ -17,10 +34,44 @@ export interface IUser extends Document {
   specialization?: string;
   license_number?: string;
   department?: string;
+  avatar?: string;
+  schedule?: WorkSchedule;
   created_at: Date;
   updated_at: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
 }
+
+// Define day schedule schema
+const DayScheduleSchema = new Schema({
+  start: {
+    type: String,
+    required: true,
+    default: "09:00",
+    match: /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
+  },
+  end: {
+    type: String,
+    required: true,
+    default: "17:00",
+    match: /^([01]?[0-9]|2[0-3]):[0-5][0-9]$/
+  },
+  isWorking: {
+    type: Boolean,
+    required: true,
+    default: true
+  }
+}, { _id: false });
+
+// Define work schedule schema
+const WorkScheduleSchema = new Schema({
+  monday: { type: DayScheduleSchema, default: { start: "09:00", end: "17:00", isWorking: true } },
+  tuesday: { type: DayScheduleSchema, default: { start: "09:00", end: "17:00", isWorking: true } },
+  wednesday: { type: DayScheduleSchema, default: { start: "09:00", end: "17:00", isWorking: true } },
+  thursday: { type: DayScheduleSchema, default: { start: "09:00", end: "17:00", isWorking: true } },
+  friday: { type: DayScheduleSchema, default: { start: "09:00", end: "17:00", isWorking: true } },
+  saturday: { type: DayScheduleSchema, default: { start: "00:00", end: "00:00", isWorking: false } },
+  sunday: { type: DayScheduleSchema, default: { start: "00:00", end: "00:00", isWorking: false } }
+}, { _id: false });
 
 const UserSchema: Schema = new Schema({
   email: {
@@ -98,6 +149,23 @@ const UserSchema: Schema = new Schema({
     type: String,
     trim: true,
     maxlength: [100, 'Department cannot exceed 100 characters']
+  },
+  avatar: {
+    type: String,
+    trim: true,
+    maxlength: [500, 'Avatar URL cannot exceed 500 characters']
+  },
+  schedule: {
+    type: WorkScheduleSchema,
+    default: () => ({
+      monday: { start: "09:00", end: "17:00", isWorking: true },
+      tuesday: { start: "09:00", end: "17:00", isWorking: true },
+      wednesday: { start: "09:00", end: "17:00", isWorking: true },
+      thursday: { start: "09:00", end: "17:00", isWorking: true },
+      friday: { start: "09:00", end: "17:00", isWorking: true },
+      saturday: { start: "00:00", end: "00:00", isWorking: false },
+      sunday: { start: "00:00", end: "00:00", isWorking: false }
+    })
   }
 }, {
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }

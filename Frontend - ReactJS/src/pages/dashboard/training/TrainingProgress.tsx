@@ -325,24 +325,6 @@ const TrainingProgress: React.FC = () => {
             Monitor and manage training progress across all staff members
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-shrink-0">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={fetchTrainingProgress} 
-            disabled={loading}
-            className="h-9"
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">{loading ? 'Refreshing...' : 'Refresh'}</span>
-            <span className="sm:hidden">Refresh</span>
-          </Button>
-          <Button variant="outline" size="sm" className="h-9">
-            <Download className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Export Report</span>
-            <span className="sm:hidden">Export</span>
-          </Button>
-        </div>
       </div>
 
       {/* Analytics Cards */}

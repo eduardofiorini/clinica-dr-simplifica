@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import { trainingApi, Training, TrainingProgress, trainingHelpers } from '@/lib/api/training';
 import { useAuth } from '@/contexts/AuthContext';
+import { trainingApi, Training, TrainingProgress, trainingHelpers } from '@/lib/api/training';
 
 export const useTraining = () => {
   const [trainings, setTrainings] = useState<Training[]>([]);

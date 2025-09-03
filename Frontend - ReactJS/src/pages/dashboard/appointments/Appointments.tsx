@@ -218,11 +218,18 @@ const Appointments = () => {
   const convertAppointment = (apiAppointment: any) => {
     const patient = apiAppointment.patient_id;
     const doctor = apiAppointment.doctor_id;
+    const nurse = apiAppointment.nurse_id;
     
     return {
       id: apiAppointment._id,
+      // Store both the ID and the original references for flexibility
       patientId: typeof patient === 'string' ? patient : patient?._id,
       doctorId: typeof doctor === 'string' ? doctor : doctor?._id,
+      nurseId: typeof nurse === 'string' ? nurse : nurse?._id,
+      // Keep original field names for backup access
+      patient_id: patient,
+      doctor_id: doctor,
+      nurse_id: nurse,
       date: new Date(apiAppointment.appointment_date),
       duration: apiAppointment.duration,
       status: apiAppointment.status,
@@ -242,6 +249,11 @@ const Appointments = () => {
         id: doctor._id,
         name: `${doctor.first_name} ${doctor.last_name}`,
         specialty: doctor.role === 'doctor' ? 'General Medicine' : doctor.role
+      } : null,
+      nurse: nurse ? {
+        id: nurse._id,
+        name: `${nurse.first_name} ${nurse.last_name}`,
+        specialty: nurse.role
       } : null
     };
   };
@@ -509,16 +521,36 @@ const Appointments = () => {
 
   const handleEditAppointment = (appointment: any) => {
     // Pre-populate form with current appointment data
+    // Get the actual IDs from the appointment data
     const appointmentDate = new Date(appointment.date);
+    
+    // Extract patient ID - handle both populated and non-populated cases
+    const patientId = appointment.patientId || 
+                      (appointment.patient && appointment.patient.id) ||
+                      (appointment.patient_id && typeof appointment.patient_id === 'string' ? appointment.patient_id : appointment.patient_id?._id) ||
+                      "";
+    
+    // Extract doctor ID - handle both populated and non-populated cases  
+    const doctorId = appointment.doctorId ||
+                     (appointment.doctor && appointment.doctor.id) ||
+                     (appointment.doctor_id && typeof appointment.doctor_id === 'string' ? appointment.doctor_id : appointment.doctor_id?._id) ||
+                     "";
+    
+    // Extract nurse ID if present
+    const nurseId = appointment.nurseId ||
+                    (appointment.nurse && appointment.nurse.id) ||
+                    (appointment.nurse_id && typeof appointment.nurse_id === 'string' ? appointment.nurse_id : appointment.nurse_id?._id) ||
+                    "none";
+    
     setEditFormData({
-      patientId: appointment.patientId || "",
-      doctorId: appointment.doctorId || "",
-      nurseId: appointment.nurseId || "none",
+      patientId: patientId,
+      doctorId: doctorId,
+      nurseId: nurseId,
       serviceId: appointment.serviceId || "",
       date: appointmentDate.toISOString().split('T')[0], // YYYY-MM-DD format
       time: appointmentDate.toTimeString().slice(0, 5), // HH:MM format
-      duration: appointment.duration.toString(),
-      type: appointment.type,
+      duration: appointment.duration ? appointment.duration.toString() : "30",
+      type: appointment.type || "consultation",
       notes: appointment.notes || "",
     });
     setEditModal({ open: true, appointment });
@@ -582,19 +614,90 @@ const Appointments = () => {
   const handleSaveEdit = async () => {
     if (!editModal.appointment) return;
 
+    // Validate required fields
+    if (!editFormData.patientId || editFormData.patientId === "loading" || editFormData.patientId === "no-patients") {
+      toast({
+        title: "Validation Error",
+        description: "Please select a valid patient.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!editFormData.doctorId || editFormData.doctorId === "loading" || editFormData.doctorId === "no-doctors") {
+      toast({
+        title: "Validation Error", 
+        description: "Please select a valid doctor.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!editFormData.date || !editFormData.time) {
+      toast({
+        title: "Validation Error",
+        description: "Please provide both date and time for the appointment.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!editFormData.type || editFormData.type === "") {
+      toast({
+        title: "Validation Error",
+        description: "Please select an appointment type.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const duration = parseInt(editFormData.duration);
+    if (isNaN(duration) || duration < 15 || duration > 240) {
+      toast({
+        title: "Validation Error",
+        description: "Duration must be between 15 and 240 minutes.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     try {
       // Combine date and time into a single datetime string
       const appointmentDateTime = new Date(`${editFormData.date}T${editFormData.time}`);
       
-      const updateData = {
+      // Validate the date is not invalid
+      if (isNaN(appointmentDateTime.getTime())) {
+        toast({
+          title: "Validation Error",
+          description: "Please provide a valid date and time.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const updateData: {
+        patient_id: string;
+        doctor_id: string;
+        appointment_date: string;
+        duration: number;
+        type: string;
+        notes: string;
+        nurse_id?: string;
+      } = {
         patient_id: editFormData.patientId,
         doctor_id: editFormData.doctorId,
-        nurse_id: editFormData.nurseId && editFormData.nurseId !== 'none' ? editFormData.nurseId : undefined,
         appointment_date: appointmentDateTime.toISOString(),
-        duration: parseInt(editFormData.duration),
+        duration: duration,
         type: editFormData.type,
-        notes: editFormData.notes,
+        notes: editFormData.notes || "",
       };
+
+      // Only add nurse_id if a nurse is selected
+      if (editFormData.nurseId && editFormData.nurseId !== 'none') {
+        updateData.nurse_id = editFormData.nurseId;
+      }
+
+      console.log('Updating appointment with data:', updateData);
 
       await updateAppointmentMutation.mutateAsync({
         id: editModal.appointment.id,
@@ -607,6 +710,7 @@ const Appointments = () => {
         description: "Appointment has been updated successfully.",
       });
     } catch (error) {
+      console.error('Update appointment error:', error);
       toast({
         title: "Error",
         description: "Failed to update appointment. Please try again.",
