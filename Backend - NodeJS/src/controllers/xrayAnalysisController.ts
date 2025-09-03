@@ -202,6 +202,7 @@ export class XrayAnalysisController {
 
       // Save analysis to database
       const xrayAnalysis = new XrayAnalysis({
+        clinic_id: req.clinic_id, // Add clinic context to analysis data
         patient_id,
         doctor_id: req.user?._id,
         image_url: `/uploads/xrays/${file.filename}`,

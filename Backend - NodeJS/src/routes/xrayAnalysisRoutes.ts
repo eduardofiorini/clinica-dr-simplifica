@@ -1,6 +1,7 @@
 import express from 'express';
 import { XrayAnalysisController, upload } from '../controllers/xrayAnalysisController';
 import { authenticate, authorize } from '../middleware/auth';
+import { clinicContext } from '../middleware/clinicContext';
 
 const router = express.Router();
 
@@ -21,8 +22,9 @@ router.get('/health', (req, res) => {
   });
 });
 
-// All other routes require authentication
+// All other routes require authentication and clinic context
 router.use(authenticate);
+router.use(clinicContext);
 
 /**
  * @swagger

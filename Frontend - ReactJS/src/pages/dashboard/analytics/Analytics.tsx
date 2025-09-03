@@ -221,8 +221,8 @@ const Analytics = () => {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <AlertTriangle className="h-8 w-8 text-orange-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Clinic Selection Required</h3>
-          <p className="text-gray-600 mb-4">Please select a clinic to view analytics data.</p>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Clinic Selection Required</h3>
+          <p className="text-muted-foreground mb-4">Please select a clinic to view analytics data.</p>
         </div>
       </div>
     );
@@ -234,9 +234,9 @@ const Analytics = () => {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-gray-600">Loading analytics data...</p>
+          <p className="text-muted-foreground">Loading analytics data...</p>
           {currentClinic && (
-            <p className="text-sm text-gray-500 mt-2">For {currentClinic.name}</p>
+            <p className="text-sm text-muted-foreground mt-2">For {currentClinic.name}</p>
           )}
         </div>
       </div>
@@ -251,18 +251,18 @@ const Analytics = () => {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center max-w-md">
           <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Error Loading Analytics</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">Error Loading Analytics</h3>
           <p className="text-red-600 mb-4">
             Failed to load {actualErrors.length} analytics module{actualErrors.length > 1 ? 's' : ''}
           </p>
           {currentClinic && (
-            <p className="text-sm text-gray-600 mb-4">For clinic: {currentClinic.name}</p>
+            <p className="text-sm text-muted-foreground mb-4">For clinic: {currentClinic.name}</p>
           )}
           <details className="text-left mb-4">
-            <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-800">
+            <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
               Show error details
             </summary>
-            <div className="mt-2 text-xs text-gray-600 bg-gray-50 p-2 rounded">
+            <div className="mt-2 text-xs text-muted-foreground bg-muted p-2 rounded">
               {errorDetails}
             </div>
           </details>
@@ -284,10 +284,10 @@ const Analytics = () => {
       {/* Header */}
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between sm:flex-wrap">
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             Analytics & Reports
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1">
             Comprehensive insights into clinic performance and metrics
           </p>
         </div>
@@ -344,10 +344,10 @@ const Analytics = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Total Revenue
                   </p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-3xl font-bold text-foreground">
                     <CurrencyDisplay amount={currentRevenue} variant="large" />
                   </p>
                   <div className="flex items-center mt-2">
@@ -376,10 +376,10 @@ const Analytics = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Total Patients
                   </p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-3xl font-bold text-foreground">
                     {currentPatients}
                   </p>
                   <div className="flex items-center mt-2">
@@ -408,10 +408,10 @@ const Analytics = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Appointments
                   </p>
-                  <p className="text-3xl font-bold text-gray-900">{totalAppointments}</p>
+                  <p className="text-3xl font-bold text-foreground">{totalAppointments}</p>
                   <div className="flex items-center mt-2">
                     <CheckCircle className="h-4 w-4 text-purple-600 mr-1" />
                     <span className="text-sm text-purple-600">
@@ -434,10 +434,10 @@ const Analytics = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Avg. Wait Time
                   </p>
-                  <p className="text-3xl font-bold text-gray-900">12 min</p>
+                  <p className="text-3xl font-bold text-foreground">12 min</p>
                   <div className="flex items-center mt-2">
                     <TrendingDown className="h-4 w-4 text-orange-600 mr-1" />
                     <span className="text-sm text-orange-600">

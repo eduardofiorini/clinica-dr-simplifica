@@ -289,7 +289,7 @@ const Appointments = () => {
         return <CheckCircle className="h-4 w-4 text-green-600" />;
       case "scheduled":
       case "confirmed":
-        return <Clock className="h-4 w-4 text-blue-600" />;
+        return <Clock className="h-4 w-4 text-primary" />;
       case "cancelled":
         return <XCircle className="h-4 w-4 text-red-600" />;
       case "no-show":
@@ -297,7 +297,7 @@ const Appointments = () => {
       case "in-progress":
         return <Clock className="h-4 w-4 text-yellow-600" />;
       default:
-        return <Clock className="h-4 w-4 text-gray-600" />;
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -307,7 +307,7 @@ const Appointments = () => {
         return "bg-green-100 text-green-800";
       case "scheduled":
       case "confirmed":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300";
       case "cancelled":
         return "bg-red-100 text-red-800";
       case "no-show":
@@ -315,7 +315,7 @@ const Appointments = () => {
       case "in-progress":
         return "bg-yellow-100 text-yellow-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
     }
   };
 
@@ -802,10 +802,10 @@ const Appointments = () => {
       {/* Header */}
       <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl xs:text-2xl sm:text-3xl font-bold text-gray-900">
+          <h1 className="text-xl xs:text-2xl sm:text-3xl font-bold text-foreground">
             Appointments
           </h1>
-          <p className="text-xs xs:text-sm sm:text-base text-gray-600 mt-1">
+          <p className="text-xs xs:text-sm sm:text-base text-muted-foreground mt-1">
             Manage patient appointments and schedules
           </p>
         </div>
@@ -825,14 +825,14 @@ const Appointments = () => {
             <CardContent className="p-3 xs:p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                     Today's Appointments
                   </p>
-                  <p className="text-lg xs:text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mt-1">
+                  <p className="text-lg xs:text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mt-1">
                     {appointmentsLoading ? "..." : todayStats.today}
                   </p>
                 </div>
-                <Calendar className="h-6 w-6 xs:h-8 xs:w-8 text-blue-600 flex-shrink-0 ml-2" />
+                <Calendar className="h-6 w-6 xs:h-8 xs:w-8 text-primary flex-shrink-0 ml-2" />
               </div>
             </CardContent>
           </Card>
@@ -847,10 +847,10 @@ const Appointments = () => {
             <CardContent className="p-3 xs:p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                     Completed
                   </p>
-                  <p className="text-lg xs:text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mt-1">
+                  <p className="text-lg xs:text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mt-1">
                     {appointmentsLoading ? "..." : todayStats.completed}
                   </p>
                 </div>
@@ -869,10 +869,10 @@ const Appointments = () => {
             <CardContent className="p-3 xs:p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                     Pending
                   </p>
-                  <p className="text-lg xs:text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mt-1">
+                  <p className="text-lg xs:text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mt-1">
                     {appointmentsLoading ? "..." : todayStats.scheduled}
                   </p>
                 </div>
@@ -891,10 +891,10 @@ const Appointments = () => {
             <CardContent className="p-3 xs:p-4 sm:p-6">
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
-                  <p className="text-xs sm:text-sm font-medium text-gray-600">
+                  <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                     Cancelled
                   </p>
-                  <p className="text-lg xs:text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mt-1">
+                  <p className="text-lg xs:text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mt-1">
                     {appointmentsLoading ? "..." : todayStats.cancelled}
                   </p>
                 </div>
@@ -911,7 +911,7 @@ const Appointments = () => {
           <div className="flex flex-col gap-3 sm:gap-4">
             {/* Search Bar */}
             <div className="relative flex-1 min-w-0">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search appointments by patient or doctor..."
                 value={searchTerm}
@@ -968,7 +968,7 @@ const Appointments = () => {
                   Manage and track all patient appointments
                 </CardDescription>
               </div>
-              <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
+              <div className="flex items-center space-x-1 bg-muted rounded-lg p-1">
                 <Button
                   variant={currentView === "table" ? "default" : "ghost"}
                   size="sm"
@@ -1050,7 +1050,7 @@ const Appointments = () => {
                   ) : filteredAppointments.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8">
-                        <div className="text-gray-500">
+                        <div className="text-muted-foreground">
                           <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
                           <p className="text-sm">No appointments found</p>
                           {searchTerm && (
@@ -1063,7 +1063,7 @@ const Appointments = () => {
                     </TableRow>
                   ) : (
                     filteredAppointments.map((appointment) => (
-                      <TableRow key={appointment.id} className="hover:bg-gray-50">
+                      <TableRow key={appointment.id} className="hover:bg-muted/50">
                         <TableCell>
                           <div className="flex items-center space-x-3">
                             <Avatar className="h-10 w-10">
@@ -1072,10 +1072,10 @@ const Appointments = () => {
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <p className="font-medium text-gray-900">
+                              <p className="font-medium text-foreground">
                                 {appointment.patient?.name || "Unknown Patient"}
                               </p>
-                              <p className="text-sm text-gray-500">
+                              <p className="text-sm text-muted-foreground">
                                 {appointment.patient?.phone}
                               </p>
                             </div>
@@ -1083,20 +1083,20 @@ const Appointments = () => {
                         </TableCell>
                         <TableCell>
                           <div>
-                            <p className="font-medium text-gray-900">
+                            <p className="font-medium text-foreground">
                               {appointment.doctor?.name || "Unknown Doctor"}
                             </p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-muted-foreground">
                               {appointment.doctor?.specialty}
                             </p>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div>
-                            <p className="font-medium text-gray-900">
+                            <p className="font-medium text-foreground">
                               {formatDate(appointment.date)}
                             </p>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-muted-foreground">
                               {formatTime(appointment.date)} • {appointment.duration} min
                             </p>
                           </div>
@@ -1176,7 +1176,7 @@ const Appointments = () => {
                     </AlertDescription>
                   </Alert>
                 ) : filteredAppointments.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-muted-foreground">
                     <Calendar className="h-12 w-12 mx-auto mb-3 opacity-50" />
                     <p className="text-sm font-medium">No appointments found</p>
                     {searchTerm && (
@@ -1187,7 +1187,7 @@ const Appointments = () => {
                   </div>
                 ) : (
                   filteredAppointments.map((appointment) => (
-                    <Card key={appointment.id} className="p-4 hover:shadow-md transition-shadow border border-gray-200 bg-white">
+                    <Card key={appointment.id} className="p-4 hover:shadow-md transition-shadow">
                       {/* Header with patient and status */}
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center space-x-3 flex-1 min-w-0">
@@ -1197,10 +1197,10 @@ const Appointments = () => {
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-sm text-gray-900 truncate">
+                            <p className="font-semibold text-sm text-foreground truncate">
                               {appointment.patient?.name || "Unknown Patient"}
                             </p>
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-muted-foreground">
                               {appointment.patient?.phone}
                             </p>
                           </div>
@@ -1215,13 +1215,13 @@ const Appointments = () => {
                       </div>
 
                       {/* Appointment details */}
-                      <div className="space-y-2 p-3 bg-gray-50 rounded-lg mb-3">
+                      <div className="space-y-2 p-3 bg-muted/50 rounded-lg mb-3">
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center space-x-2">
-                            <Stethoscope className="h-4 w-4 text-blue-600" />
+                            <Stethoscope className="h-4 w-4 text-primary" />
                             <span className="font-medium">Doctor</span>
                           </div>
-                          <span className="text-gray-900">
+                          <span className="text-foreground">
                             {appointment.doctor?.name || "Unknown Doctor"}
                           </span>
                         </div>
@@ -1230,7 +1230,7 @@ const Appointments = () => {
                             <Calendar className="h-4 w-4 text-green-600" />
                             <span className="font-medium">Date</span>
                           </div>
-                          <span className="text-gray-900">
+                          <span className="text-foreground">
                             {formatDate(appointment.date)}
                           </span>
                         </div>
@@ -1239,7 +1239,7 @@ const Appointments = () => {
                             <Clock className="h-4 w-4 text-orange-600" />
                             <span className="font-medium">Time</span>
                           </div>
-                          <span className="text-gray-900">
+                          <span className="text-foreground">
                             {formatTime(appointment.date)} ({appointment.duration} min)
                           </span>
                         </div>
@@ -1290,7 +1290,7 @@ const Appointments = () => {
             {/* Functional Pagination */}
             <div className="flex flex-col xs:flex-row items-center justify-between gap-3 xs:gap-4 mt-4 pt-4 border-t">
               <div className="flex flex-col xs:flex-row items-center gap-2 xs:gap-4">
-                <div className="text-xs xs:text-sm text-gray-500">
+                <div className="text-xs xs:text-sm text-muted-foreground">
                   Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} appointments
                 </div>
                 <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
@@ -1401,7 +1401,7 @@ const Appointments = () => {
                     {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
                       <div
                         key={day}
-                        className="p-2 text-center text-sm font-medium text-gray-500 border-b"
+                        className="p-2 text-center text-sm font-medium text-muted-foreground border-b border-border"
                       >
                         {day}
                       </div>
@@ -1417,17 +1417,17 @@ const Appointments = () => {
                         <div
                           key={index}
                           className={`
-                            min-h-[120px] p-2 border border-gray-200 
-                            ${!isCurrentMonthDay ? "bg-gray-50 text-gray-400" : "bg-white"}
-                            ${isTodayDate ? "bg-blue-50 border-blue-300" : ""}
-                            hover:bg-gray-50 transition-colors
+                            min-h-[120px] p-2 border border-border 
+                            ${!isCurrentMonthDay ? "bg-muted/50 text-muted-foreground" : "bg-background"}
+                            ${isTodayDate ? "bg-blue-50 dark:bg-blue-900/20 border-blue-300 dark:border-blue-700" : ""}
+                            hover:bg-muted/50 transition-colors
                           `}
                         >
                           <div className="flex items-center justify-between mb-1">
                             <span
                               className={`
                                 text-sm font-medium
-                                ${isTodayDate ? "text-blue-600 font-bold" : ""}
+                                ${isTodayDate ? "text-blue-600 dark:text-blue-400 font-bold" : ""}
                               `}
                             >
                               {date.getDate()}
@@ -1464,7 +1464,7 @@ const Appointments = () => {
                               </div>
                             ))}
                             {dayAppointments.length > 3 && (
-                              <div className="text-xs text-gray-500 text-center">
+                              <div className="text-xs text-muted-foreground text-center">
                                 +{dayAppointments.length - 3} more
                               </div>
                             )}
@@ -1485,10 +1485,10 @@ const Appointments = () => {
                         return (
                           <Card
                             key={date.toDateString()}
-                            className={`p-3 ${isTodayDate ? "border-blue-300 bg-blue-50" : ""}`}
+                            className={`p-3 ${isTodayDate ? "border-blue-300 dark:border-blue-700 bg-blue-50 dark:bg-blue-900/20" : ""}`}
                           >
                             <div className="flex items-center justify-between mb-2">
-                              <h4 className={`font-medium ${isTodayDate ? "text-blue-600" : ""}`}>
+                              <h4 className={`font-medium ${isTodayDate ? "text-blue-600 dark:text-blue-400" : ""}`}>
                                 {date.toLocaleDateString("en-US", {
                                   weekday: "short",
                                   month: "short",
@@ -1508,7 +1508,7 @@ const Appointments = () => {
                             </div>
 
                             {dayAppointments.length === 0 ? (
-                              <p className="text-sm text-gray-500">No appointments</p>
+                              <p className="text-sm text-muted-foreground">No appointments</p>
                             ) : (
                               <div className="space-y-2">
                                 {dayAppointments.map((appointment) => (
@@ -1544,21 +1544,21 @@ const Appointments = () => {
                   </div>
 
                   {/* Calendar Legend */}
-                  <div className="flex flex-wrap gap-4 text-xs text-gray-600 pt-4 border-t">
+                  <div className="flex flex-wrap gap-4 text-xs text-muted-foreground pt-4 border-t border-border">
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-green-100 border border-green-200 rounded"></div>
+                      <div className="w-3 h-3 bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded"></div>
                       <span>Completed</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-blue-100 border border-blue-200 rounded"></div>
+                      <div className="w-3 h-3 bg-blue-100 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded"></div>
                       <span>Scheduled</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-red-100 border border-red-200 rounded"></div>
+                      <div className="w-3 h-3 bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded"></div>
                       <span>Cancelled</span>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-orange-100 border border-orange-200 rounded"></div>
+                      <div className="w-3 h-3 bg-orange-100 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded"></div>
                       <span>No Show</span>
                     </div>
                   </div>
@@ -1581,36 +1581,36 @@ const Appointments = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-semibold text-sm text-gray-500 uppercase tracking-wide">Patient</h4>
-                  <p className="text-lg font-medium">{viewDetailsModal.appointment.patient?.name}</p>
-                  <p className="text-sm text-gray-600">{viewDetailsModal.appointment.patient?.phone}</p>
-                  <p className="text-sm text-gray-600">{viewDetailsModal.appointment.patient?.email}</p>
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Patient</h4>
+                  <p className="text-lg font-medium text-foreground">{viewDetailsModal.appointment.patient?.name}</p>
+                  <p className="text-sm text-muted-foreground">{viewDetailsModal.appointment.patient?.phone}</p>
+                  <p className="text-sm text-muted-foreground">{viewDetailsModal.appointment.patient?.email}</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm text-gray-500 uppercase tracking-wide">Doctor</h4>
-                  <p className="text-lg font-medium">{viewDetailsModal.appointment.doctor?.name}</p>
-                  <p className="text-sm text-gray-600">{viewDetailsModal.appointment.doctor?.specialty}</p>
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Doctor</h4>
+                  <p className="text-lg font-medium text-foreground">{viewDetailsModal.appointment.doctor?.name}</p>
+                  <p className="text-sm text-muted-foreground">{viewDetailsModal.appointment.doctor?.specialty}</p>
                 </div>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-semibold text-sm text-gray-500 uppercase tracking-wide">Date & Time</h4>
-                  <p className="text-lg font-medium">{formatDate(viewDetailsModal.appointment.date)} at {formatTime(viewDetailsModal.appointment.date)}</p>
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Date & Time</h4>
+                  <p className="text-lg font-medium text-foreground">{formatDate(viewDetailsModal.appointment.date)} at {formatTime(viewDetailsModal.appointment.date)}</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm text-gray-500 uppercase tracking-wide">Duration</h4>
-                  <p className="text-lg font-medium">{viewDetailsModal.appointment.duration} minutes</p>
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Duration</h4>
+                  <p className="text-lg font-medium text-foreground">{viewDetailsModal.appointment.duration} minutes</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-semibold text-sm text-gray-500 uppercase tracking-wide">Type</h4>
-                  <p className="text-lg font-medium capitalize">{viewDetailsModal.appointment.type}</p>
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Type</h4>
+                  <p className="text-lg font-medium text-foreground capitalize">{viewDetailsModal.appointment.type}</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm text-gray-500 uppercase tracking-wide">Status</h4>
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Status</h4>
                   <Badge className={`${getStatusColor(viewDetailsModal.appointment.status)}`}>
                     {viewDetailsModal.appointment.status}
                   </Badge>
@@ -1619,8 +1619,8 @@ const Appointments = () => {
 
               {viewDetailsModal.appointment.notes && (
                 <div>
-                  <h4 className="font-semibold text-sm text-gray-500 uppercase tracking-wide">Notes</h4>
-                  <p className="text-sm text-gray-700 bg-gray-50 p-3 rounded-lg">{viewDetailsModal.appointment.notes}</p>
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Notes</h4>
+                  <p className="text-sm text-foreground bg-muted p-3 rounded-lg">{viewDetailsModal.appointment.notes}</p>
                 </div>
               )}
             </div>
@@ -1663,7 +1663,7 @@ const Appointments = () => {
                               <span className="font-medium">
                                 {patient.first_name} {patient.last_name}
                               </span>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-muted-foreground">
                                 {patient.phone}
                               </span>
                             </div>
@@ -1699,7 +1699,7 @@ const Appointments = () => {
                               <span className="font-medium">
                                 {doctor.first_name} {doctor.last_name}
                               </span>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-muted-foreground">
                                 {doctor.role} • {doctor.phone}
                               </span>
                             </div>
@@ -1736,7 +1736,7 @@ const Appointments = () => {
                               <span className="font-medium">
                                 {nurse.first_name} {nurse.last_name}
                               </span>
-                              <span className="text-xs text-gray-500">
+                              <span className="text-xs text-muted-foreground">
                                 {nurse.role} • {nurse.phone}
                               </span>
                             </div>
@@ -1785,7 +1785,7 @@ const Appointments = () => {
                         <SelectItem key={service.id} value={service.id}>
                           <div className="flex justify-between w-full">
                             <span className="font-medium">{service.name}</span>
-                            <span className="text-sm text-gray-500 ml-4">
+                            <span className="text-sm text-muted-foreground ml-4">
                               {service.duration}min - ${service.price}
                             </span>
                           </div>

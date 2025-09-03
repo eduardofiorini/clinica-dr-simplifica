@@ -24,6 +24,9 @@ import { CurrencySelector } from "@/components/ui/CurrencySelector";
 import { CurrencyDisplay } from "@/components/ui/CurrencyDisplay";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 import ClinicSwitcher from "@/components/ClinicSwitcher";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { LanguageSelector } from "@/components/ui/LanguageSelector";
+import { useTranslation } from "react-i18next";
 
 interface TopBarProps {
   onMenuClick: () => void;
@@ -31,6 +34,7 @@ interface TopBarProps {
 
 const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -42,7 +46,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200">
+    <header className="bg-background border-b border-border">
       <div className="px-2 xs:px-3 sm:px-4 lg:px-6 py-2 sm:py-3">
         <div className="flex items-center justify-between">
           {/* Left side - Menu */}
@@ -67,6 +71,11 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
 
           {/* Right side - Actions and User Menu */}
           <div className="flex items-center space-x-1 xs:space-x-2 sm:space-x-3">
+            {/* Theme Toggle */}
+            <ThemeToggle className="h-9 w-9 sm:h-10 sm:w-10" />
+            {/* Language Selector */}
+            <LanguageSelector />
+            
             {/* Currency Selector - Hidden on small screens */}
             <div className="hidden md:block">
               <CurrencySelector variant="compact" showLabel={false} />
@@ -117,7 +126,7 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
                   <DropdownMenuItem className="py-3">
                     <ErrorBoundary>
                       <div className="flex items-center space-x-2 w-full">
-                        <span className="text-sm">Currency:</span>
+                        <span className="text-sm">{t("Currency:")}</span>
                         <CurrencySelector variant="compact" showLabel={false} />
                       </div>
                     </ErrorBoundary>
@@ -127,12 +136,12 @@ const TopBar: React.FC<TopBarProps> = ({ onMenuClick }) => {
 
                 <DropdownMenuItem onClick={handleProfileClick} className="py-3">
                   <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
+                  <span>{t("Profile")}</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout} className="py-3">
                   <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
+                  <span>{t("Log out")}</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

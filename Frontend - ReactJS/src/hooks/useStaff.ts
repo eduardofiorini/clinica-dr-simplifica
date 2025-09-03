@@ -12,6 +12,7 @@ export const transformUserToStaff = (user: ApiUser) => ({
   role: user.role as 'admin' | 'doctor' | 'nurse' | 'receptionist' | 'technician',
   department: 'General', // Default department - could be enhanced with a department field
   salary: 0, // This would need to be added to the backend User model
+  salesPercentage: user.sales_percentage || 0, // Sales percentage for doctors
   joiningDate: new Date(user.created_at),
   address: '', // This would need to be added to the backend User model
   qualifications: [], // This would need to be added to the backend User model

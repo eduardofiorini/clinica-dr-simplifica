@@ -186,8 +186,9 @@ const ClinicSchema: Schema = new Schema({
 });
 
 // Indexes for better performance
-ClinicSchema.index({ code: 1 }, { unique: true });
-ClinicSchema.index({ name: 1 });
+// Note: code already has unique: true in field definition
+// ClinicSchema.index({ code: 1 }, { unique: true }); // Removed - duplicate
+// ClinicSchema.index({ name: 1 }); // Removed - not needed
 ClinicSchema.index({ is_active: 1 });
 ClinicSchema.index({ 'contact.email': 1 });
 

@@ -55,6 +55,7 @@ const EditStaffModal: React.FC<EditStaffModalProps> = ({
     phone: "",
     role: "",
     password: "",
+    sales_percentage: "0",
   });
 
   const roles = [
@@ -78,6 +79,7 @@ const EditStaffModal: React.FC<EditStaffModalProps> = ({
         phone: staff.phone,
         role: staff.role,
         password: "",
+        sales_percentage: String(staff.salesPercentage || 0),
       });
     }
   }, [staff]);
@@ -132,6 +134,19 @@ const EditStaffModal: React.FC<EditStaffModalProps> = ({
       }
     }
 
+    // Sales percentage validation for doctors
+    if (formData.role === 'doctor') {
+      const salesPercentage = parseFloat(formData.sales_percentage);
+      if (isNaN(salesPercentage) || salesPercentage < 0 || salesPercentage > 100) {
+        toast({
+          title: "Validation Error",
+          description: "Sales percentage must be between 0 and 100",
+          variant: "destructive",
+        });
+        return false;
+      }
+    }
+
     return true;
   };
 
@@ -152,6 +167,9 @@ const EditStaffModal: React.FC<EditStaffModalProps> = ({
         email: formData.email,
         phone: formData.phone,
         role: formData.role,
+        ...(formData.role === 'doctor' && {
+          sales_percentage: parseFloat(formData.sales_percentage) || 0
+        })
       };
 
       await onUpdate(staff.id, updateData);
@@ -288,6 +306,26 @@ const EditStaffModal: React.FC<EditStaffModalProps> = ({
                   </SelectContent>
                 </Select>
               </div>
+              
+              {/* Sales Percentage for Doctors */}
+              {formData.role === 'doctor' && (
+                <div className="space-y-2">
+                  <Label htmlFor="sales_percentage">Sales Percentage (%) *</Label>
+                  <Input
+                    id="sales_percentage"
+                    type="number"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    value={formData.sales_percentage}
+                    onChange={(e) => handleChange("sales_percentage", e.target.value)}
+                    placeholder="10.0"
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    Percentage of revenue generated from appointments that will be added as sales incentive
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

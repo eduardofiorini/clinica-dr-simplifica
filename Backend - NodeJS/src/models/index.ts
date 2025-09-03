@@ -1,6 +1,8 @@
 export { default as User, IUser } from './User';
 export { default as Clinic, IClinic } from './Clinic';
 export { default as UserClinic, IUserClinic } from './UserClinic';
+export { default as Permission, IPermission } from './Permission';
+export { default as Role, IRole } from './Role';
 export { default as Patient, IPatient } from './Patient';
 export { default as Appointment, IAppointment } from './Appointment';
 export { default as MedicalRecord, IMedicalRecord } from './MedicalRecord';
@@ -23,4 +25,8 @@ export { default as Expense, IExpense } from './Expense';
 export { default as Training, ITraining, ITrainingModule } from './Training';
 export { default as TrainingProgress, ITrainingProgress, IModuleProgress } from './TrainingProgress';
 export { default as XrayAnalysis, IXrayAnalysis } from './XrayAnalysis';
-export { default as Odontogram, IOdontogram, IToothCondition } from './Odontogram'; 
+export { default as AITestAnalysis, IAITestAnalysis } from './AITestAnalysis';
+export { default as AITestComparison, IAITestComparison } from './AITestComparison';
+export { default as Odontogram, IOdontogram, IToothCondition } from './Odontogram';
+export { default as Settings } from './Settings';
+export type { ISettings, IWorkingHours } from './Settings'; 

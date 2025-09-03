@@ -217,7 +217,7 @@ export const optionalClinicContext = async (req: AuthRequest, res: Response, nex
  * @returns Express middleware function
  */
 export const requireClinicPermission = (permission: string) => {
-  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+  return async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     if (!req.currentUserClinic) {
       // @ts-ignore
       return res.status(403).json({
@@ -230,7 +230,7 @@ export const requireClinicPermission = (permission: string) => {
     const userClinic = req.currentUserClinic;
     
     // Check if user has the required permission
-    if (!userClinic.permissions.includes(permission)) {
+    if (!(await userClinic.hasPermission(permission))) {
       // @ts-ignore
       return res.status(403).json({
         success: false,
@@ -249,7 +249,7 @@ export const requireClinicPermission = (permission: string) => {
  * @returns Express middleware function
  */
 export const requireClinicRole = (...roles: string[]) => {
-  return (req: AuthRequest, res: Response, next: NextFunction): void => {
+  return async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
     if (!req.currentUserClinic) {
       // @ts-ignore: TypeScript middleware return type issue
       return res.status(403).json({
@@ -262,7 +262,9 @@ export const requireClinicRole = (...roles: string[]) => {
     const userClinic = req.currentUserClinic;
     
     // Check if user has one of the required roles
-    if (!roles.includes(userClinic.role)) {
+    const primaryRole = await userClinic.getPrimaryRole();
+    const userRoleName = primaryRole?.name || 'staff';
+    if (!roles.includes(userRoleName)) {
       // @ts-ignore: TypeScript middleware return type issue
       return res.status(403).json({
         success: false,
@@ -302,7 +304,7 @@ function isValidObjectId(id: string): boolean {
  * Middleware to ensure clinic admin access
  * User must be admin role in the current clinic
  */
-export const requireClinicAdmin = (req: AuthRequest, res: Response, next: NextFunction) => {
+export const requireClinicAdmin = async (req: AuthRequest, res: Response, next: NextFunction) => {
   if (!req.currentUserClinic) {
     // @ts-ignore
     return res.status(403).json({
@@ -312,7 +314,8 @@ export const requireClinicAdmin = (req: AuthRequest, res: Response, next: NextFu
     });
   }
 
-  if (req.currentUserClinic.role !== 'admin') {
+  const primaryRole = await req.currentUserClinic.getPrimaryRole();
+  if (primaryRole?.name !== 'admin') {
     // @ts-ignore
     return res.status(403).json({
       success: false,

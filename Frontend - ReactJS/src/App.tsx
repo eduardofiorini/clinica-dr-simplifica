@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ClinicProvider } from "@/contexts/ClinicContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import RequireRole from "@/components/RequireRole";
 import DashboardLayout from "@/components/layout/DashboardLayout";
@@ -21,6 +22,8 @@ import ForgotPassword from "./pages/auth/ForgotPassword";
 import ClinicSelection from "./pages/ClinicSelection";
 import Dashboard from "./pages/dashboard/Dashboard";
 import XrayAnalysis from "./pages/dashboard/xray-analysis/XrayAnalysis";
+import AITestAnalysis from "./pages/dashboard/ai-test-analysis/AITestAnalysis";
+import AITestComparison from "./pages/dashboard/ai-test-comparison/AITestComparison";
 import Patients from "./pages/dashboard/patients/Patients";
 import Appointments from "./pages/dashboard/appointments/Appointments";
 import Billing from "./pages/dashboard/billing/Billing";
@@ -31,6 +34,8 @@ import Staff from "./pages/dashboard/staff/Staff";
 import Invoices from "./pages/dashboard/invoices/Invoices";
 import Payments from "./pages/dashboard/payments/Payments";
 import Payroll from "./pages/dashboard/payroll/Payroll";
+import Expenses from "./pages/dashboard/expenses/Expenses";
+import Performance from "./pages/dashboard/performance/Performance";
 import Prescriptions from "./pages/dashboard/prescriptions/Prescriptions";
 import Odontograms from "./pages/dashboard/odontograms/Odontograms";
 import Analytics from "./pages/dashboard/analytics/Analytics";
@@ -46,6 +51,7 @@ import Calendar from "./pages/dashboard/calendar/Calendar";
 import Profile from "./pages/dashboard/profile/Profile";
 import Departments from "./pages/dashboard/departments/Departments";
 import Clinics from "./pages/dashboard/clinics/Clinics";
+import Permissions from "./pages/dashboard/permissions/Permissions";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -94,11 +100,12 @@ const App = () => {
 
   return (
     <ErrorBoundary>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <AuthProvider>
-            <ClinicProvider>
-              <CurrencyProvider>
+      <ThemeProvider defaultTheme="light" storageKey="clinicpro-theme">
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <AuthProvider>
+              <ClinicProvider>
+                <CurrencyProvider>
                 <Toaster />
                 <Sonner />
                 <BrowserRouter>
@@ -132,12 +139,32 @@ const App = () => {
               {/* Dashboard - accessible to all authenticated users */}
               <Route index element={<Dashboard />} />
 
-              {/* AI X-ray Analysis - accessible to admin, doctor, nurse */}
+              {/* Dental AI X-ray Analysis - accessible to admin, doctor, nurse */}
               <Route
                 path="xray-analysis"
                 element={
                   <RequireRole roles={["admin", "doctor", "nurse"]}>
                     <XrayAnalysis />
+                  </RequireRole>
+                }
+              />
+
+              {/* AI Test Report Analysis - accessible to admin, doctor, nurse */}
+              <Route
+                path="ai-test-analysis"
+                element={
+                  <RequireRole roles={["admin", "doctor", "nurse"]}>
+                    <AITestAnalysis />
+                  </RequireRole>
+                }
+              />
+
+              {/* AI Test Report Comparison - accessible to admin, doctor, nurse */}
+              <Route
+                path="ai-test-comparison"
+                element={
+                  <RequireRole roles={["admin", "doctor", "nurse"]}>
+                    <AITestComparison />
                   </RequireRole>
                 }
               />
@@ -212,6 +239,24 @@ const App = () => {
                 }
               />
 
+              <Route
+                path="expenses"
+                element={
+                  <RequireRole roles={["admin", "accountant"]}>
+                    <Expenses />
+                  </RequireRole>
+                }
+              />
+
+              <Route
+                path="performance"
+                element={
+                  <RequireRole roles={["admin", "accountant"]}>
+                    <Performance />
+                  </RequireRole>
+                }
+              />
+
               {/* Services - accessible to admin, doctor */}
               <Route
                 path="services"
@@ -238,6 +283,16 @@ const App = () => {
                 element={
                   <RequireRole roles={["admin"]}>
                     <Clinics />
+                  </RequireRole>
+                }
+              />
+
+              {/* Permissions - admin only */}
+              <Route
+                path="permissions"
+                element={
+                  <RequireRole roles={["admin"]}>
+                    <Permissions />
                   </RequireRole>
                 }
               />
@@ -398,6 +453,7 @@ const App = () => {
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   );
 };

@@ -326,12 +326,12 @@ const Calendar = () => {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      scheduled: { icon: Clock, className: "bg-blue-100 text-blue-800" },
+      scheduled: { icon: Clock, className: "bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300" },
       confirmed: {
         icon: CheckCircle,
         className: "bg-green-100 text-green-800",
       },
-      completed: { icon: CheckCircle, className: "bg-gray-100 text-gray-800" },
+      completed: { icon: CheckCircle, className: "bg-muted text-muted-foreground" },
       cancelled: { icon: XCircle, className: "bg-red-100 text-red-800" },
       "no-show": {
         icon: AlertTriangle,
@@ -346,7 +346,7 @@ const Calendar = () => {
     // Get config with fallback for unknown status
     const config = statusConfig[status as keyof typeof statusConfig] || {
       icon: AlertTriangle,
-      className: "bg-gray-100 text-gray-800",
+      className: "bg-muted text-muted-foreground",
     };
     
     const Icon = config.icon;
@@ -361,13 +361,13 @@ const Calendar = () => {
 
   const getEventTypeColor = (type: string) => {
     const colors = {
-      appointment: "bg-blue-100 text-blue-800",
+      appointment: "bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300",
       surgery: "bg-red-100 text-red-800",
       consultation: "bg-purple-100 text-purple-800",
       emergency: "bg-red-100 text-red-800",
-      meeting: "bg-gray-100 text-gray-800",
+      meeting: "bg-muted text-muted-foreground",
     };
-    return colors[type as keyof typeof colors] || "bg-gray-100 text-gray-800";
+    return colors[type as keyof typeof colors] || "bg-muted text-muted-foreground";
   };
 
   const formatTime = (date: Date) => {
@@ -442,7 +442,7 @@ const Calendar = () => {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2 text-gray-600">Loading clinic context...</span>
+        <span className="ml-2 text-muted-foreground">Loading clinic context...</span>
       </div>
     );
   }
@@ -452,9 +452,9 @@ const Calendar = () => {
     return (
       <div className="space-y-6">
         <div className="text-center py-12">
-          <CalendarIcon className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Clinic Selected</h2>
-          <p className="text-gray-600 mb-4">
+          <CalendarIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-foreground mb-2">No Clinic Selected</h2>
+          <p className="text-muted-foreground mb-4">
             Please select a clinic to view and manage appointments.
           </p>
           {clinicError && (
@@ -472,12 +472,12 @@ const Calendar = () => {
       {/* Header */}
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between sm:flex-wrap">
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             Calendar View
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1">
             {currentClinic ? (
-              <>Manage appointments, surgeries, and clinic events for <span className="font-semibold text-blue-600">{currentClinic.name}</span></>
+              <>Manage appointments, surgeries, and clinic events for <span className="font-semibold text-primary">{currentClinic.name}</span></>
             ) : (
               "Manage appointments, surgeries, and clinic events"
             )}
@@ -563,7 +563,7 @@ const Calendar = () => {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:flex-wrap">
             {/* Search Bar */}
             <div className="relative flex-1 min-w-0 sm:min-w-[250px]">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search events, doctors, or patients..."
                 value={searchTerm}
@@ -631,8 +631,8 @@ const Calendar = () => {
             {/* Loading State */}
             {(loading || filterLoading) && (
               <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                <span className="ml-2 text-gray-600">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-muted-foreground">
                   {loading ? "Loading appointments..." : "Applying filters..."}
                 </span>
               </div>
@@ -645,7 +645,7 @@ const Calendar = () => {
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
                   Error Loading Appointments
                 </h3>
-                <p className="text-gray-500 mb-4">{error}</p>
+                <p className="text-muted-foreground mb-4">{error}</p>
                 <Button onClick={handleRefresh} variant="outline">
                   <CalendarIcon className="h-4 w-4 mr-2" />
                   Try Again
@@ -678,17 +678,17 @@ const Calendar = () => {
                             {getStatusBadge(event.status)}
                           </div>
                           <div className="mt-2 grid grid-cols-1 lg:grid-cols-3 gap-4">
-                            <div className="flex items-center text-sm text-gray-600">
+                            <div className="flex items-center text-sm text-muted-foreground">
                               <Clock className="h-4 w-4 mr-2" />
                               {formatTime(event.startTime)} -{" "}
                               {formatTime(event.endTime)}
                             </div>
-                            <div className="flex items-center text-sm text-gray-600">
+                            <div className="flex items-center text-sm text-muted-foreground">
                               <User className="h-4 w-4 mr-2" />
                               {event.doctorName}
                             </div>
                             {event.room && (
-                              <div className="flex items-center text-sm text-gray-600">
+                              <div className="flex items-center text-sm text-muted-foreground">
                                 <MapPin className="h-4 w-4 mr-2" />
                                 {event.room}
                               </div>
@@ -700,7 +700,7 @@ const Calendar = () => {
                             </div>
                           )}
                           {event.notes && (
-                            <div className="mt-1 text-sm text-gray-500">
+                            <div className="mt-1 text-sm text-muted-foreground">
                               {event.notes}
                             </div>
                           )}
@@ -744,7 +744,7 @@ const Calendar = () => {
                 {filteredEvents.map((event) => (
                   <div
                     key={event.id}
-                    className="border rounded-lg p-4 space-y-3 bg-white shadow-sm"
+                    className="border rounded-lg p-4 space-y-3 bg-card shadow-sm"
                     style={{
                       borderLeftColor: event.color,
                       borderLeftWidth: "4px",
@@ -757,7 +757,7 @@ const Calendar = () => {
                           <div className="font-semibold text-lg">
                             {event.title}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-muted-foreground">
                             {formatDate(event.startTime)}
                           </div>
                         </div>
@@ -771,18 +771,18 @@ const Calendar = () => {
                     </div>
 
                     {/* Time and Location */}
-                    <div className="space-y-2 p-3 bg-gray-50 rounded-lg">
+                    <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
                       <div className="flex items-center text-sm">
-                        <Clock className="h-4 w-4 mr-2 text-gray-400" />
-                        <span className="text-gray-900">
+                        <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <span className="text-foreground">
                           {formatTime(event.startTime)} -{" "}
                           {formatTime(event.endTime)}
                         </span>
                       </div>
                       {event.room && (
                         <div className="flex items-center text-sm">
-                          <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                          <span className="text-gray-900">{event.room}</span>
+                          <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                          <span className="text-foreground">{event.room}</span>
                         </div>
                       )}
                     </div>
@@ -790,7 +790,7 @@ const Calendar = () => {
                     {/* People Involved */}
                     <div className="grid grid-cols-1 gap-3">
                       <div className="space-y-1">
-                        <div className="text-xs text-gray-500 uppercase tracking-wide">
+                        <div className="text-xs text-muted-foreground uppercase tracking-wide">
                           Doctor
                         </div>
                         <div className="text-sm font-medium">
@@ -799,7 +799,7 @@ const Calendar = () => {
                       </div>
                       {event.patientName && (
                         <div className="space-y-1">
-                          <div className="text-xs text-gray-500 uppercase tracking-wide">
+                          <div className="text-xs text-muted-foreground uppercase tracking-wide">
                             Patient
                           </div>
                           <div className="text-sm font-medium">
@@ -812,10 +812,10 @@ const Calendar = () => {
                     {/* Notes */}
                     {event.notes && (
                       <div className="space-y-1">
-                        <div className="text-xs text-gray-500 uppercase tracking-wide">
+                        <div className="text-xs text-muted-foreground uppercase tracking-wide">
                           Notes
                         </div>
-                        <div className="text-sm text-gray-600 p-2 bg-gray-50 rounded">
+                        <div className="text-sm text-muted-foreground p-2 bg-muted/50 rounded">
                           {event.notes}
                         </div>
                       </div>
@@ -823,7 +823,7 @@ const Calendar = () => {
 
                     {/* Actions */}
                     <div className="flex items-center justify-between pt-2 border-t">
-                      <div className="text-xs text-gray-500">
+                      <div className="text-xs text-muted-foreground">
                         Event ID: #{event.id}
                       </div>
                       <DropdownMenu>
@@ -861,11 +861,11 @@ const Calendar = () => {
             {/* No Events State */}
             {!loading && !filterLoading && !error && filteredEvents.length === 0 && (
               <div className="text-center py-8">
-                <CalendarIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <CalendarIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium text-foreground mb-2">
                   No events found
                 </h3>
-                <p className="text-gray-500">
+                <p className="text-muted-foreground">
                   Try adjusting your search criteria or add a new event.
                 </p>
               </div>

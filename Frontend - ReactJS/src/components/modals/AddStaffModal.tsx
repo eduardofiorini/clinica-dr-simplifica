@@ -59,6 +59,7 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({ trigger, onStaffAdded }) 
     role: "",
     department: "",
     salary: "",
+    salesPercentage: "0",
     joiningDate: "",
     address: "",
     qualifications: "",
@@ -231,6 +232,19 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({ trigger, onStaffAdded }) 
       return false;
     }
 
+    // Sales percentage validation for doctors
+    if (formData.role === 'doctor') {
+      const salesPercentage = parseFloat(formData.salesPercentage);
+      if (isNaN(salesPercentage) || salesPercentage < 0 || salesPercentage > 100) {
+        toast({
+          title: "Validation Error",
+          description: "Sales percentage must be between 0 and 100",
+          variant: "destructive",
+        });
+        return false;
+      }
+    }
+
     return true;
   };
 
@@ -252,6 +266,9 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({ trigger, onStaffAdded }) 
         password: formData.password,
         role: formData.role as 'admin' | 'doctor' | 'nurse' | 'receptionist' | 'staff',
         phone: formData.phone,
+        ...(formData.role === 'doctor' && {
+          sales_percentage: parseFloat(formData.salesPercentage) || 0
+        })
       };
 
       // Create staff member via API
@@ -279,6 +296,7 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({ trigger, onStaffAdded }) 
         role: "",
         department: "",
         salary: "",
+        salesPercentage: "0",
         joiningDate: "",
         address: "",
         qualifications: "",
@@ -633,6 +651,30 @@ const AddStaffModal: React.FC<AddStaffModalProps> = ({ trigger, onStaffAdded }) 
                   </div>
                 </div>
               </div>
+
+              {/* Sales Percentage for Doctors */}
+              {formData.role === 'doctor' && (
+                <div className="space-y-2">
+                  <Label htmlFor="salesPercentage">Sales Percentage (%) *</Label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      id="salesPercentage"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.1"
+                      value={formData.salesPercentage}
+                      onChange={(e) => handleChange("salesPercentage", e.target.value)}
+                      placeholder="10.0"
+                      className="pl-10"
+                    />
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Percentage of revenue generated from appointments that will be added as sales incentive
+                  </p>
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="qualifications">Qualifications</Label>

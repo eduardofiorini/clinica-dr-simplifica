@@ -33,6 +33,7 @@ import {
   UserCheck,
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import PublicHeader from "@/components/layout/PublicHeader";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -65,7 +66,7 @@ const Register = () => {
       label: "Doctor",
       description: "Patient care and medical records",
       icon: Stethoscope,
-      color: "text-blue-600",
+      color: "text-primary",
     },
     {
       value: "receptionist" as UserRole,
@@ -147,7 +148,9 @@ const Register = () => {
   const selectedRole = roleOptions.find((role) => role.value === formData.role);
 
   return (
-    <div className="w-full bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div className="w-full bg-background min-h-screen">
+      <PublicHeader variant="auth" />
+      <div className="flex items-center justify-center p-4 min-h-[calc(100vh-4rem)]">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -157,8 +160,8 @@ const Register = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-2">
-            <Heart className="h-8 w-8 text-blue-600" />
-            <span className="text-2xl font-bold text-gray-900">ClinicPro</span>
+            <Heart className="h-8 w-8 text-primary" />
+            <span className="text-2xl font-bold text-foreground">ClinicPro</span>
           </Link>
         </div>
 
@@ -251,7 +254,7 @@ const Register = () => {
                           <role.icon className={`h-5 w-5 ${role.color}`} />
                           <div>
                             <div className="font-medium">{role.label}</div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-muted-foreground">
                               {role.description}
                             </div>
                           </div>
@@ -262,7 +265,7 @@ const Register = () => {
                 </Select>
 
                 {selectedRole && (
-                  <div className="mt-2 p-3 bg-gray-50 rounded-lg">
+                  <div className="mt-2 p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center space-x-2">
                       <selectedRole.icon
                         className={`h-4 w-4 ${selectedRole.color}`}
@@ -274,7 +277,7 @@ const Register = () => {
                         {selectedRole.value}
                       </Badge>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">
+                    <p className="text-sm text-muted-foreground mt-1">
                       {selectedRole.description}
                     </p>
                   </div>
@@ -298,7 +301,7 @@ const Register = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       disabled={isLoading}
                     >
                       {showPassword ? (
@@ -330,7 +333,7 @@ const Register = () => {
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       disabled={isLoading}
                     >
                       {showConfirmPassword ? (
@@ -373,12 +376,13 @@ const Register = () => {
           </CardContent>
         </Card>
 
-        <div className="mt-6 text-center text-xs text-gray-500">
-          <Link to="/" className="hover:text-gray-700 transition-colors">
+        <div className="mt-6 text-center text-xs text-muted-foreground">
+          <Link to="/" className="hover:text-foreground transition-colors">
             ← Back to homepage
           </Link>
         </div>
       </motion.div>
+      </div>
     </div>
   );
 };

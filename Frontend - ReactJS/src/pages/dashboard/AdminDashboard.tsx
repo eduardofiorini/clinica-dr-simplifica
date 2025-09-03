@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   Card,
   CardContent,
@@ -56,6 +57,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { CurrencyDisplay } from "@/components/ui/CurrencyDisplay";
 
 const AdminDashboard = () => {
+  const { t } = useTranslation();
   const { formatAmount, currencyInfo } = useCurrency();
   const navigate = useNavigate();
 
@@ -114,21 +116,21 @@ const AdminDashboard = () => {
       case "up":
         return {
           icon: TrendingUp,
-          iconColor: "text-green-500",
-          textColor: "text-green-600"
+          iconColor: "text-green-500 dark:text-green-400",
+          textColor: "text-green-600 dark:text-green-400"
         };
       case "down":
         return {
           icon: TrendingDown,
-          iconColor: "text-red-500",
-          textColor: "text-red-600"
+          iconColor: "text-red-500 dark:text-red-400",
+          textColor: "text-red-600 dark:text-red-400"
         };
       case "neutral":
       default:
         return {
           icon: Minus,
-          iconColor: "text-gray-500",
-          textColor: "text-gray-600"
+          iconColor: "text-muted-foreground",
+          textColor: "text-muted-foreground"
         };
     }
   };
@@ -136,44 +138,44 @@ const AdminDashboard = () => {
   // Real stats from API data with dynamic percentage changes
   const stats = [
     {
-      title: "Today's Appointments",
+      title: t("Today's Appointments"),
       value: isLoading ? "..." : todayAppointments.toString(),
       change: formatPercentageChange(percentageChanges.appointments),
       trend: getTrend(percentageChanges.appointments),
       icon: Calendar,
-      color: "text-blue-600",
-      bgColor: "bg-blue-100",
-      description: "Scheduled today",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
+      description: t("Scheduled today"),
     },
     {
-      title: "Total Patients",
+      title: t("Total Patients"),
       value: isLoading ? "..." : totalPatients.toLocaleString(),
       change: formatPercentageChange(percentageChanges.patients),
       trend: getTrend(percentageChanges.patients),
       icon: Users,
-      color: "text-green-600",
-      bgColor: "bg-green-100",
-      description: "Active patients",
+      color: "text-green-600 dark:text-green-400",
+      bgColor: "bg-green-100 dark:bg-green-900/20",
+      description: t("Active patients"),
     },
     {
-      title: "Monthly Revenue",
+      title: t("Monthly Revenue"),
       value: isLoading ? "..." : formatAmount(monthlyRevenue),
       change: formatPercentageChange(percentageChanges.revenue),
       trend: getTrend(percentageChanges.revenue),
       icon: DollarSign,
-      color: "text-purple-600",
-      bgColor: "bg-purple-100",
-      description: "This month",
+      color: "text-purple-600 dark:text-purple-400",
+      bgColor: "bg-purple-100 dark:bg-purple-900/20",
+      description: t("This month"),
     },
     {
-      title: "Low Stock Items",
+      title: t("Low Stock Items"),
       value: isLoading ? "..." : lowStockItems.length.toString(),
-      change: lowStockItems.length === 0 ? "0%" : lowStockItems.length > 5 ? "High Alert" : "Low Alert",
+      change: lowStockItems.length === 0 ? "0%" : lowStockItems.length > 5 ? t("High Alert") : t("Low Alert"),
       trend: lowStockItems.length === 0 ? "neutral" : lowStockItems.length > 5 ? "down" : "up",
       icon: Package,
-      color: "text-orange-600",
-      bgColor: "bg-orange-100",
-      description: "Need attention",
+      color: "text-orange-600 dark:text-orange-400",
+      bgColor: "bg-orange-100 dark:bg-orange-900/20",
+      description: t("Need attention"),
     },
   ];
 
@@ -240,14 +242,14 @@ const AdminDashboard = () => {
   })();
 
   const appointmentStatusData = appointmentStatsData?.map(stat => ({
-    name: stat._id.charAt(0).toUpperCase() + stat._id.slice(1),
+    name: t(stat._id.charAt(0).toUpperCase() + stat._id.slice(1)),
     value: stat.count,
     color: getStatusColor(stat._id)
   })) || [
-    { name: "Completed", value: 0, color: "#22c55e" },
-    { name: "Scheduled", value: 0, color: "#3b82f6" },
-    { name: "Cancelled", value: 0, color: "#ef4444" },
-    { name: "No Show", value: 0, color: "#f59e0b" },
+    { name: t("Completed"), value: 0, color: "#22c55e" },
+    { name: t("Scheduled"), value: 0, color: "#3b82f6" },
+    { name: t("Cancelled"), value: 0, color: "#ef4444" },
+    { name: t("No Show"), value: 0, color: "#f59e0b" },
   ];
 
   // Use real appointment data from dashboard API
@@ -310,52 +312,52 @@ const AdminDashboard = () => {
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
       case "completed":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300";
       case "scheduled":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300";
       case "cancelled":
-        return "bg-red-100 text-red-800";
+        return "bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
     }
   };
 
   const getLeadIcon = (status: string) => {
     switch (status) {
       case "new":
-        return <UserPlus className="h-5 w-5 text-blue-600" />;
+        return <UserPlus className="h-5 w-5 text-blue-600 dark:text-blue-400" />;
       case "contacted":
-        return <Phone className="h-5 w-5 text-orange-600" />;
+        return <Phone className="h-5 w-5 text-orange-600 dark:text-orange-400" />;
       case "scheduled":
-        return <CheckCircle className="h-5 w-5 text-green-600" />;
+        return <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />;
       default:
-        return <Mail className="h-5 w-5 text-gray-600" />;
+        return <Mail className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
   const getLeadStatusColor = (status: string) => {
     switch (status) {
       case "new":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300";
       case "contacted":
-        return "bg-orange-100 text-orange-800";
+        return "bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-300";
       case "scheduled":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
     }
   };
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case "high":
-        return "bg-red-50 border-red-200";
+        return "bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800";
       case "medium":
-        return "bg-orange-50 border-orange-200";
+        return "bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800";
       case "low":
-        return "bg-green-50 border-green-200";
+        return "bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800";
       default:
-        return "bg-gray-50 border-gray-200";
+        return "bg-muted border-border";
     }
   };
 
@@ -366,7 +368,7 @@ const AdminDashboard = () => {
         <Alert variant="destructive">
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            Failed to load dashboard data. Please check your connection and try again.
+            {t("Failed to load dashboard data. Please check your connection and try again.")}
           </AlertDescription>
         </Alert>
       </div>
@@ -378,20 +380,20 @@ const AdminDashboard = () => {
       {/* Mobile-First Header */}
       <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4">
         <div className="min-w-0 flex-1">
-          <h1 className="text-xl xs:text-2xl sm:text-3xl font-bold text-gray-900 truncate">
-            Admin Dashboard
+          <h1 className="text-xl xs:text-2xl sm:text-3xl font-bold text-foreground truncate">
+            {t("Admin Dashboard")}
           </h1>
-          <p className="text-xs xs:text-sm sm:text-base text-gray-600 mt-1">
-            Complete overview of your clinic operations and system health.
+          <p className="text-xs xs:text-sm sm:text-base text-muted-foreground mt-1">
+            {t("Complete overview of your clinic operations and system health.")}
           </p>
         </div>
         <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-3">
           <Badge
             variant="outline"
-            className="text-purple-600 border-purple-200 text-xs sm:text-sm"
+            className="text-primary border-primary/20 text-xs sm:text-sm"
           >
             <Shield className="h-3 w-3 mr-1" />
-            Administrator
+            {t("Administrator")}
           </Badge>
           <SettingsModal />
         </div>
@@ -410,10 +412,10 @@ const AdminDashboard = () => {
               <CardContent className="p-3 xs:p-4 sm:p-6">
                 <div className="flex items-center justify-between">
                   <div className="min-w-0 flex-1">
-                    <p className="text-xs sm:text-sm font-medium text-gray-600 truncate">
+                    <p className="text-xs sm:text-sm font-medium text-muted-foreground truncate">
                       {stat.title}
                     </p>
-                    <p className="text-lg xs:text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mt-1">
+                    <p className="text-lg xs:text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mt-1">
                       {stat.value}
                     </p>
                     <div className="flex items-center mt-2">
@@ -429,11 +431,11 @@ const AdminDashboard = () => {
                           </>
                         );
                       })()}
-                      <span className="text-xs text-gray-500 truncate">
-                        from last month
+                      <span className="text-xs text-muted-foreground truncate">
+                        {t("from last month")}
                       </span>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1 hidden xs:block">
+                    <p className="text-xs text-muted-foreground mt-1 hidden xs:block">
                       {stat.description}
                     </p>
                   </div>
@@ -466,10 +468,10 @@ const AdminDashboard = () => {
                   <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
                     <div>
                       <CardTitle className="text-base xs:text-lg sm:text-xl">
-                        Revenue Overview
+                        {t("Revenue Overview")}
                       </CardTitle>
                       <CardDescription className="text-xs sm:text-sm">
-                        Monthly revenue vs expenses
+                        {t("Monthly revenue vs expenses")}
                       </CardDescription>
                     </div>
                     <Button
@@ -479,7 +481,7 @@ const AdminDashboard = () => {
                       onClick={() => navigate("/dashboard/reports")}
                     >
                       <Eye className="h-4 w-4 mr-2" />
-                      View Details
+                      {t("View Details")}
                     </Button>
                   </div>
                 </CardHeader>
@@ -495,17 +497,17 @@ const AdminDashboard = () => {
                           bottom: 5 
                         }}
                       >
-                        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                         <XAxis
                           dataKey="month"
                           axisLine={false}
                           tickLine={false}
-                          tick={{ fontSize: typeof window !== "undefined" && window.innerWidth < 640 ? 10 : 12, fill: "#666" }}
+                          tick={{ fontSize: typeof window !== "undefined" && window.innerWidth < 640 ? 10 : 12, fill: "var(--muted-foreground)" }}
                         />
                         <YAxis
                           axisLine={false}
                           tickLine={false}
-                          tick={{ fontSize: typeof window !== "undefined" && window.innerWidth < 640 ? 10 : 12, fill: "#666" }}
+                          tick={{ fontSize: typeof window !== "undefined" && window.innerWidth < 640 ? 10 : 12, fill: "var(--muted-foreground)" }}
                           tickFormatter={(value) => `${currencyInfo?.symbol || '$'}${value / 1000}k`}
                         />
                         <Tooltip
@@ -548,10 +550,10 @@ const AdminDashboard = () => {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base xs:text-lg sm:text-xl">
-                    Appointment Status
+                    {t("Appointment Status")}
                   </CardTitle>
                   <CardDescription className="text-xs sm:text-sm">
-                    Distribution of appointment statuses
+                    {t("Distribution of appointment statuses")}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="px-3 xs:px-4 sm:px-6">
@@ -605,7 +607,7 @@ const AdminDashboard = () => {
                 <CardHeader className="pb-3">
                   <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
                     <CardTitle className="text-base xs:text-lg sm:text-xl">
-                      Recent Appointments
+                      {t("Recent Appointments")}
                     </CardTitle>
                     <Button
                       variant="outline"
@@ -613,7 +615,7 @@ const AdminDashboard = () => {
                       onClick={() => navigate("/dashboard/appointments")}
                     >
                       <Calendar className="h-4 w-4 mr-2" />
-                      View All
+                      {t("View All")}
                     </Button>
                   </div>
                 </CardHeader>
@@ -623,11 +625,11 @@ const AdminDashboard = () => {
                       recentAppointments.map((appointment, index) => (
                         <div
                           key={index}
-                          className="flex flex-col xs:flex-row xs:items-center justify-between p-3 bg-gray-50 rounded-lg space-y-2 xs:space-y-0"
+                          className="flex flex-col xs:flex-row xs:items-center justify-between p-3 bg-muted/50 rounded-lg space-y-2 xs:space-y-0"
                         >
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-2">
-                              <p className="text-sm font-medium text-gray-900 truncate">
+                              <p className="text-sm font-medium text-foreground truncate">
                                 {appointment.patient}
                               </p>
                               <Badge
@@ -657,9 +659,9 @@ const AdminDashboard = () => {
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-6 text-gray-500">
+                      <div className="text-center py-6 text-muted-foreground">
                         <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">No recent appointments</p>
+                        <p className="text-sm">{t("No recent appointments")}</p>
                       </div>
                     )}
                   </div>
@@ -677,7 +679,7 @@ const AdminDashboard = () => {
                 <CardHeader className="pb-3">
                   <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
                     <CardTitle className="text-base xs:text-lg sm:text-xl">
-                      Recent Leads
+                      {t("Recent Leads")}
                     </CardTitle>
                     <Button
                       variant="outline"
@@ -685,7 +687,7 @@ const AdminDashboard = () => {
                       onClick={() => navigate("/dashboard/leads")}
                     >
                       <UserPlus className="h-4 w-4 mr-2" />
-                      View All
+                      {t("View All")}
                     </Button>
                   </div>
                 </CardHeader>
@@ -695,11 +697,11 @@ const AdminDashboard = () => {
                       recentLeads.map((lead, index) => (
                         <div
                           key={index}
-                          className="flex flex-col xs:flex-row xs:items-center justify-between p-3 bg-gray-50 rounded-lg space-y-2 xs:space-y-0"
+                          className="flex flex-col xs:flex-row xs:items-center justify-between p-3 bg-muted/50 rounded-lg space-y-2 xs:space-y-0"
                         >
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center space-x-2">
-                              <p className="text-sm font-medium text-gray-900 truncate">
+                              <p className="text-sm font-medium text-foreground truncate">
                                 {lead.name}
                               </p>
                               <Badge
@@ -729,9 +731,9 @@ const AdminDashboard = () => {
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-6 text-gray-500">
+                      <div className="text-center py-6 text-muted-foreground">
                         <UserPlus className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <p className="text-sm">No recent leads</p>
+                        <p className="text-sm">{t("No recent leads")}</p>
                       </div>
                     )}
                   </div>
@@ -747,23 +749,23 @@ const AdminDashboard = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.8 }}
             >
-              <Card className="border-orange-200 bg-orange-50">
+              <Card className="border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20">
                 <CardHeader className="pb-3">
                   <div className="flex flex-col space-y-2 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex items-center space-x-2">
-                      <AlertTriangle className="h-5 w-5 text-orange-600" />
-                      <CardTitle className="text-base xs:text-lg sm:text-xl text-orange-800">
-                        Low Stock Alert
+                      <AlertTriangle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                      <CardTitle className="text-base xs:text-lg sm:text-xl text-orange-800 dark:text-orange-300">
+                        {t("Low Stock Alert")}
                       </CardTitle>
                     </div>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => navigate("/dashboard/inventory")}
-                      className="border-orange-300 text-orange-700 hover:bg-orange-100"
+                      className="border-orange-300 dark:border-orange-600 text-orange-700 dark:text-orange-300 hover:bg-orange-100 dark:hover:bg-orange-900/30"
                     >
                       <Package className="h-4 w-4 mr-2" />
-                      Manage Inventory
+                      {t("Manage Inventory")}
                     </Button>
                   </div>
                 </CardHeader>
@@ -772,18 +774,18 @@ const AdminDashboard = () => {
                     {lowStockItems.slice(0, 6).map((item, index) => (
                       <div
                         key={index}
-                        className="flex items-center justify-between p-3 bg-white rounded-lg border border-orange-200"
+                        className="flex items-center justify-between p-3 bg-background rounded-lg border border-orange-200 dark:border-orange-800"
                       >
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-gray-900 truncate">
+                          <p className="text-sm font-medium text-foreground truncate">
                             {item.name}
                           </p>
-                          <p className="text-xs text-gray-600">
-                            Stock: {item.current_stock} / {item.minimum_stock}
+                          <p className="text-xs text-muted-foreground">
+                            {t("Stock")}: {item.current_stock} / {item.minimum_stock}
                           </p>
                         </div>
                         <Badge variant="destructive" className="text-xs ml-2">
-                          Low
+                          {t("Low")}
                         </Badge>
                       </div>
                     ))}

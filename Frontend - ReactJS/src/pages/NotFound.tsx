@@ -3,10 +3,15 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Heart, Home, ArrowLeft } from "lucide-react";
+import PublicHeader from "@/components/layout/PublicHeader";
+import { useTranslation } from "react-i18next";
 
 const NotFound = () => {
+  const { t } = useTranslation();
   return (
-    <div className="w-full bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div className="w-full bg-background min-h-screen">
+      <PublicHeader />
+      <div className="flex items-center justify-center p-4 min-h-[calc(100vh-4rem)]">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -16,8 +21,8 @@ const NotFound = () => {
         {/* Logo */}
         <div className="mb-8">
           <Link to="/" className="inline-flex items-center space-x-2">
-            <Heart className="h-12 w-12 text-blue-600" />
-            <span className="text-3xl font-bold text-gray-900">ClinicPro</span>
+            <Heart className="h-12 w-12 text-primary" />
+            <span className="text-3xl font-bold text-foreground">{t("ClinicPro")}</span>
           </Link>
         </div>
 
@@ -28,12 +33,12 @@ const NotFound = () => {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="mb-8"
         >
-          <h1 className="text-8xl font-bold text-blue-600 mb-4">404</h1>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">
-            Page Not Found
+          <h1 className="text-8xl font-bold text-primary mb-4">404</h1>
+          <h2 className="text-2xl font-semibold text-foreground mb-2">
+            {t("Page Not Found")}
           </h2>
-          <p className="text-gray-600 mb-8">
-            The page you're looking for doesn't exist or has been moved.
+          <p className="text-muted-foreground mb-8">
+            {t("The page you're looking for doesn't exist or has been moved.")}
           </p>
         </motion.div>
 
@@ -48,7 +53,7 @@ const NotFound = () => {
             <Button asChild size="lg">
               <Link to="/">
                 <Home className="w-4 h-4 mr-2" />
-                Go Home
+                {t("Go Home")}
               </Link>
             </Button>
             <Button
@@ -57,7 +62,7 @@ const NotFound = () => {
               onClick={() => window.history.back()}
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Go Back
+              {t("Go Back")}
             </Button>
           </div>
         </motion.div>
@@ -67,16 +72,17 @@ const NotFound = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="mt-12 text-sm text-gray-500"
+          className="mt-12 text-sm text-muted-foreground"
         >
           <p>
-            Need help?{" "}
-            <Link to="/#contact" className="text-blue-600 hover:underline">
-              Contact our support team
+            {t("Need help?")}{" "}
+            <Link to="/#contact" className="text-primary hover:underline">
+              {t("Contact our support team")}
             </Link>
           </p>
         </motion.div>
       </motion.div>
+      </div>
     </div>
   );
 };

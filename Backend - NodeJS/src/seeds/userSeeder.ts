@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import { faker } from '@faker-js/faker';
-import { User, UserClinic } from '../models';
+import { User, UserClinic, Role } from '../models';
 
 /**
  * Comprehensive user seeder with realistic data and multi-clinic relationships
@@ -78,12 +78,22 @@ export async function seedUsers(clinicIds: mongoose.Types.ObjectId[]): Promise<v
           const createdUser = await User.create(userData);
           totalUsersCreated++;
           
-          // Create UserClinic relationship
+          // Create UserClinic relationship with new role system
+          const roleDoc = await Role.findOne({ name: role.toLowerCase(), is_system_role: true });
+          if (!roleDoc) {
+            throw new Error(`System role '${role}' not found. Make sure roles are seeded first.`);
+          }
+          
           const userClinicData = {
             user_id: createdUser._id,
             clinic_id: clinicId,
-            role: role as 'admin' | 'doctor' | 'nurse' | 'receptionist' | 'accountant' | 'staff',
-            permissions: getDefaultPermissionsByRole(role),
+            roles: [{
+              role_id: roleDoc._id,
+              assigned_at: new Date(),
+              assigned_by: createdUser._id, // Self-assigned for seeding
+              is_primary: true
+            }],
+            permission_overrides: [], // No overrides for seeded users
             is_active: true,
             joined_at: faker.date.recent({ days: 365 })
           };
@@ -123,12 +133,22 @@ export async function seedUsers(clinicIds: mongoose.Types.ObjectId[]): Promise<v
       totalUsersCreated++;
       
       // Create UserClinic relationships for all clinics
+      const adminRole = await Role.findOne({ name: 'admin', is_system_role: true });
+      if (!adminRole) {
+        throw new Error(`Admin role not found. Make sure roles are seeded first.`);
+      }
+      
       for (const clinicId of clinicIds) {
         const userClinicData = {
           user_id: createdSuperAdmin._id,
           clinic_id: clinicId,
-          role: 'admin' as const,
-          permissions: getDefaultPermissionsByRole('admin'),
+          roles: [{
+            role_id: adminRole._id,
+            assigned_at: new Date(),
+            assigned_by: createdSuperAdmin._id, // Self-assigned for seeding
+            is_primary: true
+          }],
+          permission_overrides: [], // No overrides for super admin
           is_active: true,
           joined_at: faker.date.recent({ days: 365 })
         };
@@ -147,59 +167,4 @@ export async function seedUsers(clinicIds: mongoose.Types.ObjectId[]): Promise<v
   }
 }
 
-/**
- * Get default permissions for a role
- */
-function getDefaultPermissionsByRole(role: string): string[] {
-  const rolePermissions: { [key: string]: string[] } = {
-    admin: [
-      'read_patients', 'write_patients', 'delete_patients',
-      'read_appointments', 'write_appointments', 'delete_appointments',
-      'read_medical_records', 'write_medical_records', 'delete_medical_records',
-      'read_prescriptions', 'write_prescriptions', 'delete_prescriptions',
-      'read_invoices', 'write_invoices', 'delete_invoices',
-      'read_payments', 'write_payments', 'delete_payments',
-      'read_inventory', 'write_inventory', 'delete_inventory',
-      'read_staff', 'write_staff', 'delete_staff',
-      'read_reports', 'write_reports',
-      'manage_clinic_settings', 'view_analytics',
-      'manage_departments', 'manage_services', 'manage_tests',
-      'view_payroll', 'manage_payroll'
-    ],
-    doctor: [
-      'read_patients', 'write_patients',
-      'read_appointments', 'write_appointments',
-      'read_medical_records', 'write_medical_records',
-      'read_prescriptions', 'write_prescriptions',
-      'read_reports', 'write_reports',
-      'manage_tests'
-    ],
-    nurse: [
-      'read_patients', 'write_patients',
-      'read_appointments', 'write_appointments',
-      'read_medical_records', 'write_medical_records',
-      'read_inventory', 'write_inventory',
-      'read_reports'
-    ],
-    receptionist: [
-      'read_patients', 'write_patients',
-      'read_appointments', 'write_appointments',
-      'read_invoices', 'write_invoices',
-      'read_payments', 'write_payments'
-    ],
-    accountant: [
-      'read_invoices', 'write_invoices', 'delete_invoices',
-      'read_payments', 'write_payments', 'delete_payments',
-      'read_reports', 'write_reports',
-      'view_payroll', 'manage_payroll',
-      'view_analytics'
-    ],
-    staff: [
-      'read_patients',
-      'read_appointments',
-      'read_reports'
-    ]
-  };
-
-  return rolePermissions[role] || [];
-}
+// Removed getDefaultPermissionsByRole function - permissions are now handled through the Role system

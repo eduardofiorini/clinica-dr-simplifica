@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth, UserRole } from "@/contexts/AuthContext";
@@ -59,65 +60,80 @@ interface NavigationSection {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const location = useLocation();
+  const { t } = useTranslation();
   const { user, hasRole, hasPermission } = useAuth();
   const [isTestModulesOpen, setIsTestModulesOpen] = useState(false);
 
   // Role-based navigation configuration
   const navigationSections: NavigationSection[] = [
     {
-      title: "Overview",
+      title: t("Overview"),
       items: [
         {
-          name: "Dashboard",
+          name: t("Dashboard"),
           href: "/dashboard",
           icon: Home,
           roles: ["admin", "doctor", "receptionist", "nurse", "accountant"],
         },
         {
-          name: "AI X-ray Analysis",
+          name: t("Dental AI X-ray Analysis"),
           href: "/dashboard/xray-analysis",
           icon: Brain,
+          badge: "AI",
+          roles: ["admin", "doctor", "nurse"],
+        },
+        {
+          name: t("AI Test Report Analysis"),
+          href: "/dashboard/ai-test-analysis",
+          icon: TestTube2,
+          badge: "AI",
+          roles: ["admin", "doctor", "nurse"],
+        },
+        {
+          name: t("Compare Test Reports using AI"),
+          href: "/dashboard/ai-test-comparison",
+          icon: BarChart3,
           badge: "AI",
           roles: ["admin", "doctor", "nurse"],
         },
       ],
     },
     {
-      title: "Patient Management",
+      title: t("Patient Management"),
       items: [
         {
-          name: "Patients",
+          name: t("Patients"),
           href: "/dashboard/patients",
           icon: Users,
           roles: ["admin", "doctor", "receptionist", "nurse"],
         },
         {
-          name: "Appointments",
+          name: t("Appointments"),
           href: "/dashboard/appointments",
           icon: Calendar,
           roles: ["admin", "doctor", "receptionist"],
         },
         {
-          name: "Leads",
+          name: t("Leads"),
           href: "/dashboard/leads",
           icon: UserPlus,
           roles: ["admin", "receptionist"],
         },
         {
-          name: "Prescriptions",
+          name: t("Prescriptions"),
           href: "/dashboard/prescriptions",
           icon: Stethoscope,
           roles: ["admin", "doctor"],
         },
         {
-          name: "Odontogram",
+          name: t("Odontogram"),
           href: "/dashboard/odontograms",
           icon: Zap,
           badge: "Dental",
           roles: ["admin", "doctor"],
         },
         {
-          name: "Test Reports",
+          name: t("Test Reports"),
           href: "/dashboard/test-reports",
           icon: FileText,
           roles: ["admin", "doctor", "nurse"],
@@ -125,69 +141,88 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       ],
     },
     {
-      title: "Financial Management",
+      title: t("Financial Management"),
       items: [
         {
-          name: "Billing",
+          name: t("Billing"),
           href: "/dashboard/billing",
           icon: DollarSign,
           roles: ["admin", "accountant", "receptionist"],
         },
         {
-          name: "Invoices",
+          name: t("Invoices"),
           href: "/dashboard/invoices",
           icon: Receipt,
           roles: ["admin", "accountant"],
         },
         {
-          name: "Payments",
+          name: t("Payments"),
           href: "/dashboard/payments",
           icon: CreditCard,
           roles: ["admin", "accountant"],
         },
         {
-          name: "Payroll",
+          name: t("Payroll"),
           href: "/dashboard/payroll",
           icon: Briefcase,
+          roles: ["admin", "accountant"],
+        },
+        {
+          name: t("Expenses"),
+          href: "/dashboard/expenses",
+          icon: FileText,
+          roles: ["admin", "accountant"],
+        },
+        {
+          name: t("Performance"),
+          href: "/dashboard/performance",
+          icon: BarChart3,
           roles: ["admin", "accountant"],
         },
       ],
     },
     {
-      title: "Operations",
+      title: t("Operations"),
       items: [
         {
-          name: "Services",
+          name: t("Services"),
           href: "/dashboard/services",
           icon: Activity,
           roles: ["admin", "doctor"],
         },
         {
-          name: "Departments",
+          name: t("Departments"),
           href: "/dashboard/departments",
           icon: Building2,
           roles: ["admin"],
         },
         {
-          name: "Clinics",
+          name: t("Clinics"),
           href: "/dashboard/clinics",
           icon: Building2,
           roles: ["admin"],
         },
         {
-          name: "Inventory",
+          name: t("Permissions"),
+          href: "/dashboard/permissions",
+          icon: Shield,
+          roles: ["admin"],
+          permission: undefined,
+        },
+        {
+          name: t("Inventory"),
           href: "/dashboard/inventory",
           icon: Package,
           roles: ["admin", "nurse"],
         },
         {
-          name: "Staff",
+          name: t("Staff"),
           href: "/dashboard/staff",
           icon: UserCheck,
           roles: ["admin"],
         },
         {
-          name: "Lab Vendors",
+          name: t("Lab Vendors"),
           href: "/dashboard/lab-vendors",
           icon: Building,
           roles: ["admin", "accountant"],
@@ -195,16 +230,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       ],
     },
     {
-      title: "Analytics & Reports",
+      title: t("Analytics & Reports"),
       items: [
         {
-          name: "Calendar",
+          name: t("Calendar"),
           href: "/dashboard/calendar",
           icon: CalendarDays,
           roles: ["admin", "doctor", "receptionist"],
         },
         {
-          name: "Reports",
+          name: t("Reports"),
           href: "/dashboard/reports",
           icon: BarChart3,
           roles: ["admin", "accountant"],
@@ -222,28 +257,40 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       case "doctor":
         return [
           {
-            title: "My Dashboard",
+            title: t("My Dashboard"),
             items: [
-              { name: "Dashboard", href: "/dashboard", icon: Home },
+              { name: t("Dashboard"), href: "/dashboard", icon: Home },
               {
-                name: "AI X-ray Analysis",
+                name: t("Dental AI X-ray Analysis"),
                 href: "/dashboard/xray-analysis",
                 icon: Brain,
                 badge: "AI",
               },
-              { name: "My Patients", href: "/dashboard/patients", icon: Users },
               {
-                name: "Appointments",
+                name: t("AI Test Report Analysis"),
+                href: "/dashboard/ai-test-analysis",
+                icon: TestTube2,
+                badge: "AI",
+              },
+              {
+                name: t("Compare Test Reports using AI"),
+                href: "/dashboard/ai-test-comparison",
+                icon: BarChart3,
+                badge: "AI",
+              },
+              { name: t("My Patients"), href: "/dashboard/patients", icon: Users },
+              {
+                name: t("Appointments"),
                 href: "/dashboard/appointments",
                 icon: Calendar,
               },
               {
-                name: "Prescriptions",
+                name: t("Prescriptions"),
                 href: "/dashboard/prescriptions",
                 icon: Stethoscope,
               },
               {
-                name: "Odontogram",
+                name: t("Odontogram"),
                 href: "/dashboard/odontograms",
                 icon: Zap,
                 badge: "Dental",
@@ -255,22 +302,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       case "receptionist":
         return [
           {
-            title: "Reception",
+            title: t("Reception"),
             items: [
-              { name: "Dashboard", href: "/dashboard", icon: Home },
-              { name: "Leads", href: "/dashboard/leads", icon: UserPlus },
+              { name: t("Dashboard"), href: "/dashboard", icon: Home },
+              { name: t("Leads"), href: "/dashboard/leads", icon: UserPlus },
               {
-                name: "Appointments",
+                name: t("Appointments"),
                 href: "/dashboard/appointments",
                 icon: Calendar,
               },
               {
-                name: "Patient Intake",
+                name: t("Patient Intake"),
                 href: "/dashboard/patients",
                 icon: Users,
               },
               {
-                name: "Basic Billing",
+                name: t("Basic Billing"),
                 href: "/dashboard/billing",
                 icon: DollarSign,
               },
@@ -281,22 +328,34 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       case "nurse":
         return [
           {
-            title: "Nursing",
+            title: t("Nursing"),
             items: [
-              { name: "Dashboard", href: "/dashboard", icon: Home },
+              { name: t("Dashboard"), href: "/dashboard", icon: Home },
               {
-                name: "AI X-ray Analysis",
+                name: t("Dental AI X-ray Analysis"),
                 href: "/dashboard/xray-analysis",
                 icon: Brain,
                 badge: "AI",
               },
               {
-                name: "Assigned Patients",
+                name: t("AI Test Report Analysis"),
+                href: "/dashboard/ai-test-analysis",
+                icon: TestTube2,
+                badge: "AI",
+              },
+              {
+                name: t("Compare Test Reports using AI"),
+                href: "/dashboard/ai-test-comparison",
+                icon: BarChart3,
+                badge: "AI",
+              },
+              {
+                name: t("Assigned Patients"),
                 href: "/dashboard/patients",
                 icon: Users,
               },
               {
-                name: "Inventory",
+                name: t("Inventory"),
                 href: "/dashboard/inventory",
                 icon: Package,
               },
@@ -307,18 +366,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
       case "accountant":
         return [
           {
-            title: "Finance",
+            title: t("Finance"),
             items: [
-              { name: "Dashboard", href: "/dashboard", icon: Home },
-              { name: "Invoices", href: "/dashboard/invoices", icon: Receipt },
+              { name: t("Dashboard"), href: "/dashboard", icon: Home },
+              { name: t("Invoices"), href: "/dashboard/invoices", icon: Receipt },
               {
-                name: "Payments",
+                name: t("Payments"),
                 href: "/dashboard/payments",
                 icon: CreditCard,
               },
-              { name: "Payroll", href: "/dashboard/payroll", icon: Briefcase },
+              { name: t("Payroll"), href: "/dashboard/payroll", icon: Briefcase },
+              { name: t("Expenses"), href: "/dashboard/expenses", icon: FileText },
+              { name: t("Performance"), href: "/dashboard/performance", icon: BarChart3 },
               {
-                name: "Revenue Reports",
+                name: t("Revenue Reports"),
                 href: "/dashboard/reports",
                 icon: BarChart3,
               },
@@ -351,14 +412,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     <>
       <div
         className={cn(
-          "fixed inset-y-0 left-0 z-50 w-64 max-w-[16rem] bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out lg:translate-x-0 overflow-x-hidden dashboard-sidebar",
+          "fixed inset-y-0 left-0 z-50 w-64 max-w-[16rem] bg-sidebar border-r border-sidebar-border transform transition-transform duration-200 ease-in-out lg:translate-x-0 overflow-x-hidden dashboard-sidebar",
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-sidebar-border">
           <Link to="/dashboard" className="flex items-center space-x-2">
-            <Heart className="h-8 w-8 text-blue-600" />
-            <span className="text-xl font-bold text-gray-900">ClinicPro</span>
+            <Heart className="h-8 w-8 text-sidebar-primary" />
+            <span className="text-xl font-bold text-sidebar-foreground">ClinicPro</span>
           </Link>
           <Button
             variant="ghost"
@@ -374,15 +435,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           <div className="space-y-6 pb-8">
             {/* User info */}
             <div className="px-3">
-              <div className="flex items-center space-x-3 p-3 bg-blue-50 rounded-lg">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                  <span className="text-sm font-semibold text-white">
+              <div className="flex items-center space-x-3 p-3 bg-sidebar-accent rounded-lg">
+                <div className="w-8 h-8 bg-sidebar-primary rounded-full flex items-center justify-center">
+                  <span className="text-sm font-semibold text-sidebar-primary-foreground">
                     {user?.firstName?.charAt(0)}
                     {user?.lastName?.charAt(0)}
                   </span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900 truncate">
+                  <div className="text-sm font-medium text-sidebar-foreground truncate">
                     {user?.firstName} {user?.lastName}
                   </div>
                   <div className="flex items-center space-x-2">
@@ -397,10 +458,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             {/* Role indicator for admins */}
             {user?.role === "admin" && (
               <div className="px-3">
-                <div className="flex items-center space-x-2 p-2 bg-purple-50 rounded-lg">
-                  <Shield className="h-4 w-4 text-purple-600" />
-                  <span className="text-sm text-purple-700 font-medium">
-                    Full Access
+                <div className="flex items-center space-x-2 p-2 bg-sidebar-accent rounded-lg">
+                  <Shield className="h-4 w-4 text-sidebar-primary" />
+                  <span className="text-sm text-sidebar-foreground font-medium">
+                    {t("Full Access")}
                   </span>
                 </div>
               </div>
@@ -410,7 +471,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
             {sectionsToShow.map((section, sectionIndex) => (
               <div key={section.title}>
                 <div className="px-3 mb-2">
-                  <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     {section.title}
                   </h3>
                 </div>
@@ -433,8 +494,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                               "flex items-center w-full px-3 py-2 text-sm font-medium rounded-lg transition-colors",
                               isActive ||
                                 location.pathname.includes("/test-modules/")
-                                ? "bg-blue-100 text-blue-700"
-                                : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
+                                ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                             )}
                           >
                             <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />
@@ -455,8 +516,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                 className={cn(
                                   "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
                                   location.pathname === "/dashboard/tests"
-                                    ? "bg-blue-100 text-blue-700"
-                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                                 )}
                               >
                                 <TestTube2 className="h-5 w-5 mr-3 flex-shrink-0" />
@@ -470,12 +531,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                   "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
                                   location.pathname ===
                                     "/dashboard/test-reports"
-                                    ? "bg-blue-100 text-blue-700"
-                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                                 )}
                               >
                                 <FileText className="h-5 w-5 mr-3 flex-shrink-0" />
-                                Test Reports
+                                {t("Test Reports")}
                               </Link>
 
                               <Link
@@ -485,8 +546,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                   "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
                                   location.pathname ===
                                     "/dashboard/test-modules/methodology"
-                                    ? "bg-blue-100 text-blue-700"
-                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                                 )}
                               >
                                 <Settings className="h-5 w-5 mr-3 flex-shrink-0" />
@@ -500,8 +561,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                   "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
                                   location.pathname ===
                                     "/dashboard/test-modules/turnaround-time"
-                                    ? "bg-blue-100 text-blue-700"
-                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                                 )}
                               >
                                 <Clock className="h-5 w-5 mr-3 flex-shrink-0" />
@@ -515,12 +576,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                   "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
                                   location.pathname ===
                                     "/dashboard/test-modules/sample-type"
-                                    ? "bg-blue-100 text-blue-700"
-                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                                 )}
                               >
                                 <Droplets className="h-5 w-5 mr-3 flex-shrink-0" />
-                                Sample Type
+                                {t("Sample Type")}
                               </Link>
 
                               <Link
@@ -530,12 +591,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                                   "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
                                   location.pathname ===
                                     "/dashboard/test-modules/category"
-                                    ? "bg-blue-100 text-blue-700"
-                                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                                 )}
                               >
                                 <Folder className="h-5 w-5 mr-3 flex-shrink-0" />
-                                Category
+                                {t("Category")}
                               </Link>
                             </div>
                           )}
@@ -552,8 +613,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                         className={cn(
                           "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
                           isActive
-                            ? "bg-blue-100 text-blue-700 border-r-2 border-blue-600"
-                            : "text-gray-700 hover:bg-gray-100 hover:text-gray-900",
+                            ? "bg-sidebar-accent text-sidebar-accent-foreground border-r-2 border-sidebar-primary"
+                            : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
                         )}
                       >
                         <item.icon className="h-5 w-5 mr-3 flex-shrink-0" />

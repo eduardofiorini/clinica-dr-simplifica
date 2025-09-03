@@ -1,6 +1,7 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth, UserRole } from "@/contexts/AuthContext";
+import { useClinic } from "@/contexts/ClinicContext";
 import {
   Card,
   CardContent,
@@ -24,7 +25,8 @@ const RequireRole: React.FC<RequireRoleProps> = ({
   permission,
   fallback,
 }) => {
-  const { isAuthenticated, user, hasRole, hasPermission, loading } = useAuth();
+  const { isAuthenticated, user, loading } = useAuth();
+  const { hasRole, hasPermission, getClinicRole } = useClinic();
   const location = useLocation();
 
   if (loading) {
@@ -42,7 +44,7 @@ const RequireRole: React.FC<RequireRoleProps> = ({
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check role-based access
+  // Check role-based access (clinic-scoped)
   if (roles && !hasRole(roles)) {
     if (fallback) {
       return <>{fallback}</>;
@@ -69,7 +71,7 @@ const RequireRole: React.FC<RequireRoleProps> = ({
                 Current Role
               </div>
               <div className="font-semibold text-gray-900 capitalize">
-                {user?.role}
+                {getClinicRole() || user?.role}
               </div>
             </div>
             <div className="text-sm text-gray-600">
@@ -92,7 +94,7 @@ const RequireRole: React.FC<RequireRoleProps> = ({
     );
   }
 
-  // Check permission-based access
+  // Check permission-based access (clinic-scoped)
   if (permission && !hasPermission(permission)) {
     if (fallback) {
       return <>{fallback}</>;
@@ -118,6 +120,9 @@ const RequireRole: React.FC<RequireRoleProps> = ({
                 Required Permission:
               </div>
               <div className="font-semibold text-gray-900">{permission}</div>
+            </div>
+            <div className="text-xs text-gray-500">
+              If you believe this is an error, contact your clinic administrator.
             </div>
             <Button
               variant="outline"

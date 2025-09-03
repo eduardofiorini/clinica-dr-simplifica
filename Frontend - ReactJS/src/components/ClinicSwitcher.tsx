@@ -73,12 +73,12 @@ const ClinicSwitcher: React.FC = () => {
 
   const getRoleBadgeColor = (role: string): string => {
     const colors: { [key: string]: string } = {
-      admin: 'bg-red-100 text-red-800 border-red-200',
-      doctor: 'bg-blue-100 text-blue-800 border-blue-200',
-      nurse: 'bg-green-100 text-green-800 border-green-200',
-      receptionist: 'bg-purple-100 text-purple-800 border-purple-200',
-      accountant: 'bg-orange-100 text-orange-800 border-orange-200',
-      staff: 'bg-gray-100 text-gray-800 border-gray-200'
+      admin: 'bg-red-100 dark:bg-red-900/20 text-red-800 dark:text-red-300 border-red-200 dark:border-red-800',
+      doctor: 'bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+      nurse: 'bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-300 border-green-200 dark:border-green-800',
+      receptionist: 'bg-purple-100 dark:bg-purple-900/20 text-purple-800 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+      accountant: 'bg-orange-100 dark:bg-orange-900/20 text-orange-800 dark:text-orange-300 border-orange-200 dark:border-orange-800',
+      staff: 'bg-muted text-muted-foreground border-border'
     };
     return colors[role] || colors.staff;
   };
@@ -86,9 +86,9 @@ const ClinicSwitcher: React.FC = () => {
   // Always show loading state
   if (loading) {
     return (
-      <div className="flex items-center space-x-2 h-10 px-3 bg-gray-50 border border-gray-200 rounded-md">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        <span className="text-sm text-gray-500">Loading clinics...</span>
+      <div className="flex items-center space-x-2 h-10 px-3 bg-muted border border-border rounded-md">
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        <span className="text-sm text-muted-foreground">Loading clinics...</span>
       </div>
     );
   }
@@ -96,9 +96,9 @@ const ClinicSwitcher: React.FC = () => {
   // Show message if no clinics are available
   if (!userClinics || userClinics.length === 0) {
     return (
-      <div className="flex items-center space-x-2 h-10 px-3 bg-yellow-50 border border-yellow-200 rounded-md">
-        <Building2 className="h-4 w-4 text-yellow-600" />
-        <span className="text-sm text-yellow-700">No clinics available</span>
+      <div className="flex items-center space-x-2 h-10 px-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
+        <Building2 className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
+        <span className="text-sm text-yellow-700 dark:text-yellow-300">No clinics available</span>
       </div>
     );
   }
@@ -106,9 +106,9 @@ const ClinicSwitcher: React.FC = () => {
   // Show message if no clinic is selected but clinics are available
   if (!currentClinic) {
     return (
-      <div className="flex items-center space-x-2 h-10 px-3 bg-blue-50 border border-blue-200 rounded-md">
-        <Building2 className="h-4 w-4 text-blue-600" />
-        <span className="text-sm text-blue-700">Select a clinic</span>
+      <div className="flex items-center space-x-2 h-10 px-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md">
+        <Building2 className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+        <span className="text-sm text-blue-700 dark:text-blue-300">Select a clinic</span>
       </div>
     );
   }
@@ -119,23 +119,23 @@ const ClinicSwitcher: React.FC = () => {
       <DropdownMenuTrigger asChild>
         <Button
           variant="outline"
-          className="flex items-center space-x-2 h-10 px-3 bg-white border-gray-200 shadow-sm w-full justify-start hover:bg-gray-50"
+          className="flex items-center space-x-2 h-10 px-3 bg-background border-border shadow-sm w-full justify-start hover:bg-muted/50"
           disabled={loading}
         >
           <Avatar className="h-6 w-6">
-            <AvatarFallback className="bg-blue-100 text-blue-600 text-xs font-semibold">
+            <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
               {getClinicInitials(currentClinic.name)}
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col items-start min-w-0">
-            <span className="text-sm font-medium truncate max-w-32">
+            <span className="text-sm font-medium text-foreground truncate max-w-32">
               {currentClinic.name}
             </span>
-            <span className="text-xs text-gray-500 truncate">
+            <span className="text-xs text-muted-foreground truncate">
               {currentClinic.code}
             </span>
           </div>
-          <ChevronDown className="h-4 w-4 text-gray-400" />
+          <ChevronDown className="h-4 w-4 text-muted-foreground" />
         </Button>
       </DropdownMenuTrigger>
 
@@ -164,32 +164,32 @@ const ClinicSwitcher: React.FC = () => {
             >
               <div className="flex items-center space-x-3 w-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarFallback className="bg-blue-100 text-blue-600 text-xs font-semibold">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-semibold">
                     {getClinicInitials(clinic.name)}
                   </AvatarFallback>
                 </Avatar>
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium truncate">
+                    <p className="text-sm font-medium text-foreground truncate">
                       {clinic.name}
                     </p>
                     {isCurrentClinic && (
-                      <Check className="h-4 w-4 text-green-600" />
+                      <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
                     )}
                     {isSwitching && (
-                      <Loader2 className="h-4 w-4 animate-spin text-blue-600" />
+                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
                     )}
                   </div>
                   
                   <div className="flex items-center justify-between mt-1">
-                    <p className="text-xs text-gray-500 font-mono">
+                    <p className="text-xs text-muted-foreground font-mono">
                       {clinic.code}
                     </p>
                   </div>
                   
                   {clinic.address && (
-                    <p className="text-xs text-gray-400 truncate mt-1">
+                    <p className="text-xs text-muted-foreground/80 truncate mt-1">
                       {clinic.address.city}, {clinic.address.state}
                     </p>
                   )}
@@ -200,7 +200,7 @@ const ClinicSwitcher: React.FC = () => {
         })}
 
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="text-xs text-gray-500 cursor-default">
+        <DropdownMenuItem className="text-xs text-muted-foreground cursor-default">
           <Building2 className="h-3 w-3 mr-1" />
           {userClinics.length} clinic{userClinics.length !== 1 ? 's' : ''} available
         </DropdownMenuItem>

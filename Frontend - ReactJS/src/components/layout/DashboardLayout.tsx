@@ -27,7 +27,7 @@ const DashboardLayout = () => {
   const openSidebar = () => setSidebarOpen(true);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex overflow-hidden dashboard-layout">
+    <div className="min-h-screen bg-background flex overflow-hidden dashboard-layout">
       {/* Desktop Sidebar */}
       <div className="hidden lg:block lg:fixed lg:inset-y-0 lg:w-64 lg:z-50 dashboard-sidebar">
         <Sidebar isOpen={true} onClose={() => {}} />
@@ -61,7 +61,7 @@ const DashboardLayout = () => {
       {/* Main content area */}
       <div className="flex-1 flex flex-col lg:ml-64 lg:w-[calc(100%-16rem)] min-w-0 dashboard-main">
         {/* Top Bar */}
-        <div className="sticky top-0 z-40 bg-white border-b border-gray-200 shadow-sm">
+        <div className="sticky top-0 z-40 bg-background border-b border-border shadow-sm">
           <TopBar onMenuClick={openSidebar} />
         </div>
 

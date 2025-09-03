@@ -37,6 +37,7 @@ export interface IUser extends Document {
   department?: string;
   avatar?: string;
   schedule?: WorkSchedule;
+  sales_percentage?: number;
   created_at: Date;
   updated_at: Date;
   comparePassword(candidatePassword: string): Promise<boolean>;
@@ -172,6 +173,12 @@ const UserSchema: Schema = new Schema({
       saturday: { start: "00:00", end: "00:00", isWorking: false },
       sunday: { start: "00:00", end: "00:00", isWorking: false }
     })
+  },
+  sales_percentage: {
+    type: Number,
+    min: [0, 'Sales percentage cannot be negative'],
+    max: [100, 'Sales percentage cannot exceed 100%'],
+    default: 0
   }
 }, {
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }

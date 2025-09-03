@@ -301,10 +301,10 @@ const Departments = () => {
       {/* Header */}
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             Departments
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1">
             Manage clinic departments and their information
           </p>
         </div>
@@ -327,13 +327,13 @@ const Departments = () => {
             <CardContent className="p-6">
               <div className="flex items-center space-x-3">
                 <div className="p-3 bg-blue-100 rounded-lg">
-                  <Building2 className="h-6 w-6 text-blue-600" />
+                  <Building2 className="h-6 w-6 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Total Departments
                   </p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-foreground">
                     {totalDepartments}
                   </p>
                 </div>
@@ -354,10 +354,10 @@ const Departments = () => {
                   <Activity className="h-6 w-6 text-green-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Active Departments
                   </p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-foreground">
                     {activeDepartments}
                   </p>
                 </div>
@@ -378,10 +378,10 @@ const Departments = () => {
                   <Users className="h-6 w-6 text-purple-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Total Staff
                   </p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-foreground">
                     {totalStaff}
                   </p>
                 </div>
@@ -402,10 +402,10 @@ const Departments = () => {
                   <DollarSign className="h-6 w-6 text-orange-600" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Total Budget
                   </p>
-                  <p className="text-2xl font-bold text-gray-900">
+                  <p className="text-2xl font-bold text-foreground">
                     <CurrencyDisplay amount={totalBudget} variant="large" />
                   </p>
                 </div>
@@ -421,7 +421,7 @@ const Departments = () => {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:flex-wrap">
             {/* Search Bar */}
             <div className="relative flex-1 min-w-0 sm:min-w-[250px]">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search departments..."
                 value={searchTerm}
@@ -479,10 +479,10 @@ const Departments = () => {
                       <TableCell>
                         <div className="space-y-1">
                           <div className="font-medium flex items-center">
-                            <Building2 className="h-4 w-4 mr-2 text-blue-600" />
+                            <Building2 className="h-4 w-4 mr-2 text-primary" />
                             {department.name}
                           </div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-muted-foreground">
                             {department.code} • {department.description}
                           </div>
                         </div>

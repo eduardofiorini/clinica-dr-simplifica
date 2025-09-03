@@ -350,23 +350,23 @@ const Tooth: React.FC<ToothProps> = ({
       )}
       
       {/* Enhanced tooltip on hover */}
-      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-[9999] min-w-max shadow-lg">
+      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-popover text-popover-foreground text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap z-[9999] min-w-max shadow-lg border">
         <div className="font-semibold">{toothName}</div>
-        <div className="text-gray-300 capitalize">
+        <div className="text-muted-foreground capitalize">
           Overall: {condition.replace('_', ' ')}
         </div>
         {toothData?.surfaces && toothData.surfaces.length > 0 && (
-          <div className="text-gray-300 text-xs mt-1">
+          <div className="text-muted-foreground text-xs mt-1">
             Surfaces: {toothData.surfaces.map(s => `${s.surface.charAt(0).toUpperCase()}:${s.condition}`).join(', ')}
           </div>
         )}
         {toothData?.mobility && toothData.mobility > 0 && (
-          <div className="text-red-300 text-xs">
+          <div className="text-destructive text-xs">
             Mobility: Grade {toothData.mobility}
           </div>
         )}
         {editable && (
-          <div className="text-blue-300 text-xs mt-1">
+          <div className="text-primary text-xs mt-1">
             Click surfaces to edit conditions
           </div>
         )}
@@ -420,18 +420,18 @@ const ToothChart: React.FC<ToothChartProps> = ({
   };
 
   return (
-    <div className="bg-white p-3 md:p-6 rounded-lg border w-full max-w-none overflow-hidden">
+    <div className="bg-card p-3 md:p-6 rounded-lg border w-full max-w-none overflow-hidden">
       {/* Header with numbering system info */}
-      <div className="mb-4 md:mb-6 pb-3 md:pb-4 border-b">
+      <div className="mb-4 md:mb-6 pb-3 md:pb-4 border-b border-border">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h3 className="text-base md:text-lg font-semibold text-gray-800">Dental Chart</h3>
-            <p className="text-xs md:text-sm text-gray-600">
+            <h3 className="text-base md:text-lg font-semibold text-card-foreground">Dental Chart</h3>
+            <p className="text-xs md:text-sm text-muted-foreground">
               {isChild ? "Primary Teeth" : "Permanent Teeth"} • {numberingSystem.toUpperCase()} Numbering
             </p>
           </div>
           {editable && (
-            <div className="text-xs md:text-sm text-blue-600 bg-blue-50 px-2 md:px-3 py-1 rounded-full text-center flex-shrink-0">
+            <div className="text-xs md:text-sm text-primary bg-primary/10 px-2 md:px-3 py-1 rounded-full text-center flex-shrink-0">
               Interactive Mode: Touch teeth or surfaces to edit
             </div>
           )}

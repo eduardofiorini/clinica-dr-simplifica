@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import jwt from 'jsonwebtoken';
-import { UserClinic, Clinic } from '../models';
+import { UserClinic, Clinic, Role } from '../models';
 import { AuthRequest } from '../types/express';
 
 export class UserClinicController {
@@ -203,32 +203,83 @@ export class UserClinicController {
         is_active: true
       }).populate('clinic_id', 'name code description is_active');
 
-      // If no relationship exists, create one automatically
+      // If no relationship exists, create one automatically with new role system
       if (!userClinic) {
+        // Determine role to assign (admin bypass)
+        const desiredRoleName = (req.user?.role === 'admin') ? 'admin' : (req.user?.role || 'staff');
+        const roleDoc = await Role.findOne({ name: desiredRoleName.toLowerCase(), is_system_role: true });
+        
         userClinic = new UserClinic({
           user_id: req.user?._id,
           clinic_id: clinic_id,
-          role: 'staff', // Default role
-          permissions: [
-            'read_patients', 'read_appointments', 'read_medical_records',
-            'read_prescriptions', 'read_invoices', 'read_payments'
-          ], // Basic read permissions
+          roles: roleDoc ? [{
+            role_id: roleDoc._id,
+            assigned_at: new Date(),
+            assigned_by: req.user!._id,
+            is_primary: true
+          }] : [],
+          permission_overrides: [],
           is_active: true
-        });
+        } as any);
+
+        // If for some reason roleDoc is missing, we still need to satisfy validation
+        if (!roleDoc) {
+          const fallbackRole = await Role.findOne({ name: 'staff', is_system_role: true });
+          if (fallbackRole) {
+            (userClinic as any).roles = [{
+              role_id: fallbackRole._id,
+              assigned_at: new Date(),
+              assigned_by: req.user!._id,
+              is_primary: true
+            }];
+          }
+        }
 
         await userClinic.save();
-        
-        // Populate the clinic_id field
         await userClinic.populate('clinic_id', 'name code description is_active');
+      } else {
+        // Relationship exists. Ensure it conforms to new role system and has a primary role
+        try {
+          const hasRoles = Array.isArray((userClinic as any).roles) && (userClinic as any).roles.length > 0;
+          if (!hasRoles) {
+            const desiredRoleName = (req.user?.role === 'admin') ? 'admin' : (req.user?.role || 'staff');
+            const roleDoc = await Role.findOne({ name: desiredRoleName.toLowerCase(), is_system_role: true });
+            if (roleDoc && (userClinic as any).assignRole) {
+              await (userClinic as any).assignRole(roleDoc._id, req.user!._id, true);
+            } else if (roleDoc) {
+              (userClinic as any).roles = [{
+                role_id: roleDoc._id,
+                assigned_at: new Date(),
+                assigned_by: req.user!._id,
+                is_primary: true
+              }];
+              await userClinic.save();
+            } else {
+              const fallbackRole = await Role.findOne({ name: 'staff', is_system_role: true });
+              if (fallbackRole) {
+                (userClinic as any).roles = [{
+                  role_id: fallbackRole._id,
+                  assigned_at: new Date(),
+                  assigned_by: req.user!._id,
+                  is_primary: true
+                }];
+                await userClinic.save();
+              }
+            }
+          }
+        } catch {}
       }
 
+      // Get primary role name for JWT
+      const primaryRole = await userClinic.getPrimaryRole();
+      
       // Generate new JWT token with clinic context
       const tokenPayload = {
         id: req.user?._id,
         email: req.user?.email,
         role: req.user?.role,
         clinic_id: clinic_id,
-        clinic_role: userClinic.role
+        clinic_role: primaryRole?.name || 'staff'
       };
 
       const token = jwt.sign(
@@ -237,14 +288,17 @@ export class UserClinicController {
         { expiresIn: '24h' }
       );
 
+      // Get effective permissions
+      const effectivePermissions = await userClinic.getEffectivePermissions();
+      
       res.json({
         success: true,
         message: 'Clinic selected successfully',
         data: {
           token,
           clinic: userClinic.clinic_id,
-          role: userClinic.role,
-          permissions: userClinic.permissions
+          role: primaryRole?.name || 'staff',
+          permissions: effectivePermissions
         }
       });
     } catch (error) {
@@ -284,12 +338,16 @@ export class UserClinicController {
         return;
       }
 
+      // Get primary role and effective permissions
+      const primaryRole = await userClinic.getPrimaryRole();
+      const effectivePermissions = await userClinic.getEffectivePermissions();
+      
       res.json({
         success: true,
         data: {
           clinic: userClinic.clinic_id,
-          role: userClinic.role,
-          permissions: userClinic.permissions,
+          role: primaryRole?.name || 'staff',
+          permissions: effectivePermissions,
           joined_at: userClinic.joined_at
         }
       });
@@ -378,8 +436,8 @@ export class UserClinicController {
         success: true,
         data: {
           clinic_id: req.clinic_id,
-          role: userClinic.role,
-          permissions: userClinic.permissions,
+          role: (await userClinic.getPrimaryRole())?.name || 'staff',
+          permissions: await userClinic.getEffectivePermissions(),
           joined_at: userClinic.joined_at
         }
       });
@@ -468,11 +526,14 @@ export class UserClinicController {
       );
 
       // You can expand this with more activity metrics
+      const effectivePermissions = await userClinic.getEffectivePermissions();
+      const primaryRole = await userClinic.getPrimaryRole();
+      
       const activity = {
         joined_at: userClinic.joined_at,
         days_since_joining: daysSinceJoining,
-        role: userClinic.role,
-        permissions_count: userClinic.permissions.length,
+        role: primaryRole?.name || 'staff',
+        permissions_count: effectivePermissions.length,
         clinic_id: req.clinic_id
       };
 

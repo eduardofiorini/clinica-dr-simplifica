@@ -451,10 +451,10 @@ const Inventory = () => {
       {/* Header */}
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             Inventory Management
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1">
             Track medical supplies and medication stock
           </p>
         </div>
@@ -483,14 +483,14 @@ const Inventory = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Total Items
                   </p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-3xl font-bold text-foreground">
                     {totalItems}
                   </p>
                 </div>
-                <Package className="h-8 w-8 text-blue-600" />
+                <Package className="h-8 w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
@@ -505,7 +505,7 @@ const Inventory = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Low Stock</p>
+                  <p className="text-sm font-medium text-muted-foreground">Low Stock</p>
                   <p className="text-3xl font-bold text-orange-600">
                     {lowStockItems}
                   </p>
@@ -525,7 +525,7 @@ const Inventory = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Out of Stock
                   </p>
                   <p className="text-3xl font-bold text-red-600">
@@ -547,7 +547,7 @@ const Inventory = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Total Value
                   </p>
                   <p className="text-3xl font-bold text-green-600">
@@ -567,7 +567,7 @@ const Inventory = () => {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:flex-wrap">
             {/* Search Bar */}
             <div className="relative flex-1 min-w-0 sm:min-w-[250px]">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by name, manufacturer, or batch number..."
                 value={searchTerm}
@@ -655,7 +655,7 @@ const Inventory = () => {
                         <TableCell>
                           <div>
                             <div className="font-medium">{medicine.name}</div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-muted-foreground">
                               {medicine.manufacturer} • Batch:{" "}
                               {medicine.batchNumber}
                             </div>
@@ -668,7 +668,7 @@ const Inventory = () => {
                           <div className="space-y-2">
                             <div className="flex items-center justify-between text-sm">
                               <span>{medicine.quantity} units</span>
-                              <span className="text-gray-500">
+                              <span className="text-muted-foreground">
                                 Min: {medicine.lowStockAlert}
                               </span>
                             </div>
@@ -771,7 +771,7 @@ const Inventory = () => {
                 return (
                   <div
                     key={medicine.id}
-                    className="border rounded-lg p-4 space-y-3 bg-white shadow-sm"
+                    className="border rounded-lg p-4 space-y-3 bg-card shadow-sm"
                   >
                     {/* Header with Item and Status */}
                     <div className="flex items-center justify-between">
@@ -779,7 +779,7 @@ const Inventory = () => {
                         <div className="font-semibold text-lg">
                           {medicine.name}
                         </div>
-                        <div className="text-sm text-gray-500 mt-1">
+                        <div className="text-sm text-muted-foreground mt-1">
                           {medicine.manufacturer}
                         </div>
                       </div>
@@ -793,7 +793,7 @@ const Inventory = () => {
                     {/* Stock Level Progress */}
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">Stock Level</span>
+                        <span className="text-muted-foreground">Stock Level</span>
                         <span className="font-medium">
                           {medicine.quantity} units
                         </span>

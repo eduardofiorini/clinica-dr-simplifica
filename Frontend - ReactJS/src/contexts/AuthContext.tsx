@@ -141,7 +141,8 @@ const convertApiUserToContextUser = (apiUser: ApiUser): User => {
     specialization: apiUser.specialization,
     licenseNumber: apiUser.license_number,
     department: apiUser.department,
-    permissions: ROLE_PERMISSIONS[apiUser.role] || [],
+    // Use permissions provided by backend if available; fallback to role map
+    permissions: (apiUser as any).permissions || ROLE_PERMISSIONS[apiUser.role] || [],
     baseCurrency: apiUser.base_currency || 'USD',
     createdAt: new Date(apiUser.created_at),
     updatedAt: new Date(apiUser.updated_at),

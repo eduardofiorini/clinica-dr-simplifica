@@ -5,32 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Heart, ArrowLeft } from "lucide-react";
 import FeaturesShowcase from "@/components/features/FeaturesShowcase";
 import FeatureCards from "@/components/features/FeatureCards";
+import PublicHeader from "@/components/layout/PublicHeader";
 
 const Features = () => {
   return (
-    <div className="w-full bg-white">
-      {/* Navigation */}
-      <nav className="border-b bg-white/95 backdrop-blur-md sticky top-0 z-50">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <Link to="/" className="flex items-center space-x-2">
-              <Heart className="h-8 w-8 text-blue-600" />
-              <span className="font-bold text-xl text-gray-900">ClinicPro</span>
-            </Link>
-            <div className="flex items-center space-x-4">
-              <Link to="/">
-                <Button variant="outline" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Home
-                </Button>
-              </Link>
-              <Link to="/login">
-                <Button size="sm">Try Demo</Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="w-full bg-background">
+      <PublicHeader showBackToHome={true} variant="auth" />
 
       {/* Features Content */}
       <FeaturesShowcase />

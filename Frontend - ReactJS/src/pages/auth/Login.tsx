@@ -29,6 +29,8 @@ import {
 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { clinicCookies, iframeUtils } from "@/utils/cookies";
+import PublicHeader from "@/components/layout/PublicHeader";
+import { useTranslation } from "react-i18next";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -40,6 +42,7 @@ const Login = () => {
   const { login, loading: authLoading } = useAuth();
   const { demoAccounts, loading: demoLoading, error: demoError, refetch: refetchDemoUsers } = useDemoUsers();
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
 
 
@@ -53,7 +56,7 @@ const Login = () => {
     
     // Validate inputs before attempting login
     if (!email.trim() || !password.trim()) {
-      setError("Please enter both email and password.");
+      setError(t("Please enter both email and password."));
       return;
     }
 
@@ -65,13 +68,13 @@ const Login = () => {
       
       if (success) {
         toast({
-          title: "Login successful",
-          description: "Welcome back to ClinicPro!",
+          title: t("Login successful"),
+          description: t("Welcome back to ClinicPro!"),
         });
         navigate("/dashboard");
       } else {
         // When login returns false, it means invalid credentials
-        setError("Invalid email or password. Please check your credentials and try again.");
+        setError(t("Invalid email or password. Please check your credentials and try again."));
       }
     } catch (err: any) {
       console.error("Login error:", err);
@@ -83,7 +86,7 @@ const Login = () => {
       } else if (typeof err === 'string') {
         setError(err);
       } else {
-        setError("An error occurred during login. Please try again.");
+        setError(t("An error occurred during login. Please try again."));
       }
     } finally {
       setIsLoading(false);
@@ -101,12 +104,12 @@ const Login = () => {
       
       if (success) {
         toast({
-          title: "Demo login successful",
-          description: "Welcome to ClinicPro demo!",
+          title: t("Demo login successful"),
+          description: t("Welcome to ClinicPro demo!"),
         });
         navigate("/dashboard");
       } else {
-        setError("Demo login failed. Invalid credentials for demo account.");
+        setError(t("Demo login failed. Invalid credentials for demo account."));
       }
     } catch (err: any) {
       console.error("Demo login error:", err);
@@ -118,7 +121,7 @@ const Login = () => {
       } else if (typeof err === 'string') {
         setError(`Demo login failed: ${err}`);
       } else {
-        setError("Demo login failed. Please try again.");
+        setError(t("Demo login failed. Please try again."));
       }
     } finally {
       setIsLoading(false);
@@ -128,21 +131,23 @@ const Login = () => {
 
 
   return (
-    <div className="w-full bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div className="w-full bg-background min-h-screen">
+      <PublicHeader variant="auth" />
+      <div className="flex items-center justify-center p-4 min-h-[calc(100vh-4rem)]">
       <div className="w-full max-w-7xl mx-auto">
         {/* iframe Access Notice */}
         {iframeUtils.isInIframe() && (
           <Alert className="mb-6 border-blue-200 bg-blue-50">
-            <AlertDescription className="text-blue-800 text-center">
+            <AlertDescription className="text-blue-800 dark:text-blue-300 text-center">
               <div className="flex flex-col sm:flex-row items-center justify-center gap-2">
-                <span>Having trouble accessing the login?</span>
+                <span>{t("Having trouble accessing the login?")}</span>
                 <a 
                   href="https://clinic-management-system-kappa.vercel.app/" 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="font-medium text-blue-600 hover:text-blue-500 underline transition-colors"
+                  className="font-medium text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 underline transition-colors"
                 >
-                  Try the direct link to our original domain →
+                  {t("Try the direct link to our original domain →")}
                 </a>
               </div>
             </AlertDescription>
@@ -154,7 +159,7 @@ const Login = () => {
           <Alert className="mb-6 border-amber-200 bg-amber-50">
             <AlertDescription className="text-amber-800">
               <details className="cursor-pointer">
-                <summary className="font-medium mb-2">🔧 Debug Information (Dev Mode)</summary>
+                <summary className="font-medium mb-2">🔧 {t("Debug Information (Dev Mode)")}</summary>
                 <pre className="text-xs bg-amber-100 p-2 rounded mt-2 overflow-x-auto">
                   {JSON.stringify(clinicCookies.getStorageDiagnostics(), null, 2)}
                 </pre>
@@ -166,8 +171,8 @@ const Login = () => {
         {/* Logo */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center space-x-2">
-            <Heart className="h-8 w-8 text-blue-600" />
-            <span className="text-2xl font-bold text-gray-900">ClinicPro</span>
+            <Heart className="h-8 w-8 text-primary" />
+            <span className="text-2xl font-bold text-foreground">{t("ClinicPro")}</span>
           </Link>
         </div>
 
@@ -183,9 +188,9 @@ const Login = () => {
             {/* Login Form */}
             <Card className="shadow-xl border-0 h-fit">
               <CardHeader className="space-y-1 text-center">
-                <CardTitle className="text-xl lg:text-2xl font-bold">Welcome back</CardTitle>
+                <CardTitle className="text-xl lg:text-2xl font-bold">{t("Welcome back")}</CardTitle>
                 <CardDescription>
-                  Sign in to your ClinicPro account to continue
+                  {t("Sign in to your ClinicPro account to continue")}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -204,11 +209,11 @@ const Login = () => {
                   autoComplete="off"
                 >
                   <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
+                    <Label htmlFor="email">{t("Email")}</Label>
                     <Input
                       id="email"
                       type="email"
-                      placeholder="Enter your email"
+                      placeholder={t("Enter your email")}
                       value={email}
                       onChange={(e) => {
                         setEmail(e.target.value);
@@ -222,12 +227,12 @@ const Login = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
+                    <Label htmlFor="password">{t("Password")}</Label>
                     <div className="relative">
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Enter your password"
+                        placeholder={t("Enter your password")}
                         value={password}
                         onChange={(e) => {
                           setPassword(e.target.value);
@@ -241,7 +246,7 @@ const Login = () => {
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
                         disabled={isLoading}
                       >
                         {showPassword ? (
@@ -256,9 +261,9 @@ const Login = () => {
                   <div className="flex items-center justify-between">
                     <Link
                       to="/forgot-password"
-                      className="text-sm text-blue-600 hover:text-blue-500 transition-colors"
+                      className="text-sm text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors"
                     >
-                      Forgot password?
+                      {t("Forgot password?")}
                     </Link>
                   </div>
 
@@ -270,22 +275,22 @@ const Login = () => {
                     {(isLoading || authLoading) ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Signing in...
+                        {t("Signing in...")}
                       </>
                     ) : (
-                      "Sign In"
+                      t("Sign In")
                     )}
                   </Button>
                 </form>
 
                 <div className="mt-6 text-center">
-                  <p className="text-sm text-gray-600">
-                    Don't have an account?{" "}
+                  <p className="text-sm text-muted-foreground">
+                    {t("Don't have an account?")}{" "}
                     <Link
                       to="/register"
-                      className="text-blue-600 hover:text-blue-500 font-medium transition-colors"
+                      className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 font-medium transition-colors"
                     >
-                      Sign up
+                      {t("Sign up")}
                     </Link>
                   </p>
                 </div>
@@ -293,12 +298,12 @@ const Login = () => {
             </Card>
 
             {/* Role-Based Access Control - Now under Login Form */}
-            <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-0 shadow-lg h-fit">
+            <Card className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-0 shadow-lg h-fit">
               <CardContent className="p-6">
-                <h3 className="font-semibold text-gray-900 mb-3 text-center text-lg lg:text-xl">
+                <h3 className="font-semibold text-foreground mb-3 text-center text-lg lg:text-xl">
                   Role-Based Access Control
                 </h3>
-                <div className="space-y-2 text-sm text-gray-600">
+                <div className="space-y-2 text-sm text-muted-foreground">
                   <div className="flex items-center space-x-2">
                     <Shield className="h-4 w-4 text-purple-600 flex-shrink-0" />
                     <span>
@@ -306,7 +311,7 @@ const Login = () => {
                     </span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Stethoscope className="h-4 w-4 text-blue-600 flex-shrink-0" />
+                    <Stethoscope className="h-4 w-4 text-primary flex-shrink-0" />
                     <span>
                       <strong>Doctor:</strong> Patient care & medical records
                     </span>
@@ -340,10 +345,10 @@ const Login = () => {
               <div className="flex items-center justify-between">
                 <div className="text-center flex-1">
                   <CardTitle className="text-lg lg:text-xl">
-                    Try Demo Accounts
+                    {t("Try Demo Accounts")}
                   </CardTitle>
                   <CardDescription className="text-sm mt-1">
-                    Experience different user roles with our demo accounts. Click "Try" to login instantly.
+                    {t("Experience different user roles with our demo accounts. Click \"Try\" to login instantly.")}
                   </CardDescription>
                 </div>
                 {!demoLoading && (
@@ -362,8 +367,8 @@ const Login = () => {
             <CardContent className="space-y-4">
               {demoLoading ? (
                 <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
-                  <span className="ml-2 text-sm text-gray-500">Loading demo accounts...</span>
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  <span className="ml-2 text-sm text-muted-foreground">{t("Loading demo accounts...")}</span>
                 </div>
               ) : demoError ? (
                 <Alert variant="destructive" className="border-red-200 bg-red-50">
@@ -376,18 +381,18 @@ const Login = () => {
               {demoAccounts.map((account) => (
                 <div
                   key={account.role}
-                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center space-x-3 flex-1 min-w-0">
-                    <div className="p-2 rounded-full bg-gray-100 flex-shrink-0">
-                      <account.icon className="h-4 w-4 text-gray-600" />
+                    <div className="p-2 rounded-full bg-muted flex-shrink-0">
+                      <account.icon className="h-4 w-4 text-muted-foreground" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center space-x-2 mb-1">
-                        <p className="font-semibold text-gray-900 text-sm">
+                        <p className="font-semibold text-foreground text-sm">
                           {account.role}
                           {account.firstName && account.lastName && (
-                            <span className="font-normal text-gray-600 ml-1">
+                            <span className="font-normal text-muted-foreground ml-1">
                               ({account.firstName} {account.lastName})
                             </span>
                           )}
@@ -396,14 +401,14 @@ const Login = () => {
                           {account.role.toLowerCase()}
                         </Badge>
                       </div>
-                      <p className="text-xs text-gray-600 mb-1">
+                      <p className="text-xs text-muted-foreground mb-1">
                         {account.description}
                       </p>
-                      <p className="text-xs text-gray-500 font-mono truncate mb-1">
+                      <p className="text-xs text-muted-foreground font-mono truncate mb-1">
                         {account.email}
                       </p>
-                      <p className="text-xs text-gray-500">
-                        Password: <code className="bg-gray-100 px-1 rounded text-xs">{account.password}</code>
+                      <p className="text-xs text-muted-foreground">
+                        Password: <code className="bg-muted px-1 rounded text-xs">{account.password}</code>
                       </p>
                     </div>
                   </div>
@@ -417,17 +422,17 @@ const Login = () => {
                     {(isLoading || authLoading) ? (
                       <Loader2 className="w-3 h-3 animate-spin" />
                     ) : (
-                      "Try"
+                    t("Try")
                     )}
                   </Button>
                 </div>
               ))}
               
               {!demoLoading && demoAccounts.length === 0 && !demoError && (
-                <div className="text-center py-4 text-gray-500">
-                  <p className="text-sm">No users found in database</p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Please run the database seeder to create demo users
+                <div className="text-center py-4 text-muted-foreground">
+                  <p className="text-sm">{t("No users found in database")}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {t("Please run the database seeder to create demo users")}
                   </p>
                   <Button
                     variant="outline"
@@ -436,7 +441,7 @@ const Login = () => {
                     className="mt-2"
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
-                    Refresh
+                    {t("Refresh")}
                   </Button>
                 </div>
               )}
@@ -445,11 +450,12 @@ const Login = () => {
         </motion.div>
 
         {/* Back to Homepage Link */}
-        <div className="text-center text-xs text-gray-500">
-          <Link to="/" className="hover:text-gray-700 transition-colors">
-            ← Back to homepage
+        <div className="text-center text-xs text-muted-foreground">
+          <Link to="/" className="hover:text-foreground transition-colors">
+            {t("← Back to homepage")}
           </Link>
         </div>
+      </div>
       </div>
     </div>
   );

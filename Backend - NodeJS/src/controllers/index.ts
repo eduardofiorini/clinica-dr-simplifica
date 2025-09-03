@@ -21,4 +21,6 @@ export { LabVendorController } from './labVendorController';
 export { DashboardController } from './dashboardController';
 export { ReceptionistController } from './receptionistController';
 export { default as SettingsController } from './settingsController';
-export { OdontogramController } from './odontogramController'; 
+export { OdontogramController } from './odontogramController';
+export { ExpenseController } from './expenseController';
+export { PerformanceController } from './performanceController'; 

@@ -27,12 +27,21 @@ import settingsRoutes from './settingsRoutes';
 import trainingRoutes from './trainingRoutes';
 import receptionistRoutes from './receptionistRoutes';
 import xrayAnalysisRoutes from './xrayAnalysisRoutes';
+import aiTestAnalysisRoutes from './aiTestAnalysisRoutes';
+import aiTestComparisonRoutes from './aiTestComparisonRoutes';
 import odontogramRoutes from './odontogramRoutes';
+import expenseRoutes from './expenseRoutes';
+import performanceRoutes from './performanceRoutes';
+import permissionRoutes from './permissionRoutes';
+import roleRoutes from './roleRoutes';
 import { getConnectionState, isConnectionHealthy } from '../config/database';
+import autoPermissionGuard from '../middleware/autoPermission';
 
 const router = Router();
 
 // Mount routes
+// Global automatic permission guard for API routes (after auth where applicable)
+router.use(autoPermissionGuard as any);
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/clinics', clinicRoutes);
@@ -61,7 +70,13 @@ router.use('/settings', settingsRoutes);
 router.use('/training', trainingRoutes);
 router.use('/receptionist', receptionistRoutes);
 router.use('/xray-analysis', xrayAnalysisRoutes);
+router.use('/ai-test-analysis', aiTestAnalysisRoutes);
+router.use('/ai-test-comparison', aiTestComparisonRoutes);
 router.use('/odontograms', odontogramRoutes);
+router.use('/expenses', expenseRoutes);
+router.use('/performance', performanceRoutes);
+router.use('/permissions', permissionRoutes);
+router.use('/roles', roleRoutes);
 
 // Basic health check route
 router.get('/health', (req, res) => {

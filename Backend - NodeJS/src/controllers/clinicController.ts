@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { validationResult } from 'express-validator';
-import { Clinic, UserClinic, User } from '../models';
+import { Clinic, UserClinic, User, Role } from '../models';
 import { AuthRequest } from '../types/express';
 import { getClinicScopedFilter } from '../middleware/clinicContext';
 
@@ -476,9 +476,12 @@ export class ClinicController {
           });
           return;
         } else {
-          // Reactivate existing relationship
-          existingRelation.role = role;
-          existingRelation.permissions = permissions || [];
+          // Reactivate existing relationship with new role system
+          // Get the role object by name
+          const roleObj = await Role.findOne({ name: role.toLowerCase() });
+          if (roleObj && req.user) {
+            await existingRelation.assignRole(roleObj._id, req.user._id, true);
+          }
           existingRelation.is_active = true;
           await existingRelation.save();
 

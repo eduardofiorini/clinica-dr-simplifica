@@ -226,7 +226,7 @@ const Billing = () => {
       case "completed":
         return <CheckCircle className="h-4 w-4 text-green-600" />;
       case "pending":
-        return <Clock className="h-4 w-4 text-blue-600" />;
+        return <Clock className="h-4 w-4 text-primary" />;
       case "processing":
         return <Clock className="h-4 w-4 text-orange-600" />;
       case "overdue":
@@ -235,9 +235,9 @@ const Billing = () => {
         return <AlertCircle className="h-4 w-4 text-red-600" />;
       case "cancelled":
       case "refunded":
-        return <AlertCircle className="h-4 w-4 text-gray-600" />;
+        return <AlertCircle className="h-4 w-4 text-muted-foreground" />;
       default:
-        return <Clock className="h-4 w-4 text-gray-600" />;
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -247,7 +247,7 @@ const Billing = () => {
       case "completed":
         return "bg-green-100 text-green-800";
       case "pending":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300";
       case "processing":
         return "bg-orange-100 text-orange-800";
       case "overdue":
@@ -255,16 +255,16 @@ const Billing = () => {
         return "bg-red-100 text-red-800";
       case "cancelled":
       case "refunded":
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
     }
   };
 
   const getPaymentMethodIcon = (method: string) => {
     switch (method) {
       case "credit_card":
-        return <CreditCard className="h-4 w-4 text-blue-600" />;
+        return <CreditCard className="h-4 w-4 text-primary" />;
       case "cash":
         return <DollarSign className="h-4 w-4 text-green-600" />;
       case "bank_transfer":
@@ -274,7 +274,7 @@ const Billing = () => {
       case "insurance":
         return <FileText className="h-4 w-4 text-indigo-600" />;
       default:
-        return <DollarSign className="h-4 w-4 text-gray-600" />;
+        return <DollarSign className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -420,10 +420,10 @@ const Billing = () => {
       {/* Header */}
       <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1 min-w-0">
-          <h1 className="text-xl xs:text-2xl sm:text-3xl font-bold text-gray-900">
+          <h1 className="text-xl xs:text-2xl sm:text-3xl font-bold text-foreground">
             Billing & Payments
           </h1>
-          <p className="text-xs xs:text-sm sm:text-base text-gray-600 mt-1">
+          <p className="text-xs xs:text-sm sm:text-base text-muted-foreground mt-1">
             Manage invoices, payments, and financial records
           </p>
         </div>
@@ -438,7 +438,7 @@ const Billing = () => {
           <CardContent className="p-3 xs:p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                   Total Revenue (All Time)
                 </p>
                 <p className="text-xl xs:text-2xl font-bold text-green-600 mt-1">
@@ -457,7 +457,7 @@ const Billing = () => {
           <CardContent className="p-3 xs:p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                   This Month Revenue
                 </p>
                 <p className="text-xl xs:text-2xl font-bold text-green-600 mt-1">
@@ -476,7 +476,7 @@ const Billing = () => {
           <CardContent className="p-3 xs:p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                   Pending Payments
                 </p>
                 <p className="text-xl xs:text-2xl font-bold text-orange-600 mt-1">
@@ -495,7 +495,7 @@ const Billing = () => {
           <CardContent className="p-3 xs:p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                   Total Invoices
                 </p>
                 <p className="text-xl xs:text-2xl font-bold text-gray-900 mt-1">
@@ -511,7 +511,7 @@ const Billing = () => {
           <CardContent className="p-3 xs:p-4 sm:p-6">
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">
+                <p className="text-xs sm:text-sm font-medium text-muted-foreground">
                   Processing Payments
                 </p>
                 <p className="text-xl xs:text-2xl font-bold text-purple-600 mt-1">

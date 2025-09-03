@@ -365,13 +365,13 @@ const LabVendors = () => {
       case "active":
         return <CheckCircle className="h-4 w-4 text-green-600" />;
       case "inactive":
-        return <Clock className="h-4 w-4 text-gray-600" />;
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
       case "pending":
         return <AlertTriangle className="h-4 w-4 text-orange-600" />;
       case "suspended":
         return <AlertTriangle className="h-4 w-4 text-red-600" />;
       default:
-        return <Clock className="h-4 w-4 text-gray-600" />;
+        return <Clock className="h-4 w-4 text-muted-foreground" />;
     }
   };
 
@@ -380,13 +380,13 @@ const LabVendors = () => {
       case "active":
         return "bg-green-100 text-green-800";
       case "inactive":
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
       case "pending":
         return "bg-orange-100 text-orange-800";
       case "suspended":
         return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
     }
   };
 
@@ -395,11 +395,11 @@ const LabVendors = () => {
       case "budget":
         return "bg-green-100 text-green-800";
       case "moderate":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-300";
       case "premium":
         return "bg-purple-100 text-purple-800";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
     }
   };
 
@@ -427,11 +427,11 @@ const LabVendors = () => {
           <Star
             key={star}
             className={`h-3 w-3 ${
-              star <= rating ? "text-yellow-400 fill-current" : "text-gray-300"
+              star <= rating ? "text-yellow-400 fill-current" : "text-muted-foreground"
             }`}
           />
         ))}
-        <span className="text-sm text-gray-600 ml-1">({rating})</span>
+        <span className="text-sm text-muted-foreground ml-1">({rating})</span>
       </div>
     );
   };
@@ -549,7 +549,7 @@ const LabVendors = () => {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2 text-gray-600">Loading clinic context...</span>
+        <span className="ml-2 text-muted-foreground">Loading clinic context...</span>
       </div>
     );
   }
@@ -559,9 +559,9 @@ const LabVendors = () => {
     return (
       <div className="space-y-6">
         <div className="text-center py-12">
-          <Building className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">No Clinic Selected</h2>
-          <p className="text-gray-600 mb-4">
+          <Building className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-foreground mb-2">No Clinic Selected</h2>
+          <p className="text-muted-foreground mb-4">
             Please select a clinic to view and manage lab vendors.
           </p>
           {clinicError && (
@@ -579,12 +579,12 @@ const LabVendors = () => {
       {/* Header */}
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between sm:flex-wrap">
         <div className="flex-1 min-w-0">
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
             Lab Vendors
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-muted-foreground mt-1">
             {currentClinic ? (
-              <>Manage external laboratory partners and vendors for <span className="font-semibold text-blue-600">{currentClinic.name}</span></>
+              <>Manage external laboratory partners and vendors for <span className="font-semibold text-primary">{currentClinic.name}</span></>
             ) : (
               "Manage external laboratory partners and vendors"
             )}
@@ -615,14 +615,14 @@ const LabVendors = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Total Vendors
                   </p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-3xl font-bold text-foreground">
                     {totalVendors}
                   </p>
                 </div>
-                <Building className="h-8 w-8 text-blue-600" />
+                <Building className="h-8 w-8 text-primary" />
               </div>
             </CardContent>
           </Card>
@@ -637,7 +637,7 @@ const LabVendors = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Active Vendors
                   </p>
                   <p className="text-3xl font-bold text-green-600">
@@ -659,7 +659,7 @@ const LabVendors = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">Pending</p>
+                  <p className="text-sm font-medium text-muted-foreground">Pending</p>
                   <p className="text-3xl font-bold text-orange-600">
                     {pendingVendors}
                   </p>
@@ -679,7 +679,7 @@ const LabVendors = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-600">
+                  <p className="text-sm font-medium text-muted-foreground">
                     Total Tests
                   </p>
                   <p className="text-3xl font-bold text-purple-600">
@@ -699,7 +699,7 @@ const LabVendors = () => {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:flex-wrap">
             {/* Search Bar */}
             <div className="relative flex-1 min-w-0 sm:min-w-[250px]">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search by vendor name, code, contact person, or specialty..."
                 value={searchTerm}
@@ -774,7 +774,7 @@ const LabVendors = () => {
               <div className="flex items-center justify-center py-8">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-gray-600">Loading lab vendors...</p>
+                  <p className="text-muted-foreground">Loading lab vendors...</p>
                 </div>
               </div>
             ) : (
@@ -805,7 +805,7 @@ const LabVendors = () => {
                       <TableCell>
                         <div className="space-y-1">
                           <div className="font-medium">{vendor.name}</div>
-                          <div className="text-sm text-gray-500">
+                          <div className="text-sm text-muted-foreground">
                             Code: {vendor.code} • {getTypeLabel(vendor.type)}
                           </div>
                           <div className="flex items-center space-x-2">
@@ -816,14 +816,14 @@ const LabVendors = () => {
                       <TableCell>
                         <div className="space-y-1">
                           <div className="flex items-center space-x-1 text-sm">
-                            <Users className="h-3 w-3 text-gray-400" />
+                            <Users className="h-3 w-3 text-muted-foreground" />
                             <span>{vendor.contactPerson}</span>
                           </div>
-                          <div className="flex items-center space-x-1 text-sm text-gray-600">
+                          <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                             <Mail className="h-3 w-3" />
                             <span>{vendor.email}</span>
                           </div>
-                          <div className="flex items-center space-x-1 text-sm text-gray-600">
+                          <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                             <Phone className="h-3 w-3" />
                             <span>{vendor.phone}</span>
                           </div>
@@ -855,7 +855,7 @@ const LabVendors = () => {
                             </span>{" "}
                             tests
                           </div>
-                          <div className="text-sm text-gray-600">
+                          <div className="text-sm text-muted-foreground">
                             <Clock className="h-3 w-3 inline mr-1" />
                             {vendor.averageTurnaround}
                           </div>
@@ -870,11 +870,11 @@ const LabVendors = () => {
                       <TableCell>
                         <div className="text-sm">
                           <div>{formatDate(vendor.contractStart)}</div>
-                          <div className="text-gray-600">
+                          <div className="text-muted-foreground">
                             to {formatDate(vendor.contractEnd)}
                           </div>
                           {vendor.lastTestDate && (
-                            <div className="text-xs text-gray-500 mt-1">
+                            <div className="text-xs text-muted-foreground mt-1">
                               Last test: {formatDate(vendor.lastTestDate)}
                             </div>
                           )}
@@ -951,13 +951,13 @@ const LabVendors = () => {
               {filteredVendors.map((vendor) => (
                 <div
                   key={vendor.id}
-                  className="border rounded-lg p-4 space-y-3 bg-white shadow-sm"
+                  className="border rounded-lg p-4 space-y-3 bg-card shadow-sm"
                 >
                   {/* Header with Vendor and Status */}
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="font-semibold text-lg">{vendor.name}</div>
-                      <div className="text-sm text-gray-500 mt-1">
+                      <div className="text-sm text-muted-foreground mt-1">
                         {getTypeLabel(vendor.type)}
                       </div>
                     </div>
@@ -972,24 +972,24 @@ const LabVendors = () => {
                   </div>
 
                   {/* Contact Information */}
-                  <div className="space-y-2 p-3 bg-gray-50 rounded-lg">
+                  <div className="space-y-2 p-3 bg-muted/50 rounded-lg">
                     <div className="flex items-center text-sm">
-                      <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                      <span className="text-gray-900">{vendor.email}</span>
+                      <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span className="text-foreground">{vendor.email}</span>
                     </div>
                     <div className="flex items-center text-sm">
-                      <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                      <span className="text-gray-900">{vendor.phone}</span>
+                      <Phone className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span className="text-foreground">{vendor.phone}</span>
                     </div>
                     <div className="flex items-center text-sm">
-                      <MapPin className="h-4 w-4 mr-2 text-gray-400" />
-                      <span className="text-gray-900">{vendor.address}</span>
+                      <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                      <span className="text-foreground">{vendor.address}</span>
                     </div>
                   </div>
 
                   {/* Specialties */}
                   <div className="space-y-2">
-                    <div className="text-xs text-gray-500 uppercase tracking-wide">
+                    <div className="text-xs text-muted-foreground uppercase tracking-wide">
                       Specialties ({vendor.specialties.length})
                     </div>
                     <div className="flex flex-wrap gap-1">
@@ -1015,7 +1015,7 @@ const LabVendors = () => {
                   {/* Performance Metrics */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <div className="text-xs text-gray-500 uppercase tracking-wide">
+                      <div className="text-xs text-muted-foreground uppercase tracking-wide">
                         Rating
                       </div>
                       <div className="flex items-center space-x-1">
@@ -1026,7 +1026,7 @@ const LabVendors = () => {
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <div className="text-xs text-gray-500 uppercase tracking-wide">
+                      <div className="text-xs text-muted-foreground uppercase tracking-wide">
                         Tests Processed
                       </div>
                       <div className="text-sm font-medium">
@@ -1038,7 +1038,7 @@ const LabVendors = () => {
                   {/* Contract Info */}
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <div className="text-xs text-gray-500 uppercase tracking-wide">
+                      <div className="text-xs text-muted-foreground uppercase tracking-wide">
                         Contract Start
                       </div>
                       <div className="text-sm">
@@ -1046,7 +1046,7 @@ const LabVendors = () => {
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <div className="text-xs text-gray-500 uppercase tracking-wide">
+                      <div className="text-xs text-muted-foreground uppercase tracking-wide">
                         Contract End
                       </div>
                       <div className="text-sm">
@@ -1057,7 +1057,7 @@ const LabVendors = () => {
 
                   {/* Actions */}
                   <div className="flex items-center justify-between pt-2 border-t">
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-muted-foreground">
                       Vendor ID: #{vendor.id}
                     </div>
                     <DropdownMenu>

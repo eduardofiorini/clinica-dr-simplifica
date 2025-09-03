@@ -135,6 +135,16 @@ interface ResponsiveTableProps<T> {
   className?: string;
 }
 
+// Add nested components for compatibility
+const ResponsiveTableWithSubComponents = Object.assign(ResponsiveTable, {
+  Header: TableHeader,
+  Body: TableBody,
+  Row: TableRow,
+  Head: TableHead,
+  Cell: TableCell,
+  Caption: TableCaption,
+});
+
 function ResponsiveTable<T extends Record<string, any>>({
   data,
   columns,
@@ -180,14 +190,14 @@ function ResponsiveTable<T extends Record<string, any>>({
         </div>
 
         {/* Mobile loading */}
-        <div className="lg:hidden mobile-card-container">
+        <div className="lg:hidden space-y-3">
           {Array.from({ length: 3 }).map((_, index) => (
-            <Card key={index} className="mobile-card">
-              <div className="mobile-card-header">
+            <Card key={index} className="p-4">
+              <div className="p-4-header">
                 <div className="h-5 bg-muted animate-pulse rounded w-32"></div>
                 <div className="h-8 w-8 bg-muted animate-pulse rounded"></div>
               </div>
-              <div className="mobile-card-content">
+              <div className="mt-2">
                 <div className="h-3 bg-muted animate-pulse rounded w-full mb-2"></div>
                 <div className="h-3 bg-muted animate-pulse rounded w-3/4"></div>
               </div>
@@ -209,7 +219,7 @@ function ResponsiveTable<T extends Record<string, any>>({
   return (
     <div className={cn("w-full", className)}>
       {/* Desktop Table */}
-      <div className="table-desktop">
+      <div className="hidden lg:block">
         <Table>
           <TableHeader>
             <TableRow>
@@ -241,10 +251,10 @@ function ResponsiveTable<T extends Record<string, any>>({
       </div>
 
       {/* Mobile Cards */}
-      <div className="table-mobile mobile-card-container">
+      <div className="lg:hidden space-y-4">
         {data.map((item, index) => (
-          <Card key={index} className="mobile-card">
-            <div className="mobile-card-header">
+          <Card key={index} className="p-4">
+            <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
                 {mobileCard?.title ? mobileCard.title(item) : (
                   <div className="font-medium text-sm xs:text-base">
@@ -263,7 +273,7 @@ function ResponsiveTable<T extends Record<string, any>>({
                 </div>
               )}
             </div>
-            <div className="mobile-card-content">
+            <div className="mt-2">
               {mobileCard?.content ? mobileCard.content(item) : (
                 <div className="grid grid-cols-1 xs:grid-cols-2 gap-2">
                   {columns.slice(1).map((column) => (
@@ -327,6 +337,6 @@ export {
   TableRow,
   TableCell,
   TableCaption,
-  ResponsiveTable,
+  ResponsiveTableWithSubComponents as ResponsiveTable,
   MobileActionDropdown,
 };

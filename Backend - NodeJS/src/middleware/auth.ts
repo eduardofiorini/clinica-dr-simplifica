@@ -43,7 +43,7 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     }
 
     // Add user to request
-    req.user = user;
+    req.user = user as any;
 
     // Add clinic context from JWT if present
     if (decoded.clinic_id) {

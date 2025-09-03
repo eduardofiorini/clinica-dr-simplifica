@@ -21,8 +21,7 @@ const ExpenseSchema: Schema = new Schema({
   clinic_id: {
     type: Schema.Types.ObjectId,
     ref: 'Clinic',
-    required: [true, 'Clinic ID is required'],
-    index: true
+    required: [true, 'Clinic ID is required']
   },
   title: {
     type: String,
