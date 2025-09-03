@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -117,6 +118,7 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
   onClose,
   onSubmit,
 }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<ClinicFormData>({
     name: "",
     code: "",
@@ -195,27 +197,27 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
   const validateForm = () => {
     const newErrors: any = {};
 
-    if (!formData.name.trim()) newErrors.name = "Clinic name is required";
+    if (!formData.name.trim()) newErrors.name = t("Clinic name is required");
     if (!formData.code.trim()) {
-      newErrors.code = "Clinic code is required";
+      newErrors.code = t("Clinic code is required");
     } else {
       // Clinic code validation - must contain only uppercase letters and numbers
       const codeRegex = /^[A-Z0-9]+$/;
       if (!codeRegex.test(formData.code)) {
-        newErrors.code = "Clinic code must contain only uppercase letters and numbers";
+        newErrors.code = t("Clinic code must contain only uppercase letters and numbers");
       }
     }
-    if (!formData.address.street.trim()) newErrors["address.street"] = "Street address is required";
-    if (!formData.address.city.trim()) newErrors["address.city"] = "City is required";
-    if (!formData.address.state.trim()) newErrors["address.state"] = "State is required";
-    if (!formData.address.zipCode.trim()) newErrors["address.zipCode"] = "Zip code is required";
-    if (!formData.contact.phone.trim()) newErrors["contact.phone"] = "Phone number is required";
-    if (!formData.contact.email.trim()) newErrors["contact.email"] = "Email is required";
+    if (!formData.address.street.trim()) newErrors["address.street"] = t("Street address is required");
+    if (!formData.address.city.trim()) newErrors["address.city"] = t("City is required");
+    if (!formData.address.state.trim()) newErrors["address.state"] = t("State is required");
+    if (!formData.address.zipCode.trim()) newErrors["address.zipCode"] = t("Zip code is required");
+    if (!formData.contact.phone.trim()) newErrors["contact.phone"] = t("Phone number is required");
+    if (!formData.contact.email.trim()) newErrors["contact.email"] = t("Email is required");
 
     // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (formData.contact.email && !emailRegex.test(formData.contact.email)) {
-      newErrors["contact.email"] = "Please enter a valid email address";
+      newErrors["contact.email"] = t("Please enter a valid email address");
     }
 
     setErrors(newErrors);
@@ -265,10 +267,10 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
             <Building2 className="h-5 w-5" />
-            <span>Add New Clinic</span>
+            <span>{t("Add New Clinic")}</span>
           </DialogTitle>
           <DialogDescription>
-            Create a new clinic location with its contact information and settings.
+            {t("Create a new clinic location with its contact information and settings.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -276,16 +278,16 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
           {/* Basic Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Basic Information</CardTitle>
+              <CardTitle className="text-lg">{t("Basic Information")}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Clinic Name *</Label>
+                  <Label htmlFor="name">{t("Clinic Name")} *</Label>
                   <Input
                     id="name"
                     name="name"
-                    placeholder="Enter clinic name"
+                    placeholder={t("Enter clinic name")}
                     value={formData.name}
                     onChange={handleInputChange}
                     className={errors.name ? "border-red-500" : ""}
@@ -296,17 +298,17 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="code">Clinic Code *</Label>
+                  <Label htmlFor="code">{t("Clinic Code")} *</Label>
                   <Input
                     id="code"
                     name="code"
-                    placeholder="Enter clinic code (e.g., CLN001)"
+                    placeholder={t("Enter clinic code (e.g., CLN001)")}
                     value={formData.code}
                     onChange={handleInputChange}
                     className={errors.code ? "border-red-500" : ""}
                     style={{ textTransform: 'uppercase' }}
                   />
-                  <p className="text-xs text-gray-500">Only uppercase letters and numbers allowed (automatically converted)</p>
+                  <p className="text-xs text-gray-500">{t("Only uppercase letters and numbers allowed (automatically converted)")}</p>
                   {errors.code && (
                     <p className="text-sm text-red-500">{errors.code}</p>
                   )}
@@ -314,11 +316,11 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t("Description")}</Label>
                 <Textarea
                   id="description"
                   name="description"
-                  placeholder="Enter clinic description (optional)"
+                  placeholder={t("Enter clinic description (optional)")}
                   value={formData.description}
                   onChange={handleInputChange}
                   rows={3}
@@ -333,7 +335,7 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
                     setFormData({ ...formData, is_active: checked })
                   }
                 />
-                <Label htmlFor="is_active">Active</Label>
+                <Label htmlFor="is_active">{t("Active")}</Label>
               </div>
             </CardContent>
           </Card>
@@ -343,16 +345,16 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
             <CardHeader>
               <CardTitle className="text-lg flex items-center space-x-2">
                 <MapPin className="h-4 w-4" />
-                <span>Address Information</span>
+                <span>{t("Address Information")}</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="address.street">Street Address *</Label>
+                <Label htmlFor="address.street">{t("Street Address")} *</Label>
                 <Input
                   id="address.street"
                   name="address.street"
-                  placeholder="Enter street address"
+                  placeholder={t("Enter street address")}
                   value={formData.address.street}
                   onChange={handleInputChange}
                   className={errors["address.street"] ? "border-red-500" : ""}
@@ -364,11 +366,11 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="address.city">City *</Label>
+                  <Label htmlFor="address.city">{t("City")} *</Label>
                   <Input
                     id="address.city"
                     name="address.city"
-                    placeholder="City"
+                    placeholder={t("City")}
                     value={formData.address.city}
                     onChange={handleInputChange}
                     className={errors["address.city"] ? "border-red-500" : ""}
@@ -379,11 +381,11 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="address.state">State *</Label>
+                  <Label htmlFor="address.state">{t("State")} *</Label>
                   <Input
                     id="address.state"
                     name="address.state"
-                    placeholder="State"
+                    placeholder={t("State")}
                     value={formData.address.state}
                     onChange={handleInputChange}
                     className={errors["address.state"] ? "border-red-500" : ""}
@@ -394,11 +396,11 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="address.zipCode">Zip Code *</Label>
+                  <Label htmlFor="address.zipCode">{t("Zip Code")} *</Label>
                   <Input
                     id="address.zipCode"
                     name="address.zipCode"
-                    placeholder="Zip Code"
+                    placeholder={t("Zip Code")}
                     value={formData.address.zipCode}
                     onChange={handleInputChange}
                     className={errors["address.zipCode"] ? "border-red-500" : ""}
@@ -409,11 +411,11 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="address.country">Country</Label>
+                  <Label htmlFor="address.country">{t("Country")}</Label>
                   <Input
                     id="address.country"
                     name="address.country"
-                    placeholder="Country"
+                    placeholder={t("Country")}
                     value={formData.address.country}
                     onChange={handleInputChange}
                   />
@@ -427,17 +429,17 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
             <CardHeader>
               <CardTitle className="text-lg flex items-center space-x-2">
                 <Phone className="h-4 w-4" />
-                <span>Contact Information</span>
+                <span>{t("Contact Information")}</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="contact.phone">Phone Number *</Label>
+                  <Label htmlFor="contact.phone">{t("Phone Number")} *</Label>
                   <Input
                     id="contact.phone"
                     name="contact.phone"
-                    placeholder="Enter phone number"
+                    placeholder={t("Enter phone number")}
                     value={formData.contact.phone}
                     onChange={handleInputChange}
                     className={errors["contact.phone"] ? "border-red-500" : ""}
@@ -448,12 +450,12 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="contact.email">Email Address *</Label>
+                  <Label htmlFor="contact.email">{t("Email Address")} *</Label>
                   <Input
                     id="contact.email"
                     name="contact.email"
                     type="email"
-                    placeholder="Enter email address"
+                    placeholder={t("Enter email address")}
                     value={formData.contact.email}
                     onChange={handleInputChange}
                     className={errors["contact.email"] ? "border-red-500" : ""}
@@ -465,7 +467,7 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="contact.website">Website (Optional)</Label>
+                <Label htmlFor="contact.website">{t("Website (Optional)")}</Label>
                 <Input
                   id="contact.website"
                   name="contact.website"
@@ -482,19 +484,19 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
             <CardHeader>
               <CardTitle className="text-lg flex items-center space-x-2">
                 <Settings className="h-4 w-4" />
-                <span>Clinic Settings</span>
+                <span>{t("Clinic Settings")}</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="settings.timezone">Timezone</Label>
+                  <Label htmlFor="settings.timezone">{t("Timezone")}</Label>
                   <Select
                     value={formData.settings.timezone}
                     onValueChange={(value) => handleSelectChange("settings.timezone", value)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select timezone" />
+                      <SelectValue placeholder={t("Select timezone")} />
                     </SelectTrigger>
                     <SelectContent>
                       {timezones.map((timezone) => (
@@ -507,13 +509,13 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="settings.currency">Currency</Label>
+                  <Label htmlFor="settings.currency">{t("Currency")}</Label>
                   <Select
                     value={formData.settings.currency}
                     onValueChange={(value) => handleSelectChange("settings.currency", value)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select currency" />
+                      <SelectValue placeholder={t("Select currency")} />
                     </SelectTrigger>
                     <SelectContent>
                       {currencies.map((currency) => (
@@ -526,13 +528,13 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="settings.language">Language</Label>
+                  <Label htmlFor="settings.language">{t("Language")}</Label>
                   <Select
                     value={formData.settings.language}
                     onValueChange={(value) => handleSelectChange("settings.language", value)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select language" />
+                      <SelectValue placeholder={t("Select language")} />
                     </SelectTrigger>
                     <SelectContent>
                       {languages.map((language) => (
@@ -547,7 +549,7 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
 
               {/* Working Hours */}
               <div className="space-y-3">
-                <Label className="text-sm font-medium">Working Hours</Label>
+                <Label className="text-sm font-medium">{t("Working Hours")}</Label>
                 <div className="space-y-3">
                   {Object.entries(formData.settings.working_hours).map(([day, schedule]) => (
                     <div key={day} className="flex items-center space-x-4 p-3 border rounded-lg">
@@ -570,7 +572,7 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
                             }
                             className="w-24"
                           />
-                          <span className="text-sm text-gray-500">to</span>
+                          <span className="text-sm text-gray-500">{t("to")}</span>
                           <Input
                             type="time"
                             value={schedule.end}
@@ -582,7 +584,7 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
                         </div>
                       )}
                       {!schedule.isWorking && (
-                        <span className="text-sm text-gray-500">Closed</span>
+                        <span className="text-sm text-gray-500">{t("Closed")}</span>
                       )}
                     </div>
                   ))}
@@ -594,9 +596,9 @@ const AddClinicModal: React.FC<AddClinicModalProps> = ({
           {/* Form Actions */}
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={handleClose}>
-              Cancel
+              {t("Cancel")}
             </Button>
-            <Button type="submit">Add Clinic</Button>
+            <Button type="submit">{t("Add Clinic")}</Button>
           </div>
         </form>
       </DialogContent>

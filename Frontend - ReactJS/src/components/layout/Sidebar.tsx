@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useAuth, UserRole } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
+import { useClinic } from "@/contexts/ClinicContext";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -49,8 +50,9 @@ interface NavigationItem {
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   badge?: string;
-  roles?: UserRole[];
   permission?: string;
+  permissions?: string[]; // Multiple permissions (OR logic)
+  requiresAnyPermission?: boolean; // If true, user needs any of the permissions; if false, user needs all permissions
 }
 
 interface NavigationSection {
@@ -61,10 +63,11 @@ interface NavigationSection {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const location = useLocation();
   const { t } = useTranslation();
-  const { user, hasRole, hasPermission } = useAuth();
+  const { user } = useAuth();
+  const { hasPermission } = useClinic();
   const [isTestModulesOpen, setIsTestModulesOpen] = useState(false);
 
-  // Role-based navigation configuration
+  // Permission-based navigation configuration
   const navigationSections: NavigationSection[] = [
     {
       title: t("Overview"),
@@ -73,28 +76,28 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           name: t("Dashboard"),
           href: "/dashboard",
           icon: Home,
-          roles: ["admin", "doctor", "receptionist", "nurse", "accountant"],
+          // Dashboard should be accessible to all authenticated users
         },
         {
           name: t("Dental AI X-ray Analysis"),
           href: "/dashboard/xray-analysis",
           icon: Brain,
           badge: "AI",
-          roles: ["admin", "doctor", "nurse"],
+          permission: "xray_analysis.view",
         },
         {
           name: t("AI Test Report Analysis"),
           href: "/dashboard/ai-test-analysis",
           icon: TestTube2,
           badge: "AI",
-          roles: ["admin", "doctor", "nurse"],
+          permission: "test_reports.view",
         },
         {
           name: t("Compare Test Reports using AI"),
           href: "/dashboard/ai-test-comparison",
           icon: BarChart3,
           badge: "AI",
-          roles: ["admin", "doctor", "nurse"],
+          permission: "test_reports.view",
         },
       ],
     },
@@ -105,38 +108,40 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           name: t("Patients"),
           href: "/dashboard/patients",
           icon: Users,
-          roles: ["admin", "doctor", "receptionist", "nurse"],
+          permission: "patients.view",
         },
         {
           name: t("Appointments"),
           href: "/dashboard/appointments",
           icon: Calendar,
-          roles: ["admin", "doctor", "receptionist"],
+          permission: "appointments.view",
         },
         {
           name: t("Leads"),
           href: "/dashboard/leads",
           icon: UserPlus,
-          roles: ["admin", "receptionist"],
+          // Leads might not have a direct permission, could be part of patients management
+          permissions: ["patients.create", "leads.view"],
+          requiresAnyPermission: true,
         },
         {
           name: t("Prescriptions"),
           href: "/dashboard/prescriptions",
           icon: Stethoscope,
-          roles: ["admin", "doctor"],
+          permission: "prescriptions.view",
         },
         {
           name: t("Odontogram"),
           href: "/dashboard/odontograms",
           icon: Zap,
           badge: "Dental",
-          roles: ["admin", "doctor"],
+          permission: "odontogram.view",
         },
         {
           name: t("Test Reports"),
           href: "/dashboard/test-reports",
           icon: FileText,
-          roles: ["admin", "doctor", "nurse"],
+          permission: "test_reports.view",
         },
       ],
     },
@@ -147,37 +152,38 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           name: t("Billing"),
           href: "/dashboard/billing",
           icon: DollarSign,
-          roles: ["admin", "accountant", "receptionist"],
+          permissions: ["invoices.view", "payments.view"],
+          requiresAnyPermission: true,
         },
         {
           name: t("Invoices"),
           href: "/dashboard/invoices",
           icon: Receipt,
-          roles: ["admin", "accountant"],
+          permission: "invoices.view",
         },
         {
           name: t("Payments"),
           href: "/dashboard/payments",
           icon: CreditCard,
-          roles: ["admin", "accountant"],
+          permission: "payments.view",
         },
         {
           name: t("Payroll"),
           href: "/dashboard/payroll",
           icon: Briefcase,
-          roles: ["admin", "accountant"],
+          permission: "payroll.view",
         },
         {
           name: t("Expenses"),
           href: "/dashboard/expenses",
           icon: FileText,
-          roles: ["admin", "accountant"],
+          permission: "expenses.view",
         },
         {
           name: t("Performance"),
           href: "/dashboard/performance",
           icon: BarChart3,
-          roles: ["admin", "accountant"],
+          permission: "analytics.reports",
         },
       ],
     },
@@ -188,44 +194,43 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           name: t("Services"),
           href: "/dashboard/services",
           icon: Activity,
-          roles: ["admin", "doctor"],
+          permission: "services.view",
         },
         {
           name: t("Departments"),
           href: "/dashboard/departments",
           icon: Building2,
-          roles: ["admin"],
+          permission: "departments.view",
         },
         {
           name: t("Clinics"),
           href: "/dashboard/clinics",
           icon: Building2,
-          roles: ["admin"],
+          permission: "clinics.view",
         },
         {
           name: t("Permissions"),
           href: "/dashboard/permissions",
           icon: Shield,
-          roles: ["admin"],
-          permission: undefined,
+          permission: "permissions.view",
         },
         {
           name: t("Inventory"),
           href: "/dashboard/inventory",
           icon: Package,
-          roles: ["admin", "nurse"],
+          permission: "inventory.view",
         },
         {
           name: t("Staff"),
           href: "/dashboard/staff",
           icon: UserCheck,
-          roles: ["admin"],
+          permission: "users.view",
         },
         {
           name: t("Lab Vendors"),
           href: "/dashboard/lab-vendors",
           icon: Building,
-          roles: ["admin", "accountant"],
+          permission: "lab_vendors.view",
         },
       ],
     },
@@ -236,164 +241,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
           name: t("Calendar"),
           href: "/dashboard/calendar",
           icon: CalendarDays,
-          roles: ["admin", "doctor", "receptionist"],
+          permission: "appointments.view",
         },
         {
           name: t("Reports"),
           href: "/dashboard/reports",
           icon: BarChart3,
-          roles: ["admin", "accountant"],
+          permissions: ["analytics.reports", "analytics.dashboard"],
+          requiresAnyPermission: true,
         },
       ],
     },
 
   ];
 
-  // Role-specific navigation for different user types
-  const getRoleSpecificSections = (): NavigationSection[] => {
-    if (!user) return [];
-
-    switch (user.role) {
-      case "doctor":
-        return [
-          {
-            title: t("My Dashboard"),
-            items: [
-              { name: t("Dashboard"), href: "/dashboard", icon: Home },
-              {
-                name: t("Dental AI X-ray Analysis"),
-                href: "/dashboard/xray-analysis",
-                icon: Brain,
-                badge: "AI",
-              },
-              {
-                name: t("AI Test Report Analysis"),
-                href: "/dashboard/ai-test-analysis",
-                icon: TestTube2,
-                badge: "AI",
-              },
-              {
-                name: t("Compare Test Reports using AI"),
-                href: "/dashboard/ai-test-comparison",
-                icon: BarChart3,
-                badge: "AI",
-              },
-              { name: t("My Patients"), href: "/dashboard/patients", icon: Users },
-              {
-                name: t("Appointments"),
-                href: "/dashboard/appointments",
-                icon: Calendar,
-              },
-              {
-                name: t("Prescriptions"),
-                href: "/dashboard/prescriptions",
-                icon: Stethoscope,
-              },
-              {
-                name: t("Odontogram"),
-                href: "/dashboard/odontograms",
-                icon: Zap,
-                badge: "Dental",
-              },
-            ],
-          },
-        ];
-
-      case "receptionist":
-        return [
-          {
-            title: t("Reception"),
-            items: [
-              { name: t("Dashboard"), href: "/dashboard", icon: Home },
-              { name: t("Leads"), href: "/dashboard/leads", icon: UserPlus },
-              {
-                name: t("Appointments"),
-                href: "/dashboard/appointments",
-                icon: Calendar,
-              },
-              {
-                name: t("Patient Intake"),
-                href: "/dashboard/patients",
-                icon: Users,
-              },
-              {
-                name: t("Basic Billing"),
-                href: "/dashboard/billing",
-                icon: DollarSign,
-              },
-            ],
-          },
-        ];
-
-      case "nurse":
-        return [
-          {
-            title: t("Nursing"),
-            items: [
-              { name: t("Dashboard"), href: "/dashboard", icon: Home },
-              {
-                name: t("Dental AI X-ray Analysis"),
-                href: "/dashboard/xray-analysis",
-                icon: Brain,
-                badge: "AI",
-              },
-              {
-                name: t("AI Test Report Analysis"),
-                href: "/dashboard/ai-test-analysis",
-                icon: TestTube2,
-                badge: "AI",
-              },
-              {
-                name: t("Compare Test Reports using AI"),
-                href: "/dashboard/ai-test-comparison",
-                icon: BarChart3,
-                badge: "AI",
-              },
-              {
-                name: t("Assigned Patients"),
-                href: "/dashboard/patients",
-                icon: Users,
-              },
-              {
-                name: t("Inventory"),
-                href: "/dashboard/inventory",
-                icon: Package,
-              },
-            ],
-          },
-        ];
-
-      case "accountant":
-        return [
-          {
-            title: t("Finance"),
-            items: [
-              { name: t("Dashboard"), href: "/dashboard", icon: Home },
-              { name: t("Invoices"), href: "/dashboard/invoices", icon: Receipt },
-              {
-                name: t("Payments"),
-                href: "/dashboard/payments",
-                icon: CreditCard,
-              },
-              { name: t("Payroll"), href: "/dashboard/payroll", icon: Briefcase },
-              { name: t("Expenses"), href: "/dashboard/expenses", icon: FileText },
-              { name: t("Performance"), href: "/dashboard/performance", icon: BarChart3 },
-              {
-                name: t("Revenue Reports"),
-                href: "/dashboard/reports",
-                icon: BarChart3,
-              },
-            ],
-          },
-        ];
-
-      default:
-        return navigationSections;
-    }
-  };
-
-  const sectionsToShow =
-    user?.role === "admin" ? navigationSections : getRoleSpecificSections();
+  // Always use the main navigation sections - permissions will filter what's shown
+  const sectionsToShow = navigationSections;
 
   const isActiveLink = (href: string) => {
     if (href === "/dashboard") {
@@ -403,8 +266,31 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   };
 
   const canAccessItem = (item: NavigationItem) => {
-    if (item.roles && !hasRole(item.roles)) return false;
-    if (item.permission && !hasPermission(item.permission)) return false;
+    // Admin users have access to everything - bypass all permission checks
+    if (user?.role === 'admin') {
+      return true;
+    }
+
+    // Dashboard should be accessible to all authenticated users
+    if (item.href === "/dashboard") return true;
+
+    // Check single permission
+    if (item.permission) {
+      return hasPermission(item.permission);
+    }
+
+    // Check multiple permissions
+    if (item.permissions && item.permissions.length > 0) {
+      if (item.requiresAnyPermission) {
+        // User needs ANY of the permissions (OR logic)
+        return item.permissions.some(permission => hasPermission(permission));
+      } else {
+        // User needs ALL of the permissions (AND logic)
+        return item.permissions.every(permission => hasPermission(permission));
+      }
+    }
+
+    // If no permissions are defined, allow access (fallback for legacy items)
     return true;
   };
 
@@ -510,94 +396,106 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                           {/* Test Reports submenu */}
                           {isTestModulesOpen && (
                             <div className="ml-6 mt-1 space-y-1">
-                              <Link
-                                to="/dashboard/tests"
-                                onClick={onClose}
-                                className={cn(
-                                  "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
-                                  location.pathname === "/dashboard/tests"
-                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                                )}
-                              >
-                                <TestTube2 className="h-5 w-5 mr-3 flex-shrink-0" />
-                                Tests
-                              </Link>
+                              {(user?.role === 'admin' || hasPermission("tests.view")) && (
+                                <Link
+                                  to="/dashboard/tests"
+                                  onClick={onClose}
+                                  className={cn(
+                                    "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                                    location.pathname === "/dashboard/tests"
+                                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                                  )}
+                                >
+                                  <TestTube2 className="h-5 w-5 mr-3 flex-shrink-0" />
+                                  Tests
+                                </Link>
+                              )}
 
-                              <Link
-                                to="/dashboard/test-reports"
-                                onClick={onClose}
-                                className={cn(
-                                  "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
-                                  location.pathname ===
-                                    "/dashboard/test-reports"
-                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                                )}
-                              >
-                                <FileText className="h-5 w-5 mr-3 flex-shrink-0" />
-                                {t("Test Reports")}
-                              </Link>
+                              {(user?.role === 'admin' || hasPermission("test_reports.view")) && (
+                                <Link
+                                  to="/dashboard/test-reports"
+                                  onClick={onClose}
+                                  className={cn(
+                                    "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                                    location.pathname ===
+                                      "/dashboard/test-reports"
+                                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                                  )}
+                                >
+                                  <FileText className="h-5 w-5 mr-3 flex-shrink-0" />
+                                  {t("Test Reports")}
+                                </Link>
+                              )}
 
-                              <Link
-                                to="/dashboard/test-modules/methodology"
-                                onClick={onClose}
-                                className={cn(
-                                  "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
-                                  location.pathname ===
-                                    "/dashboard/test-modules/methodology"
-                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                                )}
-                              >
-                                <Settings className="h-5 w-5 mr-3 flex-shrink-0" />
-                                Methodology
-                              </Link>
+                              {(user?.role === 'admin' || hasPermission("tests.view")) && (
+                                <Link
+                                  to="/dashboard/test-modules/methodology"
+                                  onClick={onClose}
+                                  className={cn(
+                                    "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                                    location.pathname ===
+                                      "/dashboard/test-modules/methodology"
+                                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                                  )}
+                                >
+                                  <Settings className="h-5 w-5 mr-3 flex-shrink-0" />
+                                  Methodology
+                                </Link>
+                              )}
 
-                              <Link
-                                to="/dashboard/test-modules/turnaround-time"
-                                onClick={onClose}
-                                className={cn(
-                                  "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
-                                  location.pathname ===
-                                    "/dashboard/test-modules/turnaround-time"
-                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                                )}
-                              >
-                                <Clock className="h-5 w-5 mr-3 flex-shrink-0" />
-                                Turnaround Time
-                              </Link>
+                              {(user?.role === 'admin' || hasPermission("tests.view")) && (
+                                <Link
+                                  to="/dashboard/test-modules/turnaround-time"
+                                  onClick={onClose}
+                                  className={cn(
+                                    "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                                    location.pathname ===
+                                      "/dashboard/test-modules/turnaround-time"
+                                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                                  )}
+                                >
+                                  <Clock className="h-5 w-5 mr-3 flex-shrink-0" />
+                                  Turnaround Time
+                                </Link>
+                              )}
 
-                              <Link
-                                to="/dashboard/test-modules/sample-type"
-                                onClick={onClose}
-                                className={cn(
-                                  "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
-                                  location.pathname ===
-                                    "/dashboard/test-modules/sample-type"
-                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                                )}
-                              >
-                                <Droplets className="h-5 w-5 mr-3 flex-shrink-0" />
-                                {t("Sample Type")}
-                              </Link>
+                              {(user?.role === 'admin' || hasPermission("tests.view")) && (
+                                <Link
+                                  to="/dashboard/test-modules/sample-type"
+                                  onClick={onClose}
+                                  className={cn(
+                                    "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                                    location.pathname ===
+                                      "/dashboard/test-modules/sample-type"
+                                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                                  )}
+                                >
+                                  <Droplets className="h-5 w-5 mr-3 flex-shrink-0" />
+                                  {t("Sample Type")}
+                                </Link>
+                              )}
 
-                              <Link
-                                to="/dashboard/test-modules/category"
-                                onClick={onClose}
-                                className={cn(
-                                  "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
-                                  location.pathname ===
-                                    "/dashboard/test-modules/category"
-                                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                                )}
-                              >
-                                <Folder className="h-5 w-5 mr-3 flex-shrink-0" />
-                                {t("Category")}
-                              </Link>
+                              {(user?.role === 'admin' || hasPermission("tests.view")) && (
+                                <Link
+                                  to="/dashboard/test-modules/category"
+                                  onClick={onClose}
+                                  className={cn(
+                                    "flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
+                                    location.pathname ===
+                                      "/dashboard/test-modules/category"
+                                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
+                                  )}
+                                >
+                                  <Folder className="h-5 w-5 mr-3 flex-shrink-0" />
+                                  {t("Category")}
+                                </Link>
+                              )}
                             </div>
                           )}
                         </div>

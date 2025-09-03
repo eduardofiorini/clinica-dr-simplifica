@@ -76,6 +76,20 @@ export const SUPPORTED_CURRENCIES: Record<string, CurrencyInfo> = {
     symbol: '﷼',
     position: 'before',
     decimals: 2
+  },
+  NGN: {
+    code: 'NGN',
+    name: 'Nigerian Naira',
+    symbol: '₦',
+    position: 'before',
+    decimals: 2
+  },
+  VND: {
+    code: 'VND',
+    name: 'Vietnamese Dong',
+    symbol: '₫',
+    position: 'after',
+    decimals: 0
   }
 };
 

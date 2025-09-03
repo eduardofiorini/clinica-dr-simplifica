@@ -84,7 +84,7 @@ const createClinicValidation = [
   
   body('settings.currency')
     .optional()
-    .isIn(['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CNY', 'INR', 'AED', 'SAR'])
+    .isIn(['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CNY', 'INR', 'AED', 'SAR', 'NGN', 'VND'])
     .withMessage('Invalid currency'),
   
   body('settings.language')
@@ -162,7 +162,7 @@ const updateClinicValidation = [
   
   body('settings.currency')
     .optional()
-    .isIn(['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CNY', 'INR', 'AED', 'SAR'])
+    .isIn(['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CNY', 'INR', 'AED', 'SAR', 'NGN', 'VND'])
     .withMessage('Invalid currency'),
   
   body('settings.language')
@@ -259,6 +259,17 @@ const paginationValidation = [
 // ============================================================================
 
 /**
+ * @route GET /api/clinics/all
+ * @desc Get all clinics for admin management
+ * @access Private (Admin only)
+ */
+router.get(
+  '/all',
+  authenticate,
+  ClinicController.getAllClinics
+);
+
+/**
  * @route GET /api/clinics
  * @desc Get all clinics that the current user has access to
  * @access Private
@@ -345,6 +356,18 @@ router.get(
 // ============================================================================
 // USER-CLINIC MANAGEMENT ROUTES
 // ============================================================================
+
+/**
+ * @route GET /api/clinics/user/:userId/access
+ * @desc Get user's clinic access for admin management
+ * @access Private (Admin only)
+ */
+router.get(
+  '/user/:userId/access',
+  authenticate,
+  param('userId').isMongoId().withMessage('Invalid user ID'),
+  ClinicController.getUserClinicAccess
+);
 
 /**
  * @route GET /api/clinics/:id/users

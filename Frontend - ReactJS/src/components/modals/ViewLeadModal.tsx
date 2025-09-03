@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -32,6 +33,8 @@ interface ViewLeadModalProps {
 }
 
 const ViewLeadModal: React.FC<ViewLeadModalProps> = ({ lead, open, onOpenChange }) => {
+  const { t } = useTranslation();
+  
   if (!lead) return null;
 
   const getStatusIcon = (status: string) => {
@@ -113,10 +116,10 @@ const ViewLeadModal: React.FC<ViewLeadModalProps> = ({ lead, open, onOpenChange 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Eye className="h-5 w-5" />
-            Lead Details
+            {t("Lead Details")}
           </DialogTitle>
           <DialogDescription>
-            View detailed information about this lead.
+            {t("View detailed information about this lead.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -133,7 +136,7 @@ const ViewLeadModal: React.FC<ViewLeadModalProps> = ({ lead, open, onOpenChange 
                     <h2 className="text-xl font-semibold text-gray-900">
                       {lead.firstName} {lead.lastName}
                     </h2>
-                    <p className="text-sm text-gray-500">Lead #{lead._id || lead.id}</p>
+                    <p className="text-sm text-gray-500">{t("Lead #")}{lead._id || lead.id}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-2">
@@ -151,7 +154,7 @@ const ViewLeadModal: React.FC<ViewLeadModalProps> = ({ lead, open, onOpenChange 
             <CardHeader>
               <CardTitle className="text-lg flex items-center">
                 <Phone className="h-4 w-4 mr-2" />
-                Contact Information
+                {t("Contact Information")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -160,7 +163,7 @@ const ViewLeadModal: React.FC<ViewLeadModalProps> = ({ lead, open, onOpenChange 
                   <div className="flex items-center space-x-3">
                     <Mail className="h-4 w-4 text-gray-400" />
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Email</p>
+                      <p className="text-sm font-medium text-gray-500">{t("Email")}</p>
                       <p className="text-gray-900">{lead.email}</p>
                     </div>
                   </div>
@@ -168,7 +171,7 @@ const ViewLeadModal: React.FC<ViewLeadModalProps> = ({ lead, open, onOpenChange 
                 <div className="flex items-center space-x-3">
                   <Phone className="h-4 w-4 text-gray-400" />
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Phone</p>
+                    <p className="text-sm font-medium text-gray-500">{t("Phone")}</p>
                     <p className="text-gray-900">{lead.phone}</p>
                   </div>
                 </div>
@@ -181,7 +184,7 @@ const ViewLeadModal: React.FC<ViewLeadModalProps> = ({ lead, open, onOpenChange 
             <CardHeader>
               <CardTitle className="text-lg flex items-center">
                 <Globe className="h-4 w-4 mr-2" />
-                Lead Information
+                {t("Lead Information")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -189,14 +192,14 @@ const ViewLeadModal: React.FC<ViewLeadModalProps> = ({ lead, open, onOpenChange 
                 <div className="flex items-center space-x-3">
                   {getSourceIcon(lead.source)}
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Source</p>
+                    <p className="text-sm font-medium text-gray-500">{t("Source")}</p>
                     <p className="text-gray-900 capitalize">{lead.source}</p>
                   </div>
                 </div>
                 <div className="flex items-center space-x-3">
                   <FileText className="h-4 w-4 text-gray-400" />
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Service Interest</p>
+                    <p className="text-sm font-medium text-gray-500">{t("Service Interest")}</p>
                     <Badge variant="outline" className="mt-1">
                       {lead.serviceInterest}
                     </Badge>
@@ -209,7 +212,7 @@ const ViewLeadModal: React.FC<ViewLeadModalProps> = ({ lead, open, onOpenChange 
                   <div className="flex items-center space-x-3">
                     <User className="h-4 w-4 text-gray-400" />
                     <div>
-                      <p className="text-sm font-medium text-gray-500">Assigned To</p>
+                      <p className="text-sm font-medium text-gray-500">{t("Assigned To")}</p>
                       <p className="text-gray-900">{lead.assignedTo}</p>
                     </div>
                   </div>
@@ -217,7 +220,7 @@ const ViewLeadModal: React.FC<ViewLeadModalProps> = ({ lead, open, onOpenChange 
                 <div className="flex items-center space-x-3">
                   <Calendar className="h-4 w-4 text-gray-400" />
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Created</p>
+                    <p className="text-sm font-medium text-gray-500">{t("Created")}</p>
                     <p className="text-gray-900">{formatDate(lead.created_at || lead.createdAt)}</p>
                   </div>
                 </div>
@@ -227,7 +230,7 @@ const ViewLeadModal: React.FC<ViewLeadModalProps> = ({ lead, open, onOpenChange 
                 <div className="flex items-center space-x-3">
                   <Calendar className="h-4 w-4 text-gray-400" />
                   <div>
-                    <p className="text-sm font-medium text-gray-500">Last Updated</p>
+                    <p className="text-sm font-medium text-gray-500">{t("Last Updated")}</p>
                     <p className="text-gray-900">{formatDate(lead.updated_at || lead.updatedAt)}</p>
                   </div>
                 </div>
@@ -241,7 +244,7 @@ const ViewLeadModal: React.FC<ViewLeadModalProps> = ({ lead, open, onOpenChange 
               <CardHeader>
                 <CardTitle className="text-lg flex items-center">
                   <FileText className="h-4 w-4 mr-2" />
-                  Notes
+                  {t("Notes")}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -259,7 +262,7 @@ const ViewLeadModal: React.FC<ViewLeadModalProps> = ({ lead, open, onOpenChange 
               variant="outline"
               onClick={() => onOpenChange(false)}
             >
-              Close
+              {t("Close")}
             </Button>
           </div>
         </div>

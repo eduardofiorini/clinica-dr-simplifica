@@ -39,6 +39,15 @@ import autoPermissionGuard from '../middleware/autoPermission';
 
 const router = Router();
 
+// ===== PUBLIC ROUTES (no auth required) =====
+// Import payment controller for public endpoint
+import { PaymentController } from '../controllers/paymentController';
+
+// Verify payment by session ID (for Stripe success page - must be public)
+router.get('/payments/verify-session/:session_id', (req: any, res: any) => {
+  PaymentController.verifyPaymentBySessionId(req, res);
+});
+
 // Mount routes
 // Global automatic permission guard for API routes (after auth where applicable)
 router.use(autoPermissionGuard as any);

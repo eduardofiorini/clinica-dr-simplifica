@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -61,12 +62,17 @@ import {
   Building,
   Shield,
   Edit,
+  Link,
 } from "lucide-react";
 import { CurrencyDisplay } from "@/components/ui/CurrencyDisplay";
 import { toast } from "@/hooks/use-toast";
-import { apiService, type Payment, type PaymentStats } from "@/services/api";
+import { apiService, type PaymentStats } from "@/services/api";
+import { paymentApi, type Payment, type StripePaymentLinkResponse } from "@/services/api/paymentApi";
+import CreatePaymentLinkModal from "@/components/modals/CreatePaymentLinkModal";
+
 
 const Payments = () => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedMethod, setSelectedMethod] = useState("all");
@@ -109,10 +115,18 @@ const Payments = () => {
   const [showViewPaymentModal, setShowViewPaymentModal] = useState(false);
   const [viewingPayment, setViewingPayment] = useState<Payment | null>(null);
 
+  // Stripe Payment Link Modal States
+  const [showCreatePaymentLinkModal, setShowCreatePaymentLinkModal] = useState(false);
+
+  
+  // Stripe Stats State
+  const [stripeStats, setStripeStats] = useState<any>(null);
+
   // Load payments data
   useEffect(() => {
     loadPayments();
     loadStats();
+    loadStripeStats();
   }, [currentPage, selectedStatus, selectedMethod, searchTerm, selectedDateRange]);
 
   const loadPayments = async () => {
@@ -152,8 +166,8 @@ const Payments = () => {
     } catch (error) {
       console.error('Error loading payments:', error);
       toast({
-        title: "Error",
-        description: "Failed to load payments. Please try again.",
+        title: t("Error"),
+        description: t("Failed to load payments. Please try again."),
         variant: "destructive",
       });
     } finally {
@@ -170,9 +184,18 @@ const Payments = () => {
     }
   };
 
+  const loadStripeStats = async () => {
+    try {
+      const stripeStatsData = await paymentApi.getStripeStats();
+      setStripeStats(stripeStatsData.data);
+    } catch (error) {
+      console.error('Error loading Stripe stats:', error);
+    }
+  };
+
   const getPatientDisplay = (patient: string | { _id: string; first_name: string; last_name: string; email?: string } | null) => {
     if (!patient) {
-      return 'Unknown Patient';
+      return t('Unknown Patient');
     }
     if (typeof patient === 'string') {
       return patient;
@@ -182,7 +205,7 @@ const Payments = () => {
 
   const getInvoiceDisplay = (invoice: string | { _id: string; invoice_number: string; total_amount: number } | null) => {
     if (!invoice) {
-      return 'N/A';
+      return t('N/A');
     }
     if (typeof invoice === 'string') {
       return invoice;
@@ -264,6 +287,8 @@ const Payments = () => {
         return <Smartphone className="h-4 w-4 text-orange-600" />;
       case "insurance":
         return <Shield className="h-4 w-4 text-indigo-600" />;
+      case "stripe":
+        return <CreditCard className="h-4 w-4 text-blue-600" />;
       default:
         return <DollarSign className="h-4 w-4 text-muted-foreground" />;
     }
@@ -318,15 +343,17 @@ const Payments = () => {
   const getPaymentMethodLabel = (method: string) => {
     switch (method) {
       case "credit_card":
-        return "Credit Card";
+        return t("Credit Card");
       case "cash":
-        return "Cash";
+        return t("Cash");
       case "bank_transfer":
-        return "Bank Transfer";
+        return t("Bank Transfer");
       case "upi":
-        return "UPI";
+        return t("UPI");
       case "insurance":
-        return "Insurance";
+        return t("Insurance");
+      case "stripe":
+        return t("Stripe");
       default:
         return method;
     }
@@ -342,14 +369,14 @@ const Payments = () => {
       // This would show a refund modal in a real implementation
       await apiService.initiateRefund(paymentId, 0, "Customer requested refund");
       toast({
-        title: "Refund Initiated",
-        description: `Refund for payment ${paymentId} has been initiated.`,
+        title: t("Refund Initiated"),
+        description: `${t('Refund for payment')} ${paymentId} ${t('has been initiated.')}`,
       });
       loadPayments(); // Reload payments
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to initiate refund.",
+        title: t("Error"),
+        description: t("Failed to initiate refund."),
         variant: "destructive",
       });
     }
@@ -359,13 +386,111 @@ const Payments = () => {
     try {
       // This would trigger a retry process in a real implementation
       toast({
-        title: "Payment Retry",
-        description: `Payment retry for ${paymentId} has been initiated.`,
+        title: t("Payment Retry"),
+        description: `${t('Payment retry for')} ${paymentId} ${t('has been initiated.')}`,
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to retry payment.",
+        title: t("Error"),
+        description: t("Failed to retry payment."),
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handlePaymentLinkCreated = async (paymentData: StripePaymentLinkResponse) => {
+    try {
+      // Reload payments to show the new payment link
+      await loadPayments();
+      loadStats();
+      loadStripeStats();
+      
+      // Find the newly created payment and show its details
+      const newPayment = payments.find(p => p._id === paymentData.payment_id);
+      if (newPayment) {
+        setViewingPayment(newPayment);
+        setShowViewPaymentModal(true);
+      } else {
+        // If not found in current list, fetch the payment directly
+        try {
+          const paymentDetails = await paymentApi.getPayment(paymentData.payment_id);
+          setViewingPayment(paymentDetails.data);
+          setShowViewPaymentModal(true);
+        } catch (error) {
+          console.error('Error fetching payment details:', error);
+          // Fallback: show success message
+          toast({
+            title: t("Payment Link Created"),
+            description: t("Payment link has been created successfully"),
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error in handlePaymentLinkCreated:', error);
+      toast({
+        title: t("Payment Link Created"),
+        description: t("Payment link has been created successfully"),
+      });
+    }
+  };
+
+  const handleResendPaymentLink = async (paymentId: string) => {
+    try {
+      const response = await paymentApi.resendPaymentLink(paymentId);
+      
+      // Debug: Log the actual response structure
+      console.log('=== PAYMENT LINK DEBUG ===');
+      console.log('Full response:', response);
+      console.log('Response.data:', response.data);
+      console.log('========================');
+      
+      // Show the link in a dialog or copy to clipboard
+      // The response should have the payment link directly
+      let paymentLink = response.data.payment_link;
+      
+      if (paymentLink) {
+        const copySuccess = await paymentApi.copyPaymentLink(paymentLink);
+        
+        if (copySuccess) {
+          toast({
+            title: t("Link Copied"),
+            description: t("Payment link has been copied to clipboard"),
+          });
+        } else {
+          toast({
+            title: t("Payment Link Ready"),
+            description: `${t("Could not copy automatically. Link:")} ${paymentLink}`,
+          });
+        }
+      } else {
+        toast({
+          title: t("Error"),
+          description: t("Payment link not found in response"),
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
+      console.error('Error getting payment link:', error);
+      toast({
+        title: t("Error"),
+        description: error.response?.data?.message || t("Failed to get payment link"),
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleStripeRefund = async (paymentId: string) => {
+    try {
+      await paymentApi.createStripeRefund(paymentId);
+      toast({
+        title: t("Refund Initiated"),
+        description: t("Stripe refund has been initiated successfully"),
+      });
+      loadPayments(); // Reload payments to show updated status
+    } catch (error: any) {
+      toast({
+        title: t("Error"),
+        description: error.response?.data?.message || t("Failed to initiate Stripe refund"),
         variant: "destructive",
       });
     }
@@ -385,8 +510,8 @@ const Payments = () => {
     } catch (error) {
       console.error('Error loading patients:', error);
       toast({
-        title: "Error",
-        description: "Failed to load patients list.",
+        title: t("Error"),
+        description: t("Failed to load patients list."),
         variant: "destructive",
       });
     } finally {
@@ -403,8 +528,8 @@ const Payments = () => {
     } catch (error) {
       console.error('Error loading invoices:', error);
       toast({
-        title: "Error", 
-        description: "Failed to load invoices list.",
+        title: t("Error"), 
+        description: t("Failed to load invoices list."),
         variant: "destructive",
       });
     } finally {
@@ -443,8 +568,8 @@ const Payments = () => {
               // Validate required fields
         if (!recordPaymentForm.patient_id || !recordPaymentForm.amount || !recordPaymentForm.method || !recordPaymentForm.description) {
           toast({
-            title: "Validation Error",
-            description: "Please fill in all required fields (Patient, Amount, Payment Method, and Description).",
+            title: t("Validation Error"),
+            description: t("Please fill in all required fields (Patient, Amount, Payment Method, and Description)."),
             variant: "destructive",
           });
           return;
@@ -454,8 +579,8 @@ const Payments = () => {
         const amount = parseFloat(recordPaymentForm.amount);
         if (isNaN(amount) || amount <= 0) {
           toast({
-            title: "Validation Error",
-            description: "Please enter a valid amount greater than 0.",
+            title: t("Validation Error"),
+            description: t("Please enter a valid amount greater than 0."),
             variant: "destructive",
           });
           return;
@@ -479,8 +604,8 @@ const Payments = () => {
       const newPayment = await apiService.createPayment(paymentData);
       
       toast({
-        title: "Payment Recorded",
-        description: `Payment ${newPayment._id} has been successfully recorded.`,
+        title: t("Payment Recorded"),
+        description: `${t('Payment')} ${newPayment._id} ${t('has been successfully recorded.')}`,
       });
 
       // Reset form and close modal
@@ -499,8 +624,8 @@ const Payments = () => {
     } catch (error: any) {
       console.error('Error creating payment:', error);
       toast({
-        title: "Error",
-        description: error.response?.data?.message || error.message || "Failed to record payment.",
+        title: t("Error"),
+        description: error.response?.data?.message || error.message || t("Failed to record payment."),
         variant: "destructive",
       });
     } finally {
@@ -514,8 +639,8 @@ const Payments = () => {
       
       if (!editingPayment) {
         toast({
-          title: "Error",
-          description: "No payment selected for editing.",
+          title: t("Error"),
+          description: t("No payment selected for editing."),
           variant: "destructive",
         });
         return;
@@ -524,8 +649,8 @@ const Payments = () => {
       // Validate required fields
       if (!editPaymentForm.patient_id || !editPaymentForm.amount || !editPaymentForm.method || !editPaymentForm.description) {
         toast({
-          title: "Validation Error",
-          description: "Please fill in all required fields (Patient, Amount, Payment Method, and Description).",
+          title: t("Validation Error"),
+          description: t("Please fill in all required fields (Patient, Amount, Payment Method, and Description)."),
           variant: "destructive",
         });
         return;
@@ -535,8 +660,8 @@ const Payments = () => {
       const amount = parseFloat(editPaymentForm.amount);
       if (isNaN(amount) || amount <= 0) {
         toast({
-          title: "Validation Error",
-          description: "Please enter a valid amount greater than 0.",
+          title: t("Validation Error"),
+          description: t("Please enter a valid amount greater than 0."),
           variant: "destructive",
         });
         return;
@@ -557,8 +682,8 @@ const Payments = () => {
       const updatedPayment = await apiService.updatePayment(editingPayment._id, updateData);
       
       toast({
-        title: "Payment Updated",
-        description: `Payment ${updatedPayment._id} has been successfully updated.`,
+        title: t("Payment Updated"),
+        description: `${t('Payment')} ${updatedPayment._id} ${t('has been successfully updated.')}`,
       });
 
       // Reset form and close modal
@@ -579,8 +704,8 @@ const Payments = () => {
     } catch (error: any) {
       console.error('Error updating payment:', error);
       toast({
-        title: "Error",
-        description: error.response?.data?.message || error.message || "Failed to update payment.",
+        title: t("Error"),
+        description: error.response?.data?.message || error.message || t("Failed to update payment."),
         variant: "destructive",
       });
     } finally {
@@ -605,19 +730,27 @@ const Payments = () => {
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between sm:flex-wrap">
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            Payment Management
+            {t('Payment Management')}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Track and manage all patient payments and transactions
+            {t('Track and manage all patient payments and transactions')}
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 flex-shrink-0">
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto"
+            onClick={() => setShowCreatePaymentLinkModal(true)}
+          >
+            <Link className="h-4 w-4 mr-2" />
+            {t('Create Payment Link')}
+          </Button>
           <Button 
             className="w-full sm:w-auto"
             onClick={handleOpenRecordPaymentModal}
           >
             <Plus className="h-4 w-4 mr-2" />
-            Record Payment
+            {t('Record Payment')}
           </Button>
         </div>
       </div>
@@ -634,7 +767,7 @@ const Payments = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Payments
+                    {t('Total Payments')}
                   </p>
                   <p className="text-3xl font-bold text-foreground">
                     {totalPayments}
@@ -656,7 +789,7 @@ const Payments = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Revenue (All Time)
+                    {t('Total Revenue (All Time)')}
                   </p>
                   <p className="text-3xl font-bold text-green-600">
                     <CurrencyDisplay amount={totalRevenue} variant="large" />
@@ -678,7 +811,7 @@ const Payments = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    This Month Revenue
+                    {t('This Month Revenue')}
                   </p>
                   <p className="text-3xl font-bold text-green-600">
                     <CurrencyDisplay amount={monthlyRevenue} variant="large" />
@@ -700,7 +833,7 @@ const Payments = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Successful
+                    {t('Successful')}
                   </p>
                   <p className="text-3xl font-bold text-green-600">
                     {completedPayments}
@@ -721,7 +854,7 @@ const Payments = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Failed</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('Failed')}</p>
                   <p className="text-3xl font-bold text-red-600">
                     {failedPayments}
                   </p>
@@ -731,6 +864,37 @@ const Payments = () => {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Stripe Stats Card */}
+        {stripeStats && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+          >
+            <Card className="border-blue-200 bg-blue-50/50">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-blue-700">{t('Stripe Payments')}</p>
+                    <p className="text-3xl font-bold text-blue-600">
+                      {stripeStats.successful_payments}
+                    </p>
+                    <p className="text-sm text-blue-600">
+                      <CurrencyDisplay amount={stripeStats.net_amount || 0} />
+                    </p>
+                  </div>
+                  <div className="relative">
+                    <CreditCard className="h-8 w-8 text-blue-600" />
+                    <div className="absolute -bottom-1 -right-1 h-3 w-3 bg-blue-600 rounded-full flex items-center justify-center">
+                      <div className="h-1.5 w-1.5 bg-white rounded-full" />
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
       </div>
 
       {/* Search and Filters */}
@@ -741,7 +905,7 @@ const Payments = () => {
             <div className="relative flex-1 min-w-0 sm:min-w-[250px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search by payment ID, patient name, or invoice..."
+                placeholder={t('Search by payment ID, patient name, or invoice...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-full"
@@ -752,29 +916,30 @@ const Payments = () => {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t('Status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="processing">Processing</SelectItem>
-                  <SelectItem value="failed">Failed</SelectItem>
-                  <SelectItem value="refunded">Refunded</SelectItem>
+                  <SelectItem value="all">{t('All Status')}</SelectItem>
+                  <SelectItem value="completed">{t('Completed')}</SelectItem>
+                  <SelectItem value="pending">{t('Pending')}</SelectItem>
+                  <SelectItem value="processing">{t('Processing')}</SelectItem>
+                  <SelectItem value="failed">{t('Failed')}</SelectItem>
+                  <SelectItem value="refunded">{t('Refunded')}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={selectedMethod} onValueChange={setSelectedMethod}>
                 <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="Method" />
+                  <SelectValue placeholder={t('Method')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Methods</SelectItem>
-                  <SelectItem value="credit_card">Credit Card</SelectItem>
-                  <SelectItem value="cash">Cash</SelectItem>
-                  <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                  <SelectItem value="upi">UPI</SelectItem>
-                  <SelectItem value="insurance">Insurance</SelectItem>
+                  <SelectItem value="all">{t('All Methods')}</SelectItem>
+                  <SelectItem value="stripe">{t('Stripe')}</SelectItem>
+                  <SelectItem value="credit_card">{t('Credit Card')}</SelectItem>
+                  <SelectItem value="cash">{t('Cash')}</SelectItem>
+                  <SelectItem value="bank_transfer">{t('Bank Transfer')}</SelectItem>
+                  <SelectItem value="upi">{t('UPI')}</SelectItem>
+                  <SelectItem value="insurance">{t('Insurance')}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -806,19 +971,19 @@ const Payments = () => {
       >
         <Card>
           <CardHeader>
-            <CardTitle>Payment Records</CardTitle>
+            <CardTitle>{t('Payment Records')}</CardTitle>
             <CardDescription>
-              Complete history of all payment transactions and their details
+              {t('Complete history of all payment transactions and their details')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex items-center justify-center h-64">
-                <div className="text-gray-500">Loading payments...</div>
+                <div className="text-gray-500">{t('Loading payments...')}</div>
               </div>
             ) : filteredPayments.length === 0 ? (
               <div className="flex items-center justify-center h-64">
-                <div className="text-gray-500">No payments found.</div>
+                <div className="text-gray-500">{t('No payments found.')}</div>
               </div>
             ) : (
               <>
@@ -827,17 +992,17 @@ const Payments = () => {
                   <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-[140px]">Payment</TableHead>
-                    <TableHead className="min-w-[160px]">Patient</TableHead>
-                    <TableHead className="min-w-[120px]">Amount</TableHead>
-                    <TableHead className="min-w-[120px]">Method</TableHead>
-                    <TableHead className="min-w-[100px]">Status</TableHead>
-                    <TableHead className="min-w-[120px]">Date</TableHead>
+                    <TableHead className="min-w-[140px]">{t('Payment')}</TableHead>
+                    <TableHead className="min-w-[160px]">{t('Patient')}</TableHead>
+                    <TableHead className="min-w-[120px]">{t('Amount')}</TableHead>
+                    <TableHead className="min-w-[120px]">{t('Method')}</TableHead>
+                    <TableHead className="min-w-[100px]">{t('Status')}</TableHead>
+                    <TableHead className="min-w-[120px]">{t('Date')}</TableHead>
                     <TableHead className="min-w-[140px]">
-                      Transaction ID
+                      {t('Transaction ID')}
                     </TableHead>
                     <TableHead className="text-right min-w-[120px]">
-                      Actions
+                      {t('Actions')}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -865,10 +1030,10 @@ const Payments = () => {
                       <TableCell>
                         <div>
                           <div className="font-medium">
-                            {getPatientDisplay(payment.patient_id) || 'N/A'}
+                            {getPatientDisplay(payment.patient_id) || t('N/A')}
                           </div>
                           <div className="text-sm text-gray-500">
-                            {payment.description || 'No description'}
+                            {payment.description || t('No description')}
                           </div>
                         </div>
                       </TableCell>
@@ -879,7 +1044,7 @@ const Payments = () => {
                           </div>
                           {(payment.processing_fee || 0) > 0 && (
                             <div className="text-sm text-gray-500">
-                              Fee: <CurrencyDisplay amount={payment.processing_fee || 0} />
+                              {t('Fee')}: <CurrencyDisplay amount={payment.processing_fee || 0} />
                             </div>
                           )}
                         </div>
@@ -952,14 +1117,31 @@ const Payments = () => {
                               onClick={() => handleOpenEditPaymentModal(payment)}
                             >
                               <Edit className="mr-2 h-4 w-4" />
-                              Edit Payment
+                              {t('Edit Payment')}
                             </DropdownMenuItem>
+                            {payment.method === "stripe" && payment.status === "pending" && payment.payment_link && (
+                              <DropdownMenuItem
+                                onClick={() => handleResendPaymentLink(payment._id)}
+                              >
+                                <Link className="mr-2 h-4 w-4" />
+                                {t('Copy Payment Link')}
+                              </DropdownMenuItem>
+                            )}
+                            {payment.method === "stripe" && payment.status === "completed" && (
+                              <DropdownMenuItem
+                                onClick={() => handleStripeRefund(payment._id)}
+                                className="text-red-600"
+                              >
+                                <TrendingUp className="mr-2 h-4 w-4" />
+                                {t('Stripe Refund')}
+                              </DropdownMenuItem>
+                            )}
                             {payment.status === "failed" && (
                               <DropdownMenuItem
                                 onClick={() => handleRetryPayment(payment._id)}
                               >
                                 <Clock className="mr-2 h-4 w-4" />
-                                Retry Payment
+                                {t('Retry Payment')}
                               </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>
@@ -1007,13 +1189,13 @@ const Payments = () => {
                         {/* Patient Information */}
                         <div className="p-3 bg-gray-50 rounded-lg">
                           <div className="text-xs text-gray-500 uppercase tracking-wide mb-1">
-                            Patient & Description
+                            {t('Patient & Description')}
                           </div>
                           <div className="text-sm font-medium text-gray-900">
-                            {getPatientDisplay(payment.patient_id) || 'N/A'}
+                            {getPatientDisplay(payment.patient_id) || t('N/A')}
                           </div>
                           <div className="text-sm text-gray-600">
-                            {payment.description || 'No description'}
+                            {payment.description || t('No description')}
                           </div>
                           {payment.invoice_id && (
                             <div className="text-xs text-gray-500 mt-1">
@@ -1033,7 +1215,7 @@ const Payments = () => {
                             </div>
                             {(payment.processing_fee || 0) > 0 && (
                               <div className="text-xs text-gray-500">
-                                Fee: <CurrencyDisplay amount={payment.processing_fee || 0} />
+                                {t('Fee')}: <CurrencyDisplay amount={payment.processing_fee || 0} />
                               </div>
                             )}
                           </div>
@@ -1078,7 +1260,7 @@ const Payments = () => {
                         {payment.failure_reason && (
                           <div className="p-2 bg-red-50 border border-red-200 rounded">
                             <div className="text-xs text-red-600 font-medium mb-1">
-                              Failure Reason
+                              {t('Failure Reason')}
                             </div>
                             <div className="text-xs text-red-800">
                               {payment.failure_reason}
@@ -1109,23 +1291,40 @@ const Payments = () => {
                                 onClick={() => handleOpenEditPaymentModal(payment)}
                               >
                                 <Edit className="mr-2 h-4 w-4" />
-                                Edit Payment
+                                {t('Edit Payment')}
                               </DropdownMenuItem>
+                              {payment.method === "stripe" && payment.status === "pending" && payment.payment_link && (
+                                <DropdownMenuItem
+                                  onClick={() => handleResendPaymentLink(payment._id)}
+                                >
+                                  <Link className="mr-2 h-4 w-4" />
+                                  {t('Copy Payment Link')}
+                                </DropdownMenuItem>
+                              )}
+                              {payment.method === "stripe" && payment.status === "completed" && (
+                                <DropdownMenuItem
+                                  onClick={() => handleStripeRefund(payment._id)}
+                                  className="text-red-600"
+                                >
+                                  <TrendingUp className="mr-2 h-4 w-4" />
+                                  {t('Stripe Refund')}
+                                </DropdownMenuItem>
+                              )}
                               {payment.status === "failed" && (
                                 <DropdownMenuItem
                                   onClick={() => handleRetryPayment(payment._id)}
                                 >
                                   <Clock className="mr-2 h-4 w-4" />
-                                  Retry Payment
+                                  {t('Retry Payment')}
                                 </DropdownMenuItem>
                               )}
-                              {payment.status === "completed" && (
+                              {payment.status === "completed" && payment.method !== "stripe" && (
                                 <DropdownMenuItem
                                   onClick={() => handleRefundPayment(payment._id)}
                                   className="text-red-600"
                                 >
                                   <TrendingUp className="mr-2 h-4 w-4" />
-                                  Initiate Refund
+                                  {t('Initiate Refund')}
                                 </DropdownMenuItem>
                               )}
                             </DropdownMenuContent>
@@ -1140,7 +1339,7 @@ const Payments = () => {
                 {totalPages > 1 && (
                   <div className="flex items-center justify-between border-t pt-4">
                     <div className="text-sm text-gray-500">
-                      Page {currentPage} of {totalPages}
+                      {t('Page')} {currentPage} {t('of')} {totalPages}
                     </div>
                     <div className="flex space-x-2">
                       <Button
@@ -1149,7 +1348,7 @@ const Payments = () => {
                         onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                         disabled={currentPage === 1}
                       >
-                        Previous
+                        {t('Previous')}
                       </Button>
                       <Button
                         variant="outline"
@@ -1157,7 +1356,7 @@ const Payments = () => {
                         onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                         disabled={currentPage === totalPages}
                       >
-                        Next
+                        {t('Next')}
                       </Button>
                     </div>
                   </div>
@@ -1172,15 +1371,15 @@ const Payments = () => {
       <Dialog open={showRecordPaymentModal} onOpenChange={setShowRecordPaymentModal}>
         <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Record New Payment</DialogTitle>
+            <DialogTitle>{t('Record New Payment')}</DialogTitle>
             <DialogDescription>
-              Enter the payment details to record a new payment transaction.
+              {t('Enter the payment details to record a new payment transaction.')}
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="patient_id">Patient *</Label>
+              <Label htmlFor="patient_id">{t('Patient')} *</Label>
               <Select
                 value={recordPaymentForm.patient_id}
                 onValueChange={(value) =>
@@ -1202,18 +1401,18 @@ const Payments = () => {
                   ))}
                   {availablePatients.length === 0 && !loadingPatients && (
                     <SelectItem value="no-patients-found" disabled>
-                      No patients found
+                      {t('No patients found')}
                     </SelectItem>
                   )}
                 </SelectContent>
               </Select>
               <p className="text-sm text-gray-500">
-                Required: Select the patient for this payment.
+                {t('Required: Select the patient for this payment.')}
               </p>
             </div>
 
             <div className="grid gap-2">
-              <Label htmlFor="invoice_id">Invoice (Optional)</Label>
+              <Label htmlFor="invoice_id">{t('Invoice (Optional)')}</Label>
               <Select
                 value={recordPaymentForm.invoice_id || "no-invoice"} // Show "no-invoice" when empty
                 onValueChange={(value) => {
@@ -1252,13 +1451,13 @@ const Payments = () => {
                 </SelectContent>
               </Select>
               <p className="text-sm text-gray-500">
-                Optional: Select the invoice if this payment is for a specific invoice.
+                {t('Optional: Select the invoice if this payment is for a specific invoice.')}
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <Label htmlFor="amount">Amount *</Label>
+                <Label htmlFor="amount">{t('Amount')} *</Label>
                 <Input
                   id="amount"
                   type="number"
@@ -1286,7 +1485,7 @@ const Payments = () => {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select method" />
+                    <SelectValue placeholder={t('Select method')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="cash">Cash</SelectItem>
@@ -1303,7 +1502,7 @@ const Payments = () => {
               <Label htmlFor="transaction_id">Transaction ID (Optional)</Label>
               <Input
                 id="transaction_id"
-                placeholder="Enter transaction ID"
+                placeholder={t('Enter transaction ID')}
                 value={recordPaymentForm.transaction_id}
                 onChange={(e) =>
                   setRecordPaymentForm({
@@ -1318,7 +1517,7 @@ const Payments = () => {
               <Label htmlFor="description">Description *</Label>
               <Textarea
                 id="description"
-                placeholder="Enter payment description or notes (required)"
+                placeholder={t('Enter payment description or notes (required)')}
                 value={recordPaymentForm.description}
                 onChange={(e) =>
                   setRecordPaymentForm({
@@ -1328,7 +1527,7 @@ const Payments = () => {
                 }
               />
               <p className="text-sm text-gray-500">
-                Required: Provide a description of the payment (e.g., "Consultation fee", "Lab test payment").
+                {t('Required: Provide a description of the payment (e.g., "Consultation fee", "Lab test payment").')}
               </p>
             </div>
           </div>
@@ -1339,13 +1538,13 @@ const Payments = () => {
               onClick={() => setShowRecordPaymentModal(false)}
               disabled={recordPaymentLoading}
             >
-              Cancel
+              {t('Cancel')}
             </Button>
             <Button 
               onClick={handleRecordPayment}
               disabled={recordPaymentLoading}
             >
-              {recordPaymentLoading ? "Recording..." : "Record Payment"}
+              {recordPaymentLoading ? t("Recording...") : t("Record Payment")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1355,9 +1554,9 @@ const Payments = () => {
       <Dialog open={showEditPaymentModal} onOpenChange={setShowEditPaymentModal}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Edit Payment</DialogTitle>
+            <DialogTitle>{t('Edit Payment')}</DialogTitle>
             <DialogDescription>
-              Modify the payment details below. Be careful when editing payment information.
+              {t('Modify the payment details below. Be careful when editing payment information.')}
             </DialogDescription>
           </DialogHeader>
           
@@ -1385,7 +1584,7 @@ const Payments = () => {
                   ))}
                   {availablePatients.length === 0 && !loadingPatients && (
                     <SelectItem value="no-patients-found" disabled>
-                      No patients found
+                      {t('No patients found')}
                     </SelectItem>
                   )}
                 </SelectContent>
@@ -1459,7 +1658,7 @@ const Payments = () => {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select method" />
+                    <SelectValue placeholder={t('Select method')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="cash">Cash</SelectItem>
@@ -1501,7 +1700,7 @@ const Payments = () => {
                 <Label htmlFor="edit_transaction_id">Transaction ID (Optional)</Label>
                 <Input
                   id="edit_transaction_id"
-                  placeholder="Enter transaction ID"
+                  placeholder={t('Enter transaction ID')}
                   value={editPaymentForm.transaction_id}
                   onChange={(e) =>
                     setEditPaymentForm({
@@ -1517,7 +1716,7 @@ const Payments = () => {
               <Label htmlFor="edit_description">Description *</Label>
               <Textarea
                 id="edit_description"
-                placeholder="Enter payment description or notes (required)"
+                placeholder={t('Enter payment description or notes (required)')}
                 value={editPaymentForm.description}
                 onChange={(e) =>
                   setEditPaymentForm({
@@ -1547,13 +1746,13 @@ const Payments = () => {
               }}
               disabled={editPaymentLoading}
             >
-              Cancel
+              {t('Cancel')}
             </Button>
             <Button 
               onClick={handleEditPayment}
               disabled={editPaymentLoading}
             >
-              {editPaymentLoading ? "Updating..." : "Update Payment"}
+              {editPaymentLoading ? t("Updating...") : t("Update Payment")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1563,9 +1762,9 @@ const Payments = () => {
       <Dialog open={showViewPaymentModal} onOpenChange={setShowViewPaymentModal}>
         <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Payment Details</DialogTitle>
+            <DialogTitle>{t('Payment Details')}</DialogTitle>
             <DialogDescription>
-              Complete information about this payment transaction
+              {t('Complete information about this payment transaction')}
             </DialogDescription>
           </DialogHeader>
           
@@ -1574,15 +1773,15 @@ const Payments = () => {
               {/* Payment Overview */}
               <div className="grid gap-4">
                 <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                  Payment Information
+                  {t('Payment Information')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <Label className="text-sm text-gray-600">Payment ID</Label>
+                    <Label className="text-sm text-gray-600">{t('Payment ID')}</Label>
                     <p className="font-medium text-gray-900">{viewingPayment._id}</p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-sm text-gray-600">Status</Label>
+                    <Label className="text-sm text-gray-600">{t('Status')}</Label>
                     <div className="flex items-center space-x-2">
                       {getStatusIcon(viewingPayment.status)}
                       <Badge className={`${getStatusColor(viewingPayment.status)}`}>
@@ -1591,13 +1790,13 @@ const Payments = () => {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-sm text-gray-600">Amount</Label>
+                    <Label className="text-sm text-gray-600">{t('Amount')}</Label>
                     <p className="font-medium text-gray-900 text-lg">
                       <CurrencyDisplay amount={viewingPayment.amount} variant="large" />
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-sm text-gray-600">Payment Method</Label>
+                    <Label className="text-sm text-gray-600">{t('Payment Method')}</Label>
                     <div className="flex items-center space-x-2">
                       {getPaymentMethodIcon(viewingPayment.method)}
                       <span className="font-medium text-gray-900">
@@ -1606,13 +1805,13 @@ const Payments = () => {
                     </div>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-sm text-gray-600">Payment Date</Label>
+                    <Label className="text-sm text-gray-600">{t('Payment Date')}</Label>
                     <p className="font-medium text-gray-900">
                       {formatDateTime(viewingPayment.payment_date)}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-sm text-gray-600">Created At</Label>
+                    <Label className="text-sm text-gray-600">{t('Created At')}</Label>
                     <p className="font-medium text-gray-900">
                       {formatDateTime(viewingPayment.created_at)}
                     </p>
@@ -1623,11 +1822,11 @@ const Payments = () => {
               {/* Patient Information */}
               <div className="grid gap-4">
                 <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                  Patient Information
+                  {t('Patient Information')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <Label className="text-sm text-gray-600">Patient Name</Label>
+                    <Label className="text-sm text-gray-600">{t('Patient Name')}</Label>
                     <p className="font-medium text-gray-900">
                       {getPatientDisplay(viewingPayment.patient_id)}
                     </p>
@@ -1647,18 +1846,18 @@ const Payments = () => {
               {viewingPayment.invoice_id && (
                 <div className="grid gap-4">
                   <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                    Invoice Information
+                    {t('Invoice Information')}
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <Label className="text-sm text-gray-600">Invoice Number</Label>
+                      <Label className="text-sm text-gray-600">{t('Invoice Number')}</Label>
                       <p className="font-medium text-gray-900">
                         {getInvoiceDisplay(viewingPayment.invoice_id)}
                       </p>
                     </div>
                     {typeof viewingPayment.invoice_id === 'object' && (
                       <div className="space-y-1">
-                        <Label className="text-sm text-gray-600">Invoice Amount</Label>
+                        <Label className="text-sm text-gray-600">{t('Invoice Amount')}</Label>
                         <p className="font-medium text-gray-900">
                           <CurrencyDisplay amount={viewingPayment.invoice_id.total_amount} />
                         </p>
@@ -1671,23 +1870,23 @@ const Payments = () => {
               {/* Financial Details */}
               <div className="grid gap-4">
                 <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                  Financial Details
+                  {t('Financial Details')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <Label className="text-sm text-gray-600">Gross Amount</Label>
+                    <Label className="text-sm text-gray-600">{t('Gross Amount')}</Label>
                     <p className="font-medium text-gray-900">
                       <CurrencyDisplay amount={viewingPayment.amount} />
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-sm text-gray-600">Processing Fee</Label>
+                    <Label className="text-sm text-gray-600">{t('Processing Fee')}</Label>
                     <p className="font-medium text-gray-900">
                       <CurrencyDisplay amount={viewingPayment.processing_fee || 0} />
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-sm text-gray-600">Net Amount</Label>
+                    <Label className="text-sm text-gray-600">{t('Net Amount')}</Label>
                     <p className="font-medium text-green-600 text-lg">
                       <CurrencyDisplay amount={viewingPayment.net_amount} />
                     </p>
@@ -1695,15 +1894,83 @@ const Payments = () => {
                 </div>
               </div>
 
+              {/* Payment Link Section - for Stripe payments */}
+              {viewingPayment.method === 'stripe' && viewingPayment.payment_link && (
+                <div className="grid gap-4">
+                  <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
+                    {t('Payment Link')}
+                  </h3>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label className="text-sm text-gray-600">{t('Stripe Payment Link')}</Label>
+                      <div className="flex gap-2">
+                        <Input
+                          readOnly
+                          value={viewingPayment.payment_link}
+                          className="flex-1 font-mono text-sm"
+                        />
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              const success = await paymentApi.copyPaymentLink(viewingPayment.payment_link!);
+                              if (success) {
+                                toast({
+                                  title: t("Link Copied!"),
+                                  description: t("Payment link has been copied to clipboard"),
+                                });
+                              } else {
+                                throw new Error('Copy failed');
+                              }
+                            } catch (error) {
+                              toast({
+                                title: t("Copy Failed"),
+                                description: t("Could not copy link to clipboard. Please copy manually."),
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                        >
+                          <Receipt className="h-4 w-4 mr-1" />
+                          {t('Copy')}
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(viewingPayment.payment_link!, '_blank')}
+                        >
+                          <Link className="h-4 w-4 mr-1" />
+                          {t('Open')}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        {t('Share this link with the patient to collect payment securely via Stripe')}
+                      </p>
+                    </div>
+                    
+                    {/* Checkout Session ID */}
+                    {viewingPayment.stripe_checkout_session_id && (
+                      <div className="space-y-1">
+                        <Label className="text-sm text-gray-600">{t('Checkout Session ID')}</Label>
+                        <p className="font-mono text-xs bg-gray-100 p-2 rounded border break-all">
+                          {viewingPayment.stripe_checkout_session_id}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
               {/* Transaction Details */}
               <div className="grid gap-4">
                 <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                  Transaction Details
+                  {t('Transaction Details')}
                 </h3>
                 <div className="grid grid-cols-1 gap-4">
                   {viewingPayment.transaction_id && (
                     <div className="space-y-1">
-                      <Label className="text-sm text-gray-600">Transaction ID</Label>
+                      <Label className="text-sm text-gray-600">{t('Transaction ID')}</Label>
                       <p className="font-mono text-sm bg-gray-100 p-2 rounded border">
                         {viewingPayment.transaction_id}
                       </p>
@@ -1711,19 +1978,19 @@ const Payments = () => {
                   )}
                   {viewingPayment.card_last4 && (
                     <div className="space-y-1">
-                      <Label className="text-sm text-gray-600">Card Last 4 Digits</Label>
+                      <Label className="text-sm text-gray-600">{t('Card Last 4 Digits')}</Label>
                       <p className="font-medium text-gray-900">****{viewingPayment.card_last4}</p>
                     </div>
                   )}
                   {viewingPayment.insurance_provider && (
                     <div className="space-y-1">
-                      <Label className="text-sm text-gray-600">Insurance Provider</Label>
+                      <Label className="text-sm text-gray-600">{t('Insurance Provider')}</Label>
                       <p className="font-medium text-gray-900">{viewingPayment.insurance_provider}</p>
                     </div>
                   )}
                   {viewingPayment.description && (
                     <div className="space-y-1">
-                      <Label className="text-sm text-gray-600">Description</Label>
+                      <Label className="text-sm text-gray-600">{t('Description')}</Label>
                       <p className="font-medium text-gray-900">{viewingPayment.description}</p>
                     </div>
                   )}
@@ -1741,17 +2008,17 @@ const Payments = () => {
               {/* System Information */}
               <div className="grid gap-4">
                 <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                  System Information
+                  {t('System Information')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <Label className="text-sm text-gray-600">Created At</Label>
+                    <Label className="text-sm text-gray-600">{t('Created At')}</Label>
                     <p className="font-medium text-gray-900">
                       {formatDateTime(viewingPayment.created_at)}
                     </p>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-sm text-gray-600">Last Updated</Label>
+                    <Label className="text-sm text-gray-600">{t('Last Updated')}</Label>
                     <p className="font-medium text-gray-900">
                       {formatDateTime(viewingPayment.updated_at)}
                     </p>
@@ -1769,7 +2036,7 @@ const Payments = () => {
                 setViewingPayment(null);
               }}
             >
-              Close
+              {t('Close')}
             </Button>
             {viewingPayment && (
               <Button
@@ -1778,12 +2045,21 @@ const Payments = () => {
                   handleOpenEditPaymentModal(viewingPayment);
                 }}
               >
-                Edit Payment
+                {t('Edit Payment')}
               </Button>
             )}
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Create Payment Link Modal */}
+      <CreatePaymentLinkModal
+        open={showCreatePaymentLinkModal}
+        onOpenChange={setShowCreatePaymentLinkModal}
+        onPaymentLinkCreated={handlePaymentLinkCreated}
+      />
+
+
     </div>
   );
 };

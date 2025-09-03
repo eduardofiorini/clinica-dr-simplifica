@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { usePatients, useCreatePatient, useUpdatePatient, useDeletePatient } from "@/hooks/useApi";
@@ -54,6 +55,7 @@ import EditItemModal from "@/components/modals/EditItemModal";
 import DeleteConfirmModal from "@/components/modals/DeleteConfirmModal";
 
 const Patients = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedGender, setSelectedGender] = useState("all");
@@ -153,8 +155,8 @@ const Patients = () => {
       
       setEditModal({ open: false, item: null });
       toast({
-        title: "Patient updated",
-        description: `${updatedData.firstName} ${updatedData.lastName} has been updated successfully.`,
+        title: t("Patient updated"),
+        description: `${updatedData.firstName} ${updatedData.lastName} ${t("has been updated successfully.")}`,
       });
       
       // Refetch the patients list to get updated data
@@ -164,16 +166,16 @@ const Patients = () => {
       // would typically be stored in medical records, not patient profile
       if (updatedData.height || updatedData.weight || updatedData.allergies || updatedData.medicalHistory || updatedData.bloodGroup) {
         toast({
-          title: "Note",
-          description: "Medical information (height, weight, allergies, medical history, blood group) should be updated through medical records.",
+          title: t("Note"),
+          description: t("Medical information (height, weight, allergies, medical history, blood group) should be updated through medical records."),
           variant: "default",
         });
       }
     } catch (error) {
       console.error('Error updating patient:', error);
       toast({
-        title: "Error",
-        description: "Failed to update patient. Please try again.",
+        title: t("Error"),
+        description: t("Failed to update patient. Please try again."),
         variant: "destructive",
       });
     }
@@ -186,13 +188,13 @@ const Patients = () => {
       await deletePatientMutation.mutateAsync(deleteModal.item.id);
       setDeleteModal({ open: false, item: null });
       toast({
-        title: "Patient deleted",
-        description: "Patient has been removed from the system.",
+        title: t("Patient deleted"),
+        description: t("Patient has been removed from the system."),
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to delete patient. Please try again.",
+        title: t("Error"),
+        description: t("Failed to delete patient. Please try again."),
         variant: "destructive",
       });
     }
@@ -268,7 +270,7 @@ const Patients = () => {
   const tableColumns = [
     {
       key: 'patient',
-      label: 'Patient',
+      label: t('Patient'),
       render: (patient: Patient) => (
         <div className="flex items-center space-x-3">
           <Avatar className="avatar-responsive">
@@ -280,7 +282,7 @@ const Patients = () => {
               {patient.firstName} {patient.lastName}
             </div>
             <div className="text-xs xs:text-sm text-muted-foreground">
-              {patient.gender} • {calculateAge(patient.dateOfBirth)} years
+              {patient.gender} • {calculateAge(patient.dateOfBirth)} {t('years')}
             </div>
           </div>
         </div>
@@ -288,7 +290,7 @@ const Patients = () => {
     },
     {
       key: 'contact',
-      label: 'Contact',
+      label: t('Contact'),
       render: (patient: Patient) => (
         <div className="space-y-1">
           <div className="flex items-center space-x-2">
@@ -304,26 +306,26 @@ const Patients = () => {
     },
     {
       key: 'age',
-      label: 'Age',
+      label: t('Age'),
       render: (patient: Patient) => (
-        <span className="text-sm font-medium">{calculateAge(patient.dateOfBirth)} years</span>
+        <span className="text-sm font-medium">{calculateAge(patient.dateOfBirth)} {t("years")}</span>
       ),
     },
     {
       key: 'bloodGroup',
-      label: 'Blood Group',
+      label: t('Blood Group'),
       render: (patient: Patient) => (
         <Badge variant="outline" className="badge-responsive">
-          {patient.bloodGroup || 'N/A'}
+                        {patient.bloodGroup || t('N/A')}
         </Badge>
       ),
     },
     {
       key: 'lastVisit',
-      label: 'Last Visit',
+      label: t('Last Visit'),
       render: (patient: Patient) => (
         <span className="text-xs xs:text-sm text-muted-foreground">
-          {patient.lastVisit?.toLocaleDateString() || 'Never'}
+          {patient.lastVisit?.toLocaleDateString() || t('Never')}
         </span>
       ),
     },
@@ -342,7 +344,7 @@ const Patients = () => {
             {patient.firstName} {patient.lastName}
           </div>
           <div className="text-xs xs:text-sm text-muted-foreground">
-            {patient.gender} • {calculateAge(patient.dateOfBirth)} years
+            {patient.gender} • {calculateAge(patient.dateOfBirth)} {t('years')}
           </div>
         </div>
       </div>
@@ -368,30 +370,30 @@ const Patients = () => {
         <div className="flex flex-wrap gap-2">
           {patient.bloodGroup && (
             <Badge variant="outline" className="badge-responsive">
-              Blood: {patient.bloodGroup}
+              {t("Blood")}: {patient.bloodGroup}
             </Badge>
           )}
           <Badge variant="secondary" className="badge-responsive">
-            Last visit: {patient.lastVisit?.toLocaleDateString() || 'Never'}
+            {t("Last visit")}: {patient.lastVisit?.toLocaleDateString() || t('Never')}
           </Badge>
         </div>
       </div>
     ),
     actions: (patient: Patient) => (
       <MobileActionDropdown
-        actions={[
-          {
-            label: "View Details",
+                  actions={[
+            {
+              label: t("View Details"),
             icon: Eye,
             onClick: () => handleViewDetails(patient),
           },
-          {
-            label: "Edit Patient",
+                      {
+              label: t("Edit Patient"),
             icon: Edit,
             onClick: () => handleEdit(patient),
           },
-          {
-            label: "Delete Patient",
+                      {
+              label: t("Delete Patient"),
             icon: Trash2,
             onClick: () => handleDelete(patient),
             variant: "destructive",
@@ -407,24 +409,24 @@ const Patients = () => {
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="h-8">
                 <MoreVertical className="h-4 w-4 mr-1" />
-                Actions
+                {t("Actions")}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={() => handleViewDetails(patient)}>
                 <Eye className="mr-2 h-4 w-4" />
-                View Details
+                {t("View Details")}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => handleEdit(patient)}>
                 <Edit className="mr-2 h-4 w-4" />
-                Edit Patient
+                {t("Edit Patient")}
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={() => handleDelete(patient)}
                 className="text-destructive"
               >
                 <Trash2 className="mr-2 h-4 w-4" />
-                Delete Patient
+                {t("Delete Patient")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -467,16 +469,16 @@ const Patients = () => {
       
 
       toast({
-        title: "Patient added",
-        description: `${data.firstName} ${data.lastName} has been added successfully.`,
+        title: t("Patient added"),
+        description: `${data.firstName} ${data.lastName} ${t("has been added successfully.")}`,
       });
       
       // Refetch patients list
       refetch();
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to add patient. Please try again.",
+        title: t("Error"),
+        description: t("Failed to add patient. Please try again."),
         variant: "destructive",
       });
     }
@@ -486,14 +488,14 @@ const Patients = () => {
     <ResponsiveContainer>
       {/* Header */}
       <ResponsiveHeader
-        title="Patients"
-        subtitle="Manage patient records and information"
+        title={t("Patients")}
+        subtitle={t("Manage patient records and information")}
         actions={
           <AddPatientModal
             trigger={
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
-                Add Patient
+                {t("Add Patient")}
               </Button>
             }
           />
@@ -503,24 +505,24 @@ const Patients = () => {
       {/* Stats Cards */}
       <ResponsiveGrid columns={4} className="mb-6">
         <ResponsiveStatsCard
-          title="Total Patients"
+          title={t("Total Patients")}
           value={totalPatients}
           icon={Users}
           trend={{ value: 12, isPositive: true }}
         />
         <ResponsiveStatsCard
-          title="New This Month"
+          title={t("New This Month")}
           value="24"
           icon={UserPlus}
           trend={{ value: 8, isPositive: true }}
         />
         <ResponsiveStatsCard
-          title="Active Patients"
+          title={t("Active Patients")}
           value={filteredPatients.length}
           icon={Eye}
         />
         <ResponsiveStatsCard
-          title="Avg Age"
+          title={t("Avg Age")}
           value="45"
           icon={Calendar}
         />
@@ -529,7 +531,7 @@ const Patients = () => {
       {/* Filters */}
       <Card className="mb-6">
         <CardHeader className="responsive-card-padding pb-3">
-          <CardTitle className="responsive-text-lg">Search & Filter</CardTitle>
+          <CardTitle className="responsive-text-lg">{t("Search & Filter")}</CardTitle>
         </CardHeader>
         <CardContent className="responsive-card-padding pt-0">
           <div className="flex flex-col xs:flex-row gap-3 xs:gap-4">
@@ -537,7 +539,7 @@ const Patients = () => {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search patients by name, email, or phone..."
+                  placeholder={t("Search patients by name, email, or phone...")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-10"
@@ -550,10 +552,10 @@ const Patients = () => {
                 onChange={(e) => setSelectedGender(e.target.value)}
                 className="btn-responsive border border-input bg-background px-3 py-2 rounded-md"
               >
-                <option value="all">All Genders</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
+                <option value="all">{t("All Genders")}</option>
+                <option value="male">{t("Male")}</option>
+                <option value="female">{t("Female")}</option>
+                <option value="other">{t("Other")}</option>
               </select>
             </div>
           </div>
@@ -568,16 +570,16 @@ const Patients = () => {
       >
         <Card>
           <CardHeader className="responsive-card-padding pb-3">
-            <CardTitle className="responsive-text-lg">Patient Records</CardTitle>
+            <CardTitle className="responsive-text-lg">{t("Patient Records")}</CardTitle>
             <CardDescription className="responsive-text-sm">
-              A list of all patients in your clinic with their details
+              {t("A list of all patients in your clinic with their details")}
             </CardDescription>
           </CardHeader>
           <CardContent className="responsive-card-padding">
             {error && (
               <Alert className="mb-4">
                 <AlertDescription>
-                  Failed to load patients. Please try again.
+                  {t("Failed to load patients. Please try again.")}
                 </AlertDescription>
               </Alert>
             )}
@@ -588,14 +590,14 @@ const Patients = () => {
               mobileCard={mobileCardConfig}
               actions={tableActions}
               loading={isLoading}
-              emptyMessage="No patients found. Add your first patient to get started."
+              emptyMessage={t("No patients found. Add your first patient to get started.")}
             />
 
             {/* Pagination */}
             {totalPages > 1 && (
               <div className="flex flex-col xs:flex-row items-center justify-between gap-3 mt-6">
                 <p className="responsive-text-sm text-muted-foreground">
-                  Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalPatients)} of {totalPatients} patients
+                  {t("Showing")} {((currentPage - 1) * pageSize) + 1} {t("to")} {Math.min(currentPage * pageSize, totalPatients)} {t("of")} {totalPatients} {t("patients")}
                 </p>
                 <div className="flex gap-2">
                   <Button
@@ -605,7 +607,7 @@ const Patients = () => {
                     disabled={currentPage === 1}
                     className="btn-responsive-sm"
                   >
-                    Previous
+                    {t("Previous")}
                   </Button>
                   <Button
                     variant="outline"
@@ -614,7 +616,7 @@ const Patients = () => {
                     disabled={currentPage === totalPages}
                     className="btn-responsive-sm"
                   >
-                    Next
+                    {t("Next")}
                   </Button>
                 </div>
               </div>
@@ -636,20 +638,20 @@ const Patients = () => {
         onOpenChange={() => setEditModal({ open: false, item: null })}
         onSave={handleSaveEdit}
         data={editModal.item || {}}
-        title="Edit Patient"
+        title={t("Edit Patient")}
         fields={[
-          { key: "firstName", label: "First Name", type: "text", required: true },
-          { key: "lastName", label: "Last Name", type: "text", required: true },
-          { key: "email", label: "Email", type: "text", required: true },
-          { key: "phone", label: "Phone", type: "text", required: true },
-          { key: "address", label: "Address", type: "textarea" },
-          { key: "gender", label: "Gender", type: "select", options: [
-            { value: "male", label: "Male" },
-            { value: "female", label: "Female" },
-            { value: "other", label: "Other" }
+          { key: "firstName", label: t("First Name"), type: "text", required: true },
+          { key: "lastName", label: t("Last Name"), type: "text", required: true },
+          { key: "email", label: t("Email"), type: "text", required: true },
+          { key: "phone", label: t("Phone"), type: "text", required: true },
+          { key: "address", label: t("Address"), type: "textarea" },
+          { key: "gender", label: t("Gender"), type: "select", options: [
+            { value: "male", label: t("Male") },
+            { value: "female", label: t("Female") },
+            { value: "other", label: t("Other") }
           ]},
-          { key: "dateOfBirth", label: "Date of Birth", type: "date", required: true },
-          { key: "bloodGroup", label: "Blood Group", type: "select", options: [
+          { key: "dateOfBirth", label: t("Date of Birth"), type: "date", required: true },
+          { key: "bloodGroup", label: t("Blood Group"), type: "select", options: [
             { value: "A+", label: "A+" },
             { value: "A-", label: "A-" },
             { value: "B+", label: "B+" },
@@ -659,9 +661,9 @@ const Patients = () => {
             { value: "O+", label: "O+" },
             { value: "O-", label: "O-" }
           ]},
-          { key: "emergencyContact.name", label: "Emergency Contact Name", type: "text" },
-          { key: "emergencyContact.phone", label: "Emergency Contact Phone", type: "text" },
-          { key: "emergencyContact.relationship", label: "Emergency Contact Relationship", type: "text" },
+          { key: "emergencyContact.name", label: t("Emergency Contact Name"), type: "text" },
+          { key: "emergencyContact.phone", label: t("Emergency Contact Phone"), type: "text" },
+          { key: "emergencyContact.relationship", label: t("Emergency Contact Relationship"), type: "text" },
         ]}
       />
 
@@ -669,9 +671,9 @@ const Patients = () => {
         open={deleteModal.open}
         onOpenChange={(open) => setDeleteModal({ open, item: open ? deleteModal.item : null })}
         onConfirm={handleConfirmDelete}
-        title="Delete Patient"
-        description={`Are you sure you want to delete this patient? This action cannot be undone.`}
-        itemName={`${deleteModal.item?.firstName || ''} ${deleteModal.item?.lastName || ''}`.trim() || 'this patient'}
+        title={t("Delete Patient")}
+        description={t("Are you sure you want to delete this patient? This action cannot be undone.")}
+        itemName={`${deleteModal.item?.firstName || ''} ${deleteModal.item?.lastName || ''}`.trim() || t('this patient')}
       />
     </ResponsiveContainer>
   );

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -61,6 +62,7 @@ import { apiService, type Payroll } from "@/services/api";
 import { toast } from "@/hooks/use-toast";
 
 const Staff = () => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedRole, setSelectedRole] = useState("all");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
@@ -241,8 +243,8 @@ const Staff = () => {
     refetch();
     fetchPayrollData(); // Also refresh payroll data
     toast({
-      title: "Staff list refreshed",
-      description: "Staff data has been updated from the server.",
+      title: t("Staff list refreshed"),
+      description: t("Staff data has been updated from the server."),
     });
   };
 
@@ -292,16 +294,16 @@ const Staff = () => {
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            Staff Management
+            {t('Staff Management')}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage clinic staff and their information
+            {t('Manage clinic staff and their information')}
           </p>
         </div>
         <div className="flex-shrink-0 flex gap-2">
           <Button variant="outline" onClick={handleRefresh} disabled={loading || loadingPayroll}>
             <RefreshCw className={`h-4 w-4 mr-2 ${(loading || loadingPayroll) ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('Refresh')}
           </Button>
           <AddStaffModal onStaffAdded={handleRefresh} />
         </div>
@@ -319,7 +321,7 @@ const Staff = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Staff
+                    {t('Total Staff')}
                   </p>
                   <p className="text-3xl font-bold text-foreground">
                     {stats.totalStaff}
@@ -340,7 +342,7 @@ const Staff = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Doctors</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('Doctors')}</p>
                   <p className="text-3xl font-bold text-primary">{stats.doctors}</p>
                 </div>
                 <Stethoscope className="h-8 w-8 text-primary" />
@@ -358,7 +360,7 @@ const Staff = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Nurses</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('Nurses')}</p>
                   <p className="text-3xl font-bold text-green-600">{stats.nurses}</p>
                 </div>
                 <UserCheck className="h-8 w-8 text-green-600" />
@@ -377,11 +379,11 @@ const Staff = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Salary Budget
+                    {t('Salary Budget')}
                   </p>
                   <p className="text-3xl font-bold text-purple-600">
                     {loadingPayroll ? (
-                      <span className="text-sm">Loading...</span>
+                      <span className="text-sm">{t('Loading...')}</span>
                     ) : (
                       <CurrencyDisplay amount={stats.totalSalaryBudget} variant="large" />
                     )}
@@ -402,7 +404,7 @@ const Staff = () => {
             <div className="relative flex-1 min-w-0 sm:min-w-[250px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search staff by name, email, or phone..."
+                placeholder={t('Search staff by name, email, or phone...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-full"
@@ -413,15 +415,15 @@ const Staff = () => {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
               <Select value={selectedRole} onValueChange={setSelectedRole}>
                 <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="Role" />
+                  <SelectValue placeholder={t('Role')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Roles</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="doctor">Doctor</SelectItem>
-                  <SelectItem value="nurse">Nurse</SelectItem>
-                  <SelectItem value="receptionist">Receptionist</SelectItem>
-                  <SelectItem value="technician">Technician</SelectItem>
+                  <SelectItem value="all">{t('All Roles')}</SelectItem>
+                  <SelectItem value="admin">{t('Admin')}</SelectItem>
+                  <SelectItem value="doctor">{t('Doctor')}</SelectItem>
+                  <SelectItem value="nurse">{t('Nurse')}</SelectItem>
+                  <SelectItem value="receptionist">{t('Receptionist')}</SelectItem>
+                  <SelectItem value="technician">{t('Technician')}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -430,12 +432,12 @@ const Staff = () => {
                 onValueChange={setSelectedDepartment}
               >
                 <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Department" />
+                  <SelectValue placeholder={t('Department')} />
                 </SelectTrigger>
                 <SelectContent>
                   {departments.map((dept) => (
                     <SelectItem key={dept} value={dept}>
-                      {dept === "all" ? "All Departments" : dept}
+                      {dept === "all" ? t("All Departments") : dept}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -453,9 +455,9 @@ const Staff = () => {
       >
         <Card>
           <CardHeader>
-            <CardTitle>Staff Directory</CardTitle>
+            <CardTitle>{t('Staff Directory')}</CardTitle>
             <CardDescription>
-              Complete list of clinic staff with their details and schedules
+              {t('Complete list of clinic staff with their details and schedules')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -463,14 +465,14 @@ const Staff = () => {
             {loading && (
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                <span className="ml-2 text-gray-600">Loading staff...</span>
+                <span className="ml-2 text-gray-600">{t('Loading staff...')}</span>
               </div>
             )}
 
             {/* Error State */}
             {error && (
               <div className="flex items-center justify-center py-8 text-red-600">
-                <span>Error: {error}</span>
+                <span>{t('Error:')} {error}</span>
               </div>
             )}
 
@@ -478,8 +480,8 @@ const Staff = () => {
             {!loading && !error && filteredStaff.length === 0 && (
               <div className="flex flex-col items-center justify-center py-8 text-gray-500">
                 <Users className="h-12 w-12 mb-4" />
-                <span className="text-lg font-medium">No staff members found</span>
-                <span className="text-sm">Try adjusting your filters or add new staff members</span>
+                <span className="text-lg font-medium">{t('No staff members found')}</span>
+                <span className="text-sm">{t('Try adjusting your filters or add new staff members')}</span>
               </div>
             )}
 
@@ -490,18 +492,18 @@ const Staff = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="min-w-[200px]">
-                      Staff Member
+                      {t('Staff Member')}
                     </TableHead>
-                    <TableHead className="min-w-[200px]">Contact</TableHead>
-                    <TableHead className="min-w-[120px]">Role</TableHead>
-                    <TableHead className="min-w-[140px]">Department</TableHead>
-                    <TableHead className="min-w-[140px]">Salary & Incentive</TableHead>
+                    <TableHead className="min-w-[200px]">{t('Contact')}</TableHead>
+                    <TableHead className="min-w-[120px]">{t('Role')}</TableHead>
+                    <TableHead className="min-w-[140px]">{t('Department')}</TableHead>
+                    <TableHead className="min-w-[140px]">{t('Salary & Incentive')}</TableHead>
                     <TableHead className="min-w-[120px]">
-                      Working Days
+                      {t('Working Days')}
                     </TableHead>
-                    <TableHead className="min-w-[100px]">Joined</TableHead>
+                    <TableHead className="min-w-[100px]">{t('Joined')}</TableHead>
                     <TableHead className="text-right min-w-[120px]">
-                      Actions
+                      {t('Actions')}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -554,13 +556,13 @@ const Staff = () => {
                           <div className="font-medium">
                             {getStaffSalary(member.id) > 0 
                               ? formatCurrency(getStaffSalary(member.id)) 
-                              : 'Not set'
+                              : t('Not set')
                             }
                           </div>
-                          <div className="text-sm text-gray-500">Base Salary</div>
+                          <div className="text-sm text-gray-500">{t('Base Salary')}</div>
                           {member.role === 'doctor' && (
                             <div className="text-sm text-blue-600 font-medium">
-                              {member.salesPercentage}% Sales Incentive
+                              {member.salesPercentage}% {t('Sales Incentive')}
                             </div>
                           )}
                         </div>
@@ -569,7 +571,7 @@ const Staff = () => {
                         <div className="flex items-center space-x-2">
                           <Clock className="h-4 w-4 text-gray-400" />
                           <span>
-                            {getWorkingDays(member.schedule)} days/week
+                            {getWorkingDays(member.schedule)} {t('days/week')}
                           </span>
                         </div>
                       </TableCell>
@@ -579,29 +581,29 @@ const Staff = () => {
                           <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm" className="h-8">
                               <MoreVertical className="h-4 w-4 mr-1" />
-                              Actions
+                              {t('Actions')}
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => handleViewProfile(member)}>
-                              View Profile
+                              {t('View Profile')}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEditDetails(member)}>
-                              Edit Details
+                              {t('Edit Details')}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleManageSchedule(member)}>
                               <Calendar className="mr-2 h-4 w-4" />
-                              Manage Schedule
+                              {t('Manage Schedule')}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleUpdateSalary(member)}>
                               <DollarSign className="mr-2 h-4 w-4" />
-                              Update Salary
+                              {t('Update Salary')}
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               className="text-red-600"
                               onClick={() => member.isActive ? handleDeactivateStaff(member.id) : handleActivateStaff(member.id)}
                             >
-                              {member.isActive ? 'Deactivate Staff' : 'Activate Staff'}
+                              {member.isActive ? t('Deactivate Staff') : t('Activate Staff')}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -663,7 +665,7 @@ const Staff = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
-                        Department
+                        {t('Department')}
                       </div>
                       <div className="text-sm font-medium">
                         {member.department}
@@ -671,17 +673,17 @@ const Staff = () => {
                     </div>
                     <div className="space-y-1">
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
-                        Salary & Incentive
+                        {t('Salary & Incentive')}
                       </div>
                       <div className="text-sm font-medium">
                         {getStaffSalary(member.id) > 0 
                           ? formatCurrency(getStaffSalary(member.id)) 
-                          : 'Not set'
+                          : t('Not set')
                         }
                       </div>
                       {member.role === 'doctor' && (
                         <div className="text-xs text-blue-600 font-medium">
-                          {member.salesPercentage}% Sales
+                          {member.salesPercentage}% {t('Sales')}
                         </div>
                       )}
                     </div>
@@ -690,18 +692,18 @@ const Staff = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
-                        Working Days
+                        {t('Working Days')}
                       </div>
                       <div className="flex items-center space-x-2">
                         <Clock className="h-4 w-4 text-gray-400" />
                         <span className="text-sm font-medium">
-                          {getWorkingDays(member.schedule)} days/week
+                          {getWorkingDays(member.schedule)} {t('days/week')}
                         </span>
                       </div>
                     </div>
                     <div className="space-y-1">
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
-                        Joined
+                        {t('Joined')}
                       </div>
                       <div className="text-sm">
                         {formatDate(member.joiningDate)}
@@ -712,35 +714,35 @@ const Staff = () => {
                   {/* Actions */}
                   <div className="flex items-center justify-between pt-2 border-t">
                     <div className="text-xs text-gray-500">
-                      Employee ID: #{member.id}
+                      {t('Employee ID:')} #{member.id}
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="sm">
                           <MoreVertical className="h-4 w-4 mr-1" />
-                          Actions
+                          {t('Actions')}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => handleViewProfile(member)}>
-                          View Profile
+                          {t('View Profile')}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEditDetails(member)}>
-                          Edit Details
+                          {t('Edit Details')}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleManageSchedule(member)}>
                           <Calendar className="mr-2 h-4 w-4" />
-                          Manage Schedule
+                          {t('Manage Schedule')}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleUpdateSalary(member)}>
                           <DollarSign className="mr-2 h-4 w-4" />
-                          Update Salary
+                          {t('Update Salary')}
                         </DropdownMenuItem>
                         <DropdownMenuItem 
                           className="text-red-600"
                           onClick={() => member.isActive ? handleDeactivateStaff(member.id) : handleActivateStaff(member.id)}
                         >
-                          {member.isActive ? 'Deactivate Staff' : 'Activate Staff'}
+                          {member.isActive ? t('Deactivate Staff') : t('Activate Staff')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

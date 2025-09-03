@@ -126,7 +126,7 @@ const UserSchema: Schema = new Schema({
     type: String,
     required: [true, 'Base currency is required'],
     default: 'USD',
-    enum: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CNY', 'INR', 'AED', 'SAR'],
+    enum: ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CNY', 'INR', 'AED', 'SAR', 'NGN', 'VND'],
     trim: true
   },
   address: {

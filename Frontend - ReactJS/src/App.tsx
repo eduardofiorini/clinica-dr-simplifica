@@ -9,7 +9,7 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ClinicProvider } from "@/contexts/ClinicContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import RequireRole from "@/components/RequireRole";
+import RequirePermission from "@/components/RequirePermission";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import ErrorBoundary from "@/components/ui/ErrorBoundary";
 
@@ -53,6 +53,10 @@ import Departments from "./pages/dashboard/departments/Departments";
 import Clinics from "./pages/dashboard/clinics/Clinics";
 import Permissions from "./pages/dashboard/permissions/Permissions";
 import NotFound from "./pages/NotFound";
+
+// Payment Pages
+import PaymentSuccess from "./pages/payments/PaymentSuccess";
+import PaymentCancelled from "./pages/payments/PaymentCancelled";
 
 const queryClient = new QueryClient();
 
@@ -116,6 +120,10 @@ const App = () => {
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
+            
+            {/* Payment Result Pages - public routes for Stripe redirects */}
+            <Route path="/payments/success" element={<PaymentSuccess />} />
+            <Route path="/payments/cancelled" element={<PaymentCancelled />} />
 
             {/* Clinic selection - requires auth but no clinic context */}
             <Route
@@ -139,285 +147,283 @@ const App = () => {
               {/* Dashboard - accessible to all authenticated users */}
               <Route index element={<Dashboard />} />
 
-              {/* Dental AI X-ray Analysis - accessible to admin, doctor, nurse */}
+              {/* Dental AI X-ray Analysis - requires xray_analysis.view permission */}
               <Route
                 path="xray-analysis"
                 element={
-                  <RequireRole roles={["admin", "doctor", "nurse"]}>
+                  <RequirePermission permissions="xray_analysis.view">
                     <XrayAnalysis />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* AI Test Report Analysis - accessible to admin, doctor, nurse */}
+              {/* AI Test Report Analysis - requires test_reports.view permission */}
               <Route
                 path="ai-test-analysis"
                 element={
-                  <RequireRole roles={["admin", "doctor", "nurse"]}>
+                  <RequirePermission permissions="test_reports.view">
                     <AITestAnalysis />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* AI Test Report Comparison - accessible to admin, doctor, nurse */}
+              {/* AI Test Report Comparison - requires test_reports.view permission */}
               <Route
                 path="ai-test-comparison"
                 element={
-                  <RequireRole roles={["admin", "doctor", "nurse"]}>
+                  <RequirePermission permissions="test_reports.view">
                     <AITestComparison />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Patients - accessible to admin, doctor, receptionist, nurse */}
+              {/* Patients - requires patients.view permission */}
               <Route
                 path="patients"
                 element={
-                  <RequireRole
-                    roles={["admin", "doctor", "receptionist", "nurse"]}
-                  >
+                  <RequirePermission permissions="patients.view">
                     <Patients />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Appointments - accessible to admin, doctor, receptionist */}
+              {/* Appointments - requires appointments.view permission */}
               <Route
                 path="appointments"
                 element={
-                  <RequireRole roles={["admin", "doctor", "receptionist"]}>
+                  <RequirePermission permissions="appointments.view">
                     <Appointments />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Leads - accessible to admin, receptionist */}
+              {/* Leads - requires leads.view permission */}
               <Route
                 path="leads"
                 element={
-                  <RequireRole roles={["admin", "receptionist"]}>
+                  <RequirePermission permissions="leads.view">
                     <Leads />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Billing - accessible to admin, accountant, receptionist */}
+              {/* Billing - requires invoice or payment view permissions */}
               <Route
                 path="billing"
                 element={
-                  <RequireRole roles={["admin", "accountant", "receptionist"]}>
+                  <RequirePermission permissions={["invoices.view", "payments.view"]} operator="OR">
                     <Billing />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Financial Management - admin and accountant only */}
+              {/* Financial Management - require specific permissions */}
               <Route
                 path="invoices"
                 element={
-                  <RequireRole roles={["admin", "accountant"]}>
+                  <RequirePermission permissions="invoices.view">
                     <Invoices />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
               <Route
                 path="payments"
                 element={
-                  <RequireRole roles={["admin", "accountant"]}>
+                  <RequirePermission permissions="payments.view">
                     <Payments />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
               <Route
                 path="payroll"
                 element={
-                  <RequireRole roles={["admin", "accountant"]}>
+                  <RequirePermission permissions="payroll.view">
                     <Payroll />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
               <Route
                 path="expenses"
                 element={
-                  <RequireRole roles={["admin", "accountant"]}>
+                  <RequirePermission permissions="expenses.view">
                     <Expenses />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
               <Route
                 path="performance"
                 element={
-                  <RequireRole roles={["admin", "accountant"]}>
+                  <RequirePermission permissions="analytics.reports">
                     <Performance />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Services - accessible to admin, doctor */}
+              {/* Services - requires services.view permission */}
               <Route
                 path="services"
                 element={
-                  <RequireRole roles={["admin", "doctor"]}>
+                  <RequirePermission permissions="services.view">
                     <Services />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Departments - admin only */}
+              {/* Departments - requires departments.view permission */}
               <Route
                 path="departments"
                 element={
-                  <RequireRole roles={["admin"]}>
+                  <RequirePermission permissions="departments.view">
                     <Departments />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Clinics - admin only */}
+              {/* Clinics - requires clinics.view permission */}
               <Route
                 path="clinics"
                 element={
-                  <RequireRole roles={["admin"]}>
+                  <RequirePermission permissions="clinics.view">
                     <Clinics />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Permissions - admin only */}
+              {/* Permissions - requires permissions.view permission */}
               <Route
                 path="permissions"
                 element={
-                  <RequireRole roles={["admin"]}>
+                  <RequirePermission permissions="permissions.view">
                     <Permissions />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Inventory - accessible to admin, nurse */}
+              {/* Inventory - requires inventory.view permission */}
               <Route
                 path="inventory"
                 element={
-                  <RequireRole roles={["admin", "nurse"]}>
+                  <RequirePermission permissions="inventory.view">
                     <Inventory />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Staff Management - admin only */}
+              {/* Staff Management - requires users.view permission */}
               <Route
                 path="staff"
                 element={
-                  <RequireRole roles={["admin"]}>
+                  <RequirePermission permissions="users.view">
                     <Staff />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Prescriptions - accessible to admin, doctor */}
+              {/* Prescriptions - requires prescriptions.view permission */}
               <Route
                 path="prescriptions"
                 element={
-                  <RequireRole roles={["admin", "doctor"]}>
+                  <RequirePermission permissions="prescriptions.view">
                     <Prescriptions />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Odontograms - accessible to admin, doctor */}
+              {/* Odontograms - requires odontogram.view permission */}
               <Route
                 path="odontograms"
                 element={
-                  <RequireRole roles={["admin", "doctor"]}>
+                  <RequirePermission permissions="odontogram.view">
                     <Odontograms />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Tests - accessible to admin, doctor, nurse */}
+              {/* Tests - requires tests.view permission */}
               <Route
                 path="tests"
                 element={
-                  <RequireRole roles={["admin", "doctor", "nurse"]}>
+                  <RequirePermission permissions="tests.view">
                     <Tests />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Test Reports - accessible to admin, doctor, nurse */}
+              {/* Test Reports - requires test_reports.view permission */}
               <Route
                 path="test-reports"
                 element={
-                  <RequireRole roles={["admin", "doctor", "nurse"]}>
+                  <RequirePermission permissions="test_reports.view">
                     <TestReports />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Lab Vendors - accessible to admin, accountant */}
+              {/* Lab Vendors - requires lab_vendors.view permission */}
               <Route
                 path="lab-vendors"
                 element={
-                  <RequireRole roles={["admin", "accountant"]}>
+                  <RequirePermission permissions="lab_vendors.view">
                     <LabVendors />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Test Modules - accessible to admin, doctor, nurse */}
+              {/* Test Modules - requires tests.view permission */}
               <Route
                 path="test-modules/methodology"
                 element={
-                  <RequireRole roles={["admin", "doctor", "nurse"]}>
+                  <RequirePermission permissions="tests.view">
                     <Methodology />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
               <Route
                 path="test-modules/turnaround-time"
                 element={
-                  <RequireRole roles={["admin", "doctor", "nurse"]}>
+                  <RequirePermission permissions="tests.view">
                     <TurnaroundTime />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
               <Route
                 path="test-modules/sample-type"
                 element={
-                  <RequireRole roles={["admin", "doctor", "nurse"]}>
+                  <RequirePermission permissions="tests.view">
                     <SampleType />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
               <Route
                 path="test-modules/category"
                 element={
-                  <RequireRole roles={["admin", "doctor", "nurse"]}>
+                  <RequirePermission permissions="tests.view">
                     <Category />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Calendar - accessible to admin, doctor, receptionist */}
+              {/* Calendar - requires appointments.view permission */}
               <Route
                 path="calendar"
                 element={
-                  <RequireRole roles={["admin", "doctor", "receptionist"]}>
+                  <RequirePermission permissions="appointments.view">
                     <Calendar />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
-              {/* Reports - accessible to admin, accountant */}
+              {/* Reports - requires analytics.dashboard permission */}
               <Route
                 path="reports"
                 element={
-                  <RequireRole roles={["admin", "accountant"]}>
+                  <RequirePermission permissions={["analytics.dashboard", "analytics.reports"]} operator="OR">
                     <Analytics />
-                  </RequireRole>
+                  </RequirePermission>
                 }
               />
 
@@ -428,19 +434,7 @@ const App = () => {
               {/* Profile - accessible to all authenticated users */}
               <Route
                 path="profile"
-                element={
-                  <RequireRole
-                    roles={[
-                      "admin",
-                      "doctor",
-                      "receptionist",
-                      "nurse",
-                      "accountant",
-                    ]}
-                  >
-                    <Profile />
-                  </RequireRole>
-                }
+                element={<Profile />}
               />
             </Route>
 

@@ -2,10 +2,11 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IPayment extends Document {
   clinic_id: mongoose.Types.ObjectId;
-  invoice_id: mongoose.Types.ObjectId;
+  invoice_id?: mongoose.Types.ObjectId; // Optional for standalone payment links
   patient_id: mongoose.Types.ObjectId;
   amount: number;
-  method: 'credit_card' | 'cash' | 'bank_transfer' | 'upi' | 'insurance';
+  currency: string; // Add currency field
+  method: 'credit_card' | 'cash' | 'bank_transfer' | 'upi' | 'insurance' | 'stripe';
   status: 'completed' | 'pending' | 'processing' | 'failed' | 'refunded';
   transaction_id?: string;
   card_last4?: string;
@@ -15,6 +16,14 @@ export interface IPayment extends Document {
   payment_date: Date;
   failure_reason?: string;
   description: string;
+  
+  // Stripe-specific fields
+  stripe_payment_intent_id?: string;
+  stripe_checkout_session_id?: string;
+  stripe_customer_id?: string;
+  payment_link?: string;
+  customer_email?: string;
+  
   created_at: Date;
   updated_at: Date;
 }
@@ -28,7 +37,7 @@ const PaymentSchema: Schema = new Schema({
   invoice_id: {
     type: Schema.Types.ObjectId,
     ref: 'Invoice',
-    required: [true, 'Invoice ID is required']
+    required: false // Optional for standalone payment links
   },
   patient_id: {
     type: Schema.Types.ObjectId,
@@ -46,9 +55,22 @@ const PaymentSchema: Schema = new Schema({
       message: 'Payment amount must be a valid positive number'
     }
   },
+  currency: {
+    type: String,
+    required: [true, 'Currency is required'],
+    default: 'USD',
+    uppercase: true,
+    validate: {
+      validator: function(value: string) {
+        // Basic currency code validation (3 letters)
+        return /^[A-Z]{3}$/.test(value);
+      },
+      message: 'Currency must be a valid 3-letter currency code'
+    }
+  },
   method: {
     type: String,
-    enum: ['credit_card', 'cash', 'bank_transfer', 'upi', 'insurance'],
+    enum: ['credit_card', 'cash', 'bank_transfer', 'upi', 'insurance', 'stripe'],
     required: [true, 'Payment method is required']
   },
   status: {
@@ -98,6 +120,48 @@ const PaymentSchema: Schema = new Schema({
     required: [true, 'Payment description is required'],
     trim: true,
     maxlength: [500, 'Payment description cannot exceed 500 characters']
+  },
+  
+  // Stripe-specific fields
+  stripe_payment_intent_id: {
+    type: String,
+    trim: true,
+    sparse: true, // Allow multiple null/undefined values
+    index: true
+  },
+  stripe_checkout_session_id: {
+    type: String,
+    trim: true,
+    sparse: true, // Allow multiple null/undefined values
+    index: true
+  },
+  stripe_customer_id: {
+    type: String,
+    trim: true,
+    sparse: true
+  },
+  payment_link: {
+    type: String,
+    trim: true,
+    validate: {
+      validator: function(value: string) {
+        if (!value) return true; // Allow empty values
+        return /^https?:\/\/.+/.test(value);
+      },
+      message: 'Payment link must be a valid URL'
+    }
+  },
+  customer_email: {
+    type: String,
+    trim: true,
+    lowercase: true,
+    validate: {
+      validator: function(value: string) {
+        if (!value) return true; // Allow empty values
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+      },
+      message: 'Customer email must be a valid email address'
+    }
   }
 }, {
   timestamps: { createdAt: 'created_at', updatedAt: 'updated_at' }
@@ -110,6 +174,11 @@ PaymentSchema.index({ clinic_id: 1, patient_id: 1, payment_date: -1 });
 PaymentSchema.index({ clinic_id: 1, status: 1, payment_date: -1 });
 PaymentSchema.index({ clinic_id: 1, method: 1 });
 PaymentSchema.index({ clinic_id: 1, payment_date: -1 });
+
+// Stripe-specific indexes
+PaymentSchema.index({ stripe_payment_intent_id: 1 }, { sparse: true });
+PaymentSchema.index({ stripe_checkout_session_id: 1 }, { sparse: true });
+PaymentSchema.index({ clinic_id: 1, customer_email: 1 });
 
 // Pre-save middleware to calculate net amount
 PaymentSchema.pre('save', function(next) {

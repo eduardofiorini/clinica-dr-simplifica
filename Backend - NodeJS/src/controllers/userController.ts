@@ -434,6 +434,31 @@ export class UserController {
     }
   }
 
+  // Get all users for admin clinic management (without pagination)
+  static async getAllUsersForAdmin(req: Request, res: Response) {
+    try {
+      const users = await User.find({ is_active: true })
+        .select('first_name last_name email role phone is_active created_at')
+        .sort({ first_name: 1, last_name: 1 });
+
+      res.status(200).json({
+        success: true,
+        data: {
+          users: users
+        },
+        total: users.length
+      });
+
+    } catch (error: any) {
+      console.error('Error fetching all users for admin:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching users',
+        error: error.message
+      });
+    }
+  }
+
   // Get demo users (public access for login page)
   static async getDemoUsers(req: Request, res: Response) {
     try {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -62,6 +63,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import ErrorHandler from "@/components/ErrorHandler";
 
 const Billing = () => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedTab, setSelectedTab] = useState("invoices");
@@ -105,8 +107,8 @@ const Billing = () => {
       // Don't show toast for permission errors, ErrorHandler will handle it
       if (!err.message.includes('403')) {
         toast({
-          title: "Error",
-          description: "Failed to load billing data. Please try again.",
+          title: t("Error"),
+          description: t("Failed to load billing data. Please try again."),
           variant: "destructive",
         });
       }
@@ -289,7 +291,7 @@ const Billing = () => {
 
   const getPatientDisplay = (patient: string | { _id: string; first_name: string; last_name: string; phone?: string; email?: string } | null) => {
     if (!patient) {
-      return 'Unknown Patient';
+      return t('Unknown Patient');
     }
     if (typeof patient === 'string') {
       return patient;
@@ -309,7 +311,7 @@ const Billing = () => {
 
   const getInvoiceDisplay = (invoice: string | { _id: string; invoice_number: string; total_amount: number } | null) => {
     if (!invoice) {
-      return 'N/A';
+      return t('N/A');
     }
     if (typeof invoice === 'string') {
       return invoice;
@@ -321,15 +323,15 @@ const Billing = () => {
     try {
       await apiService.updateInvoice(invoiceId, { status: "paid" });
       toast({
-        title: "Payment Recorded",
-        description: `Invoice ${invoiceId} has been marked as paid.`,
+        title: t("Payment Recorded"),
+        description: `${t('Invoice')} ${invoiceId} ${t('has been marked as paid.')}`,
       });
       loadInvoices(); // Reload invoices
       loadInvoiceStats(); // Reload invoice stats to reflect the status change
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to update invoice status.",
+        title: t("Error"),
+        description: t("Failed to update invoice status."),
         variant: "destructive",
       });
     }
@@ -373,14 +375,14 @@ const Billing = () => {
     try {
       await apiService.initiateRefund(paymentId, 0, "Customer requested refund");
       toast({
-        title: "Refund Initiated",
-        description: `Refund for payment ${paymentId} has been initiated.`,
+        title: t("Refund Initiated"),
+        description: `${t('Refund for payment')} ${paymentId} ${t('has been initiated.')}`,
       });
       loadPayments(); // Reload payments
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to initiate refund.",
+        title: t("Error"),
+        description: t("Failed to initiate refund."),
         variant: "destructive",
       });
     }
@@ -421,10 +423,10 @@ const Billing = () => {
       <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1 min-w-0">
           <h1 className="text-xl xs:text-2xl sm:text-3xl font-bold text-foreground">
-            Billing & Payments
+            {t('Billing & Payments')}
           </h1>
           <p className="text-xs xs:text-sm sm:text-base text-muted-foreground mt-1">
-            Manage invoices, payments, and financial records
+            {t('Manage invoices, payments, and financial records')}
           </p>
         </div>
         <div className="flex-shrink-0 w-full sm:w-auto">
@@ -439,7 +441,7 @@ const Billing = () => {
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  Total Revenue (All Time)
+                  {t('Total Revenue (All Time)')}
                 </p>
                 <p className="text-xl xs:text-2xl font-bold text-green-600 mt-1">
                   <CurrencyDisplay 
@@ -458,7 +460,7 @@ const Billing = () => {
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  This Month Revenue
+                  {t('This Month Revenue')}
                 </p>
                 <p className="text-xl xs:text-2xl font-bold text-green-600 mt-1">
                   <CurrencyDisplay 
@@ -477,7 +479,7 @@ const Billing = () => {
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  Pending Payments
+                  {t('Pending Payments')}
                 </p>
                 <p className="text-xl xs:text-2xl font-bold text-orange-600 mt-1">
                   <CurrencyDisplay 
@@ -496,7 +498,7 @@ const Billing = () => {
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  Total Invoices
+                  {t('Total Invoices')}
                 </p>
                 <p className="text-xl xs:text-2xl font-bold text-gray-900 mt-1">
                   {loading ? "..." : totalInvoicesCount}
@@ -512,7 +514,7 @@ const Billing = () => {
             <div className="flex items-center justify-between">
               <div className="min-w-0 flex-1">
                 <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                  Processing Payments
+                  {t('Processing Payments')}
                 </p>
                 <p className="text-xl xs:text-2xl font-bold text-purple-600 mt-1">
                   {processingPayments}
@@ -532,7 +534,7 @@ const Billing = () => {
             <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search invoices or payments..."
+                placeholder={t('Search invoices or payments...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-full h-10"
@@ -543,14 +545,14 @@ const Billing = () => {
             <div className="flex flex-col xs:flex-row gap-2 xs:gap-3 sm:gap-4">
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger className="w-full xs:w-40">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t('Status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="overdue">Overdue</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="all">{t('All Status')}</SelectItem>
+                  <SelectItem value="paid">{t('Paid')}</SelectItem>
+                  <SelectItem value="pending">{t('Pending')}</SelectItem>
+                  <SelectItem value="overdue">{t('Overdue')}</SelectItem>
+                  <SelectItem value="cancelled">{t('Cancelled')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -562,10 +564,10 @@ const Billing = () => {
       <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="invoices" className="text-xs xs:text-sm">
-            Invoices ({totalInvoicesCount})
+            {t('Invoices')} ({totalInvoicesCount})
           </TabsTrigger>
           <TabsTrigger value="payments" className="text-xs xs:text-sm">
-            Payments ({payments.length})
+            {t('Payments')} ({payments.length})
           </TabsTrigger>
         </TabsList>
 
@@ -573,9 +575,9 @@ const Billing = () => {
         <TabsContent value="invoices" className="space-y-3 xs:space-y-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base xs:text-lg sm:text-xl">Invoice Management</CardTitle>
+              <CardTitle className="text-base xs:text-lg sm:text-xl">{t('Invoice Management')}</CardTitle>
               <CardDescription className="text-xs xs:text-sm">
-                Track and manage all patient invoices
+                {t('Track and manage all patient invoices')}
               </CardDescription>
             </CardHeader>
             <CardContent className="px-3 xs:px-4 sm:px-6">
@@ -584,12 +586,12 @@ const Billing = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Invoice</TableHead>
-                      <TableHead>Patient</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('Invoice')}</TableHead>
+                      <TableHead>{t('Patient')}</TableHead>
+                      <TableHead>{t('Amount')}</TableHead>
+                      <TableHead>{t('Status')}</TableHead>
+                      <TableHead>{t('Date')}</TableHead>
+                      <TableHead className="text-right">{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -609,7 +611,7 @@ const Billing = () => {
                         <TableCell colSpan={6} className="text-center py-8">
                           <div className="text-gray-500">
                             <Receipt className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                            <p className="text-sm">No invoices found</p>
+                            <p className="text-sm">{t('No invoices found')}</p>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -622,7 +624,7 @@ const Billing = () => {
                                 {invoice.invoice_number}
                               </p>
                               <p className="text-sm text-gray-500">
-                                ID: {invoice._id.slice(-8)}
+                                {t('ID:')}: {invoice._id.slice(-8)}
                               </p>
                             </div>
                           </TableCell>
@@ -653,22 +655,22 @@ const Billing = () => {
                               <DropdownMenuTrigger asChild>
                                 <Button variant="outline" size="sm" className="h-8">
                                   <MoreVertical className="h-4 w-4 mr-1" />
-                                  Actions
+                                  {t('Actions')}
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => handleViewInvoice(invoice._id)}>
                                   <Eye className="mr-2 h-4 w-4" />
-                                  View Invoice
+                                  {t('View Invoice')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem onClick={() => handleEditInvoice(invoice._id)}>
                                   <Edit className="mr-2 h-4 w-4" />
-                                  Edit
+                                  {t('Edit')}
                                 </DropdownMenuItem>
                                 {invoice.status === "pending" && (
                                   <DropdownMenuItem onClick={() => handleMarkAsPaid(invoice._id)}>
                                     <CheckCircle className="mr-2 h-4 w-4" />
-                                    Mark as Paid
+                                    {t('Mark as Paid')}
                                   </DropdownMenuItem>
                                 )}
                                 <DropdownMenuItem 
@@ -676,7 +678,7 @@ const Billing = () => {
                                   className="text-red-600"
                                 >
                                   <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete
+                                  {t('Delete')}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -706,7 +708,7 @@ const Billing = () => {
                 ) : filteredInvoices.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <Receipt className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p className="text-sm font-medium">No invoices found</p>
+                    <p className="text-sm font-medium">{t('No invoices found')}</p>
                   </div>
                 ) : (
                   filteredInvoices.map((invoice) => (
@@ -739,22 +741,22 @@ const Billing = () => {
                           <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm" className="h-8 flex-shrink-0 ml-2">
                               <MoreVertical className="h-4 w-4 mr-1" />
-                              Actions
+                              {t('Actions')}
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
                             <DropdownMenuItem onClick={() => handleViewInvoice(invoice._id)}>
                               <Eye className="mr-2 h-4 w-4" />
-                              View Invoice
+                              {t('View Invoice')}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEditInvoice(invoice._id)}>
                               <Edit className="mr-2 h-4 w-4" />
-                              Edit
+                              {t('Edit')}
                             </DropdownMenuItem>
                             {invoice.status === "pending" && (
                               <DropdownMenuItem onClick={() => handleMarkAsPaid(invoice._id)}>
                                 <CheckCircle className="mr-2 h-4 w-4" />
-                                Mark as Paid
+                                {t('Mark as Paid')}
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuItem 
@@ -762,7 +764,7 @@ const Billing = () => {
                               className="text-red-600"
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
-                              Delete
+                              {t('Delete')}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -779,9 +781,9 @@ const Billing = () => {
         <TabsContent value="payments" className="space-y-3 xs:space-y-4">
           <Card>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base xs:text-lg sm:text-xl">Payment History</CardTitle>
+              <CardTitle className="text-base xs:text-lg sm:text-xl">{t('Payment History')}</CardTitle>
               <CardDescription className="text-xs xs:text-sm">
-                Track all payment transactions and refunds
+                {t('Track all payment transactions and refunds')}
               </CardDescription>
             </CardHeader>
             <CardContent className="px-3 xs:px-4 sm:px-6">
@@ -790,13 +792,13 @@ const Billing = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Transaction</TableHead>
-                      <TableHead>Patient</TableHead>
-                      <TableHead>Invoice</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Method</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>{t('Transaction')}</TableHead>
+                      <TableHead>{t('Patient')}</TableHead>
+                      <TableHead>{t('Invoice')}</TableHead>
+                      <TableHead>{t('Amount')}</TableHead>
+                      <TableHead>{t('Method')}</TableHead>
+                      <TableHead>{t('Status')}</TableHead>
+                      <TableHead className="text-right">{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -817,7 +819,7 @@ const Billing = () => {
                         <TableCell colSpan={7} className="text-center py-8">
                           <div className="text-gray-500">
                             <CreditCard className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                            <p className="text-sm">No payments found</p>
+                            <p className="text-sm">{t('No payments found')}</p>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -866,13 +868,13 @@ const Billing = () => {
                               <DropdownMenuTrigger asChild>
                                 <Button variant="outline" size="sm" className="h-8">
                                   <MoreVertical className="h-4 w-4 mr-1" />
-                                  Actions
+                                  {t('Actions')}
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem onClick={() => handleViewPayment(payment._id)}>
                                   <Eye className="mr-2 h-4 w-4" />
-                                  View Details
+                                  {t('View Details')}
                                 </DropdownMenuItem>
                                 {payment.status === "completed" && (
                                   <DropdownMenuItem 
@@ -880,7 +882,7 @@ const Billing = () => {
                                     className="text-red-600"
                                   >
                                     <AlertCircle className="mr-2 h-4 w-4" />
-                                    Process Refund
+                                    {t('Process Refund')}
                                   </DropdownMenuItem>
                                 )}
                               </DropdownMenuContent>
@@ -911,7 +913,7 @@ const Billing = () => {
                 ) : filteredPayments.length === 0 ? (
                   <div className="text-center py-8 text-gray-500">
                     <CreditCard className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p className="text-sm font-medium">No payments found</p>
+                    <p className="text-sm font-medium">{t('No payments found')}</p>
                   </div>
                 ) : (
                   filteredPayments.map((payment) => (
@@ -950,13 +952,13 @@ const Billing = () => {
                           <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm" className="h-8 flex-shrink-0 ml-2">
                               <MoreVertical className="h-4 w-4 mr-1" />
-                              Actions
+                              {t('Actions')}
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
                             <DropdownMenuItem onClick={() => handleViewPayment(payment._id)}>
                               <Eye className="mr-2 h-4 w-4" />
-                              View Details
+                              {t('View Details')}
                             </DropdownMenuItem>
                             {payment.status === "completed" && (
                               <DropdownMenuItem 
@@ -964,7 +966,7 @@ const Billing = () => {
                                 className="text-red-600"
                               >
                                 <AlertCircle className="mr-2 h-4 w-4" />
-                                Process Refund
+                                {t('Process Refund')}
                               </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>
@@ -983,7 +985,7 @@ const Billing = () => {
       {totalPages > 1 && (
         <div className="flex items-center justify-between border-t pt-4">
           <div className="text-sm text-gray-500">
-            Page {currentPage} of {totalPages}
+            {t('Page')} {currentPage} {t('of')} {totalPages}
           </div>
           <div className="flex space-x-2">
             <Button
@@ -992,7 +994,7 @@ const Billing = () => {
               onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
               disabled={currentPage === 1}
             >
-              Previous
+              {t('Previous')}
             </Button>
             <Button
               variant="outline"
@@ -1000,7 +1002,7 @@ const Billing = () => {
               onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
               disabled={currentPage === totalPages}
             >
-              Next
+              {t('Next')}
             </Button>
           </div>
         </div>

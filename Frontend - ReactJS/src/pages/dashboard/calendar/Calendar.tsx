@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -47,6 +48,7 @@ import appointmentApi, { CalendarEvent } from "@/services/api/appointmentApi";
 import userApi, { Doctor } from "@/services/api/userApi";
 
 const Calendar = () => {
+  const { t } = useTranslation();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [viewMode, setViewMode] = useState<"month" | "week" | "day">("month");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -88,14 +90,14 @@ const Calendar = () => {
       } catch (err) {
         console.error("Error loading calendar data:", err);
         const errorMessage = err instanceof Error && err.message.includes('401') 
-          ? "Access denied. Please check your clinic permissions." 
+          ? t("Access denied. Please check your clinic permissions.") 
           : err instanceof Error && err.message.includes('403')
-          ? "Insufficient permissions to view appointments for this clinic."
-          : "Failed to load calendar data. Please try again.";
+          ? t("Insufficient permissions to view appointments for this clinic.")
+          : t("Failed to load calendar data. Please try again.");
         
         setError(errorMessage);
         toast({
-          title: "Error",
+          title: t("Error"),
           description: errorMessage,
           variant: "destructive",
         });
@@ -188,11 +190,11 @@ const Calendar = () => {
           
           // Show user-friendly message for rate limiting
           const message = err instanceof Error && err.message.includes('Too many requests')
-            ? "Too many requests. Please wait a moment before trying again."
-            : "Failed to load appointments. Please try again.";
+            ? t("Too many requests. Please wait a moment before trying again.")
+            : t("Failed to load appointments. Please try again.");
             
           toast({
-            title: "Error",
+            title: t("Error"),
             description: message,
             variant: "destructive",
           });
@@ -217,13 +219,13 @@ const Calendar = () => {
       const appointment = await appointmentApi.getAppointmentById(appointmentId);
       // Here you could open a modal or navigate to appointment details
       toast({
-        title: "Appointment Details",
+        title: t("Appointment Details"),
         description: `${appointment.title} - ${appointment.patientName}`,
       });
     } catch (err) {
       toast({
-        title: "Error",
-        description: "Failed to load appointment details.",
+        title: t("Error"),
+        description: t("Failed to load appointment details."),
         variant: "destructive",
       });
     }
@@ -232,8 +234,8 @@ const Calendar = () => {
   const handleEditAppointment = (appointmentId: string) => {
     // Here you could open an edit modal or navigate to edit page
     toast({
-      title: "Edit Appointment",
-      description: "Edit functionality would open here.",
+      title: t("Edit Appointment"),
+      description: t("Edit functionality would open here."),
     });
   };
 
@@ -249,13 +251,13 @@ const Calendar = () => {
       ));
       
       toast({
-        title: "Success",
-        description: "Appointment cancelled successfully.",
+        title: t("Success"),
+        description: t("Appointment cancelled successfully."),
       });
     } catch (err) {
       toast({
-        title: "Error",
-        description: "Failed to cancel appointment.",
+        title: t("Error"),
+        description: t("Failed to cancel appointment."),
         variant: "destructive",
       });
     }
@@ -271,13 +273,13 @@ const Calendar = () => {
       );
       setEvents(appointmentsData);
       toast({
-        title: "Success",
-        description: "Calendar refreshed successfully.",
+        title: t("Success"),
+        description: t("Calendar refreshed successfully."),
       });
     } catch (err) {
       toast({
-        title: "Error",
-        description: "Failed to refresh calendar.",
+        title: t("Error"),
+        description: t("Failed to refresh calendar."),
         variant: "destructive",
       });
     } finally {
@@ -442,7 +444,7 @@ const Calendar = () => {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2 text-muted-foreground">Loading clinic context...</span>
+        <span className="ml-2 text-muted-foreground">{t('Loading clinic context...')}</span>
       </div>
     );
   }
@@ -453,13 +455,13 @@ const Calendar = () => {
       <div className="space-y-6">
         <div className="text-center py-12">
           <CalendarIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-foreground mb-2">No Clinic Selected</h2>
+          <h2 className="text-xl font-semibold text-foreground mb-2">{t('No Clinic Selected')}</h2>
           <p className="text-muted-foreground mb-4">
-            Please select a clinic to view and manage appointments.
+            {t('Please select a clinic to view and manage appointments.')}
           </p>
           {clinicError && (
             <p className="text-red-600 text-sm">
-              Error: {clinicError}
+              {t('Error:')} {clinicError}
             </p>
           )}
         </div>
@@ -473,20 +475,20 @@ const Calendar = () => {
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between sm:flex-wrap">
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            Calendar View
+            {t('Calendar View')}
           </h1>
           <p className="text-muted-foreground mt-1">
             {currentClinic ? (
-              <>Manage appointments, surgeries, and clinic events for <span className="font-semibold text-primary">{currentClinic.name}</span></>
+              <>{t('Manage appointments, surgeries, and clinic events for')} <span className="font-semibold text-primary">{currentClinic.name}</span></>
             ) : (
-              "Manage appointments, surgeries, and clinic events"
+              t('Manage appointments, surgeries, and clinic events')
             )}
           </p>
         </div>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 flex-shrink-0">
           <Button variant="outline" className="w-full sm:w-auto" onClick={handleToday} disabled={loading || filterLoading}>
             <CalendarIcon className="h-4 w-4 mr-2" />
-            Today
+            {t('Today')}
           </Button>
           <Button variant="outline" className="w-full sm:w-auto" onClick={handleRefresh} disabled={loading || filterLoading}>
             {loading || filterLoading ? (
@@ -494,7 +496,7 @@ const Calendar = () => {
             ) : (
               <CalendarIcon className="h-4 w-4 mr-2" />
             )}
-            {loading || filterLoading ? "Loading..." : "Refresh"}
+            {loading || filterLoading ? t("Loading...") : t("Refresh")}
           </Button>
         </div>
       </div>
@@ -534,7 +536,7 @@ const Calendar = () => {
                 onClick={() => setViewMode("month")}
                 disabled={loading || filterLoading}
               >
-                Month
+                {t('Month')}
               </Button>
               <Button
                 variant={viewMode === "week" ? "default" : "outline"}
@@ -542,7 +544,7 @@ const Calendar = () => {
                 onClick={() => setViewMode("week")}
                 disabled={loading || filterLoading}
               >
-                Week
+                {t('Week')}
               </Button>
               <Button
                 variant={viewMode === "day" ? "default" : "outline"}
@@ -550,7 +552,7 @@ const Calendar = () => {
                 onClick={() => setViewMode("day")}
                 disabled={loading || filterLoading}
               >
-                Day
+                {t('Day')}
               </Button>
             </div>
           </div>
@@ -565,7 +567,7 @@ const Calendar = () => {
             <div className="relative flex-1 min-w-0 sm:min-w-[250px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search events, doctors, or patients..."
+                placeholder={t('Search events, doctors, or patients...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-full"
@@ -576,10 +578,10 @@ const Calendar = () => {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
               <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
                 <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="Doctor" />
+                  <SelectValue placeholder={t('Doctor')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Doctors</SelectItem>
+                  <SelectItem value="all">{t('All Doctors')}</SelectItem>
                   {doctors.map((doctor) => (
                     <SelectItem key={doctor.id} value={doctor.name}>
                       {doctor.name}
@@ -590,15 +592,15 @@ const Calendar = () => {
 
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t('Status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="scheduled">Scheduled</SelectItem>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                  <SelectItem value="no-show">No Show</SelectItem>
+                  <SelectItem value="all">{t('All Status')}</SelectItem>
+                  <SelectItem value="scheduled">{t('Scheduled')}</SelectItem>
+                  <SelectItem value="confirmed">{t('Confirmed')}</SelectItem>
+                  <SelectItem value="completed">{t('Completed')}</SelectItem>
+                  <SelectItem value="cancelled">{t('Cancelled')}</SelectItem>
+                  <SelectItem value="no-show">{t('No Show')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -615,16 +617,16 @@ const Calendar = () => {
         <Card>
           <CardHeader>
             <CardTitle>
-              {viewMode === "day" ? "Today's Events" : 
-               viewMode === "week" ? "This Week's Events" : 
-               "Upcoming Events"}
+              {viewMode === "day" ? t("Today's Events") : 
+               viewMode === "week" ? t("This Week's Events") : 
+               t("Upcoming Events")}
             </CardTitle>
             <CardDescription>
               {viewMode === "day" 
-                ? `Events for ${formatDate(currentDate)}`
+                ? `${t('Events for')} ${formatDate(currentDate)}`
                 : viewMode === "week"
-                ? "All appointments and events for this week"
-                : "All scheduled appointments, consultations, and events"}
+                ? t("All appointments and events for this week")
+                : t("All scheduled appointments, consultations, and events")}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -633,7 +635,7 @@ const Calendar = () => {
               <div className="flex items-center justify-center py-8">
                 <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 <span className="ml-2 text-muted-foreground">
-                  {loading ? "Loading appointments..." : "Applying filters..."}
+                  {loading ? t("Loading appointments...") : t("Applying filters...")}
                 </span>
               </div>
             )}
@@ -643,12 +645,12 @@ const Calendar = () => {
               <div className="text-center py-8">
                 <AlertTriangle className="h-12 w-12 mx-auto text-red-400 mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  Error Loading Appointments
+                  {t('Error Loading Appointments')}
                 </h3>
                 <p className="text-muted-foreground mb-4">{error}</p>
                 <Button onClick={handleRefresh} variant="outline">
                   <CalendarIcon className="h-4 w-4 mr-2" />
-                  Try Again
+                  {t('Try Again')}
                 </Button>
               </div>
             )}
@@ -696,7 +698,7 @@ const Calendar = () => {
                           </div>
                           {event.patientName && (
                             <div className="mt-1 text-sm font-medium">
-                              Patient: {event.patientName}
+                              {t('Patient:')} {event.patientName}
                             </div>
                           )}
                           {event.notes && (
@@ -709,17 +711,17 @@ const Calendar = () => {
                           <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm" className="h-8">
                               <MoreVertical className="h-4 w-4 mr-1" />
-                              Actions
+                              {t('Actions')}
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => handleViewAppointment(event.id)}>
                               <Eye className="mr-2 h-4 w-4" />
-                              View Details
+                              {t('View Details')}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEditAppointment(event.id)}>
                               <Edit className="mr-2 h-4 w-4" />
-                              Edit Event
+                              {t('Edit Event')}
                             </DropdownMenuItem>
                             <DropdownMenuItem 
                               className="text-red-600"
@@ -727,7 +729,7 @@ const Calendar = () => {
                               disabled={event.status === "cancelled" || event.status === "completed"}
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
-                              Cancel Event
+                              {t('Cancel Event')}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -791,7 +793,7 @@ const Calendar = () => {
                     <div className="grid grid-cols-1 gap-3">
                       <div className="space-y-1">
                         <div className="text-xs text-muted-foreground uppercase tracking-wide">
-                          Doctor
+                          {t('Doctor')}
                         </div>
                         <div className="text-sm font-medium">
                           {event.doctorName}
@@ -800,7 +802,7 @@ const Calendar = () => {
                       {event.patientName && (
                         <div className="space-y-1">
                           <div className="text-xs text-muted-foreground uppercase tracking-wide">
-                            Patient
+                            {t('Patient')}
                           </div>
                           <div className="text-sm font-medium">
                             {event.patientName}
@@ -813,7 +815,7 @@ const Calendar = () => {
                     {event.notes && (
                       <div className="space-y-1">
                         <div className="text-xs text-muted-foreground uppercase tracking-wide">
-                          Notes
+                          {t('Notes')}
                         </div>
                         <div className="text-sm text-muted-foreground p-2 bg-muted/50 rounded">
                           {event.notes}
@@ -824,23 +826,23 @@ const Calendar = () => {
                     {/* Actions */}
                     <div className="flex items-center justify-between pt-2 border-t">
                       <div className="text-xs text-muted-foreground">
-                        Event ID: #{event.id}
+                        {t('Event ID:')} #{event.id}
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="outline" size="sm">
                             <MoreVertical className="h-4 w-4 mr-1" />
-                            Actions
+                            {t('Actions')}
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => handleViewAppointment(event.id)}>
                             <Eye className="mr-2 h-4 w-4" />
-                            View Details
+                            {t('View Details')}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => handleEditAppointment(event.id)}>
                             <Edit className="mr-2 h-4 w-4" />
-                            Edit Event
+                            {t('Edit Event')}
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             className="text-red-600"
@@ -848,7 +850,7 @@ const Calendar = () => {
                             disabled={event.status === "cancelled" || event.status === "completed"}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Cancel Event
+                            {t('Cancel Event')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -863,10 +865,10 @@ const Calendar = () => {
               <div className="text-center py-8">
                 <CalendarIcon className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 className="text-lg font-medium text-foreground mb-2">
-                  No events found
+                  {t('No events found')}
                 </h3>
                 <p className="text-muted-foreground">
-                  Try adjusting your search criteria or add a new event.
+                  {t('Try adjusting your search criteria or add a new event.')}
                 </p>
               </div>
             )}

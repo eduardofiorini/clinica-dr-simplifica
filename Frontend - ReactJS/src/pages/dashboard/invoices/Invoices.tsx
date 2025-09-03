@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -61,6 +62,7 @@ import { toast } from "@/hooks/use-toast";
 import { apiService, type Invoice } from "@/services/api";
 
 const Invoices = () => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedDateRange, setSelectedDateRange] = useState("all");
@@ -108,8 +110,8 @@ const Invoices = () => {
       console.error('Error loading invoices:', error);
       setInvoices([]); // Set to empty array on error
       toast({
-        title: "Error",
-        description: "Failed to load invoices. Please try again.",
+        title: t("Error"),
+        description: t("Failed to load invoices. Please try again."),
         variant: "destructive",
       });
     } finally {
@@ -177,7 +179,7 @@ const Invoices = () => {
 
   const getPatientDisplay = (patient: string | { _id: string; first_name: string; last_name: string; phone?: string; email?: string } | null) => {
     if (!patient) {
-      return 'Unknown Patient';
+      return t('Unknown Patient');
     }
     if (typeof patient === 'string') {
       return patient;
@@ -271,14 +273,14 @@ const Invoices = () => {
     try {
       await apiService.updateInvoice(invoiceId, { status: "paid" });
       toast({
-        title: "Payment Recorded",
-        description: `Invoice ${invoiceId} has been marked as paid.`,
+        title: t("Payment Recorded"),
+        description: `${t('Invoice')} ${invoiceId} ${t('has been marked as paid.')}`,
       });
       loadInvoices(); // Reload invoices
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to update invoice status.",
+        title: t("Error"),
+        description: t("Failed to update invoice status."),
         variant: "destructive",
       });
     }
@@ -326,10 +328,10 @@ const Invoices = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight truncate">
-            Invoice Management
+            {t('Invoice Management')}
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground mt-1">
-            Create, send, and track patient invoices
+            {t('Create, send, and track patient invoices')}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -341,14 +343,14 @@ const Invoices = () => {
             className="h-9"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh</span>
+            <span className="hidden sm:inline">{t('Refresh')}</span>
           </Button>
           <CreateInvoiceModal 
             trigger={
               <Button size="sm" className="h-9">
                 <Plus className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Create Invoice</span>
-                <span className="sm:hidden">Create</span>
+                <span className="hidden sm:inline">{t('Create Invoice')}</span>
+                <span className="sm:hidden">{t('Create')}</span>
               </Button>
             }
           />
@@ -359,7 +361,7 @@ const Invoices = () => {
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Total Invoices</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">{t('Total Invoices')}</CardTitle>
             <Receipt className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -367,14 +369,14 @@ const Invoices = () => {
               {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : totalInvoices}
             </div>
             <p className="text-xs text-muted-foreground">
-              All invoices
+              {t('All invoices')}
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">{t('Total Revenue')}</CardTitle>
             <DollarSign className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -385,13 +387,13 @@ const Invoices = () => {
                  <CurrencyDisplay amount={totalRevenue} variant="default" />
                )}
              </div>
-            <p className="text-xs text-muted-foreground">All time earnings</p>
+            <p className="text-xs text-muted-foreground">{t('All time earnings')}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Monthly Revenue</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">{t('Monthly Revenue')}</CardTitle>
             <Calendar className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
           </CardHeader>
           <CardContent>
@@ -402,33 +404,33 @@ const Invoices = () => {
                 <CurrencyDisplay amount={monthlyRevenue} variant="default" />
               )}
             </div>
-            <p className="text-xs text-muted-foreground">This month</p>
+            <p className="text-xs text-muted-foreground">{t('This month')}</p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Paid</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">{t('Paid')}</CardTitle>
             <CheckCircle className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-bold text-green-600">
               {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : paidInvoices}
             </div>
-            <p className="text-xs text-muted-foreground">Completed payments</p>
+            <p className="text-xs text-muted-foreground">{t('Completed payments')}</p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Overdue</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">{t('Overdue')}</CardTitle>
             <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-red-600" />
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-bold text-red-600">
               {loading ? <Loader2 className="h-6 w-6 animate-spin" /> : overdueInvoices}
             </div>
-            <p className="text-xs text-muted-foreground">Needs attention</p>
+            <p className="text-xs text-muted-foreground">{t('Needs attention')}</p>
           </CardContent>
         </Card>
       </div>
@@ -441,7 +443,7 @@ const Invoices = () => {
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by invoice ID, patient name, or email..."
+                  placeholder={t('Search by invoice ID, patient name, or email...')}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8 h-9 sm:h-10"
@@ -451,14 +453,14 @@ const Invoices = () => {
             <div className="flex flex-col xs:flex-row gap-2">
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger className="w-full xs:w-[120px] sm:w-[140px] h-9 sm:h-10">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t('Status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
-                  <SelectItem value="overdue">Overdue</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="all">{t('All Status')}</SelectItem>
+                  <SelectItem value="pending">{t('Pending')}</SelectItem>
+                  <SelectItem value="paid">{t('Paid')}</SelectItem>
+                  <SelectItem value="overdue">{t('Overdue')}</SelectItem>
+                  <SelectItem value="cancelled">{t('Cancelled')}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -467,14 +469,14 @@ const Invoices = () => {
                 onValueChange={setSelectedDateRange}
               >
                 <SelectTrigger className="w-full xs:w-[120px] sm:w-[140px] h-9 sm:h-10">
-                  <SelectValue placeholder="Date Range" />
+                  <SelectValue placeholder={t('Date Range')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="week">This Week</SelectItem>
-                  <SelectItem value="month">This Month</SelectItem>
-                  <SelectItem value="quarter">This Quarter</SelectItem>
+                  <SelectItem value="all">{t('All Time')}</SelectItem>
+                  <SelectItem value="today">{t('Today')}</SelectItem>
+                  <SelectItem value="week">{t('This Week')}</SelectItem>
+                  <SelectItem value="month">{t('This Month')}</SelectItem>
+                  <SelectItem value="quarter">{t('This Quarter')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -485,30 +487,30 @@ const Invoices = () => {
       {/* Invoices Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg sm:text-xl">Invoice Records ({totalInvoices})</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">{t('Invoice Records')} ({totalInvoices})</CardTitle>
           <CardDescription className="text-sm">
-            Manage all patient invoices, payments, and billing information
+            {t('Manage all patient invoices, payments, and billing information')}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           {loading ? (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin" />
-              <span className="ml-2">Loading invoices...</span>
+              <span className="ml-2">{t('Loading invoices...')}</span>
             </div>
           ) : filteredInvoices.length === 0 ? (
             <div className="text-center py-12">
               <Receipt className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500 mb-4">
                 {searchTerm || selectedStatus !== "all" || selectedDateRange !== "all" 
-                  ? "No invoices found matching your filters." 
-                  : "No invoices found. Create your first invoice to get started."}
+                  ? t('No invoices found matching your filters.') 
+                  : t('No invoices found. Create your first invoice to get started.')}
               </p>
               <CreateInvoiceModal 
                 trigger={
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
-                    Create Your First Invoice
+                    {t('Create Your First Invoice')}
                   </Button>
                 }
               />
@@ -520,13 +522,13 @@ const Invoices = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="min-w-[200px]">Invoice Details</TableHead>
-                      <TableHead className="min-w-[180px]">Patient</TableHead>
-                      <TableHead className="min-w-[120px] hidden lg:table-cell">Issue Date</TableHead>
-                      <TableHead className="min-w-[120px] hidden lg:table-cell">Due Date</TableHead>
-                      <TableHead className="min-w-[120px]">Amount</TableHead>
-                      <TableHead className="min-w-[100px]">Status</TableHead>
-                      <TableHead className="text-right min-w-[100px]">Actions</TableHead>
+                      <TableHead className="min-w-[200px]">{t('Invoice Details')}</TableHead>
+                      <TableHead className="min-w-[180px]">{t('Patient')}</TableHead>
+                      <TableHead className="min-w-[120px] hidden lg:table-cell">{t('Issue Date')}</TableHead>
+                      <TableHead className="min-w-[120px] hidden lg:table-cell">{t('Due Date')}</TableHead>
+                      <TableHead className="min-w-[120px]">{t('Amount')}</TableHead>
+                      <TableHead className="min-w-[100px]">{t('Status')}</TableHead>
+                      <TableHead className="text-right min-w-[100px]">{t('Actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -540,7 +542,7 @@ const Invoices = () => {
                                 {invoice.invoice_number || invoice._id}
                               </div>
                               <div className="text-xs text-muted-foreground truncate">
-                                {invoice.services?.length || 0} service{(invoice.services?.length || 0) !== 1 ? "s" : ""}
+                                {invoice.services?.length || 0} {(invoice.services?.length || 0) !== 1 ? t('services') : t('service')}
                               </div>
                             </div>
                           </div>
@@ -556,7 +558,7 @@ const Invoices = () => {
                               </div>
                             )}
                             <div className="text-xs text-muted-foreground">
-                              Invoice: {invoice.invoice_number}
+                              {t('Invoice:')}: {invoice.invoice_number}
                             </div>
                           </div>
                         </TableCell>
@@ -581,7 +583,7 @@ const Invoices = () => {
                             </div>
                             {invoice.status === "paid" && invoice.payment_date && (
                               <div className="text-xs text-green-600">
-                                Paid {formatDate(invoice.payment_date)}
+                                {t('Paid')} {formatDate(invoice.payment_date)}
                               </div>
                             )}
                           </div>
@@ -602,32 +604,32 @@ const Invoices = () => {
                             <DropdownMenuTrigger asChild>
                               <Button variant="outline" size="sm" className="h-8">
                                 <MoreVertical className="h-4 w-4 mr-1" />
-                                Actions
+                                {t('Actions')}
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => handleViewInvoice(invoice._id)}>
                                 <Eye className="mr-2 h-4 w-4" />
-                                View Invoice
+                                {t('View Invoice')}
                               </DropdownMenuItem>
                               {invoice.status !== "paid" && (
                                 <DropdownMenuItem
                                   onClick={() => handleMarkAsPaid(invoice._id)}
                                 >
                                   <CheckCircle className="mr-2 h-4 w-4" />
-                                  Mark as Paid
+                                  {t('Mark as Paid')}
                                 </DropdownMenuItem>
                               )}
                               <DropdownMenuItem onClick={() => handleEditInvoice(invoice._id)}>
                                 <Edit className="mr-2 h-4 w-4" />
-                                Edit Invoice
+                                {t('Edit Invoice')}
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 className="text-red-600"
                                 onClick={() => handleDeleteInvoice(invoice._id)}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Delete Invoice
+                                {t('Delete Invoice')}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -654,7 +656,7 @@ const Invoices = () => {
                             {invoice.invoice_number || invoice._id}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            {invoice.services?.length || 0} service{(invoice.services?.length || 0) !== 1 ? "s" : ""}
+                            {invoice.services?.length || 0} {(invoice.services?.length || 0) !== 1 ? t('services') : t('service')}
                           </div>
                         </div>
                       </div>
@@ -672,21 +674,21 @@ const Invoices = () => {
                     {/* Patient Information */}
                     <div className="space-y-2 p-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Patient:</span>
+                        <span className="text-gray-600">{t('Patient:')}:</span>
                         <span className="font-medium text-gray-900 truncate max-w-[200px]">
                           {getPatientDisplay(invoice.patient_id)}
                         </span>
                       </div>
                       {getPatientEmail(invoice.patient_id) && (
                         <div className="flex items-center justify-between text-sm">
-                          <span className="text-gray-600">Email:</span>
+                          <span className="text-gray-600">{t('Email:')}:</span>
                           <span className="text-gray-900 truncate max-w-[200px]">
                             {getPatientEmail(invoice.patient_id)}
                           </span>
                         </div>
                       )}
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-gray-600">Invoice #:</span>
+                        <span className="text-gray-600">{t('Invoice #:')}:</span>
                         <span className="text-gray-900">
                           {invoice.invoice_number}
                         </span>
@@ -697,20 +699,20 @@ const Invoices = () => {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <div className="text-xs text-gray-500 uppercase tracking-wide">
-                          Total Amount
+                          {t('Total Amount')}
                         </div>
                         <div className="text-lg font-bold text-blue-600">
                           <CurrencyDisplay amount={invoice.total_amount} />
                         </div>
                         {invoice.status === "paid" && invoice.payment_date && (
                           <div className="text-xs text-green-600">
-                            Paid {formatDate(invoice.payment_date)}
+                            {t('Paid')} {formatDate(invoice.payment_date)}
                           </div>
                         )}
                       </div>
                       <div className="space-y-1">
                         <div className="text-xs text-gray-500 uppercase tracking-wide">
-                          Due Date
+                          {t('Due Date')}
                         </div>
                         <div
                           className={`text-sm font-medium ${
@@ -722,7 +724,7 @@ const Invoices = () => {
                           {formatDate(invoice.due_date)}
                         </div>
                         <div className="text-xs text-gray-500">
-                          Issue: {formatDate(invoice.created_at)}
+                          {t('Issue:')}: {formatDate(invoice.created_at)}
                         </div>
                       </div>
                     </div>
@@ -730,36 +732,36 @@ const Invoices = () => {
                     {/* Actions */}
                     <div className="flex items-center justify-between pt-2 border-t">
                       <div className="text-xs text-gray-500">
-                        ID: {invoice._id.slice(-8)}
+                        {t('ID:')}: {invoice._id.slice(-8)}
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="outline" size="sm">
                             <MoreVertical className="h-4 w-4 mr-1" />
-                            Actions
+                            {t('Actions')}
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem onClick={() => handleViewInvoice(invoice._id)}>
                             <Eye className="mr-2 h-4 w-4" />
-                            View Details
+                            {t('View Details')}
                           </DropdownMenuItem>
                           {invoice.status !== "paid" && (
                             <DropdownMenuItem onClick={() => handleMarkAsPaid(invoice._id)}>
                               <CheckCircle className="mr-2 h-4 w-4" />
-                              Mark as Paid
+                              {t('Mark as Paid')}
                             </DropdownMenuItem>
                           )}
                           <DropdownMenuItem onClick={() => handleEditInvoice(invoice._id)}>
                             <Edit className="mr-2 h-4 w-4" />
-                            Edit Invoice
+                            {t('Edit Invoice')}
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             className="text-red-600"
                             onClick={() => handleDeleteInvoice(invoice._id)}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Invoice
+                            {t('Delete Invoice')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -774,7 +776,7 @@ const Invoices = () => {
           {totalPages > 1 && (
             <div className="flex items-center justify-between border-t p-4">
               <div className="text-sm text-muted-foreground">
-                Page {currentPage} of {totalPages}
+                {t('Page')} {currentPage} {t('of')} {totalPages}
               </div>
               <div className="flex space-x-2">
                 <Button
@@ -783,7 +785,7 @@ const Invoices = () => {
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
                 >
-                  Previous
+                  {t('Previous')}
                 </Button>
                 <Button
                   variant="outline"
@@ -791,7 +793,7 @@ const Invoices = () => {
                   onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                   disabled={currentPage === totalPages}
                 >
-                  Next
+                  {t('Next')}
                 </Button>
               </div>
             </div>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -60,6 +61,7 @@ interface Department extends Omit<ApiDepartment, '_id' | 'created_at' | 'updated
 }
 
 const Departments = () => {
+  const { t } = useTranslation();
   const { formatAmount } = useCurrency();
 
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -99,8 +101,8 @@ const Departments = () => {
     } catch (error) {
       console.error('Error fetching departments:', error);
       toast({
-        title: "Error",
-        description: "Failed to load departments. Please try again.",
+        title: t("Error"),
+        description: t("Failed to load departments. Please try again."),
         variant: "destructive",
       });
     } finally {
@@ -163,14 +165,14 @@ const Departments = () => {
       fetchStats();
       
       toast({
-        title: "Department Added",
-        description: `${departmentData.name} has been successfully added.`,
+        title: t("Department Added"),
+        description: `${departmentData.name} ${t('has been successfully added.')}`,
       });
     } catch (error: any) {
       console.error('Error adding department:', error);
       toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to add department. Please try again.",
+        title: t("Error"),
+        description: error.response?.data?.message || t("Failed to add department. Please try again."),
         variant: "destructive",
       });
     }
@@ -210,14 +212,14 @@ const Departments = () => {
       fetchStats();
 
       toast({
-        title: "Department Updated",
-        description: `${departmentData.name} has been successfully updated.`,
+        title: t("Department Updated"),
+        description: `${departmentData.name} ${t('has been successfully updated.')}`,
       });
     } catch (error: any) {
       console.error('Error updating department:', error);
       toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to update department. Please try again.",
+        title: t("Error"),
+        description: error.response?.data?.message || t("Failed to update department. Please try again."),
         variant: "destructive",
       });
     }
@@ -234,15 +236,15 @@ const Departments = () => {
       fetchStats();
 
       toast({
-        title: "Department Deleted",
-        description: `${departmentToDelete?.name} has been successfully deleted.`,
+        title: t("Department Deleted"),
+        description: `${departmentToDelete?.name} ${t('has been successfully deleted.')}`,
         variant: "destructive",
       });
     } catch (error: any) {
       console.error('Error deleting department:', error);
       toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to delete department. Please try again.",
+        title: t("Error"),
+        description: error.response?.data?.message || t("Failed to delete department. Please try again."),
         variant: "destructive",
       });
     }
@@ -275,12 +277,12 @@ const Departments = () => {
     return status === "active" ? (
       <Badge className="bg-green-100 text-green-800">
         <CheckCircle className="h-3 w-3 mr-1" />
-        Active
+        {t('Active')}
       </Badge>
     ) : (
       <Badge className="bg-red-100 text-red-800">
         <AlertCircle className="h-3 w-3 mr-1" />
-        Inactive
+        {t('Inactive')}
       </Badge>
     );
   };
@@ -302,16 +304,16 @@ const Departments = () => {
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            Departments
+            {t('Departments')}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage clinic departments and their information
+            {t('Manage clinic departments and their information')}
           </p>
         </div>
         <div className="flex-shrink-0">
           <Button onClick={() => setIsAddModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Department
+            {t('Add Department')}
           </Button>
         </div>
       </div>
@@ -331,7 +333,7 @@ const Departments = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Departments
+                    {t('Total Departments')}
                   </p>
                   <p className="text-2xl font-bold text-foreground">
                     {totalDepartments}
@@ -355,7 +357,7 @@ const Departments = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Active Departments
+                    {t('Active Departments')}
                   </p>
                   <p className="text-2xl font-bold text-foreground">
                     {activeDepartments}
@@ -379,7 +381,7 @@ const Departments = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Staff
+                    {t('Total Staff')}
                   </p>
                   <p className="text-2xl font-bold text-foreground">
                     {totalStaff}
@@ -403,7 +405,7 @@ const Departments = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Budget
+                    {t('Total Budget')}
                   </p>
                   <p className="text-2xl font-bold text-foreground">
                     <CurrencyDisplay amount={totalBudget} variant="large" />
@@ -423,7 +425,7 @@ const Departments = () => {
             <div className="relative flex-1 min-w-0 sm:min-w-[250px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search departments..."
+                placeholder={t('Search departments...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-full"
@@ -441,16 +443,16 @@ const Departments = () => {
       >
         <Card>
           <CardHeader>
-            <CardTitle>Department Directory</CardTitle>
+            <CardTitle>{t('Department Directory')}</CardTitle>
             <CardDescription>
-              Complete list of clinic departments with their details and budgets
+              {t('Complete list of clinic departments with their details and budgets')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex items-center justify-center h-64">
                 <Loader2 className="h-8 w-8 animate-spin" />
-                <span className="ml-2">Loading departments...</span>
+                <span className="ml-2">{t('Loading departments...')}</span>
               </div>
             ) : (
               <>
@@ -459,17 +461,17 @@ const Departments = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-[200px]">Department</TableHead>
-                    <TableHead className="min-w-[200px]">Contact</TableHead>
+                    <TableHead className="min-w-[200px]">{t('Department')}</TableHead>
+                    <TableHead className="min-w-[200px]">{t('Contact')}</TableHead>
                     <TableHead className="min-w-[140px]">
-                      Department Head
+                      {t('Department Head')}
                     </TableHead>
-                    <TableHead className="min-w-[100px]">Staff</TableHead>
-                    <TableHead className="min-w-[120px]">Budget</TableHead>
-                    <TableHead className="min-w-[100px]">Status</TableHead>
-                    <TableHead className="min-w-[100px]">Created</TableHead>
+                    <TableHead className="min-w-[100px]">{t('Staff')}</TableHead>
+                    <TableHead className="min-w-[120px]">{t('Budget')}</TableHead>
+                    <TableHead className="min-w-[100px]">{t('Status')}</TableHead>
+                    <TableHead className="min-w-[100px]">{t('Created')}</TableHead>
                     <TableHead className="text-right min-w-[120px]">
-                      Actions
+                      {t('Actions')}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -518,7 +520,7 @@ const Departments = () => {
                         <div className="font-medium">
                           {formatCurrency(department.budget)}
                         </div>
-                        <div className="text-sm text-gray-500">Annual</div>
+                        <div className="text-sm text-gray-500">{t('Annual')}</div>
                       </TableCell>
                       <TableCell>{getStatusBadge(department.status)}</TableCell>
                       <TableCell>{formatDate(department.createdAt)}</TableCell>
@@ -527,19 +529,19 @@ const Departments = () => {
                           <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm" className="h-8">
                               <MoreVertical className="h-4 w-4 mr-1" />
-                              Actions
+                              {t('Actions')}
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
                               onClick={() => handleViewDepartment(department)}
                             >
-                              View Details
+                              {t('View Details')}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleEditClick(department)}
                             >
-                              Edit Department
+                              {t('Edit Department')}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() =>
@@ -547,7 +549,7 @@ const Departments = () => {
                               }
                               className="text-red-600"
                             >
-                              Delete Department
+                              {t('Delete Department')}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -608,7 +610,7 @@ const Departments = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
-                        Department Head
+                        {t('Department Head')}
                       </div>
                       <div className="text-sm font-medium">
                         {department.head}
@@ -616,7 +618,7 @@ const Departments = () => {
                     </div>
                     <div className="space-y-1">
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
-                        Staff Count
+                        {t('Staff Count')}
                       </div>
                       <div className="flex items-center space-x-1">
                         <Users className="h-4 w-4 text-gray-400" />
@@ -630,7 +632,7 @@ const Departments = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
-                        Annual Budget
+                        {t('Annual Budget')}
                       </div>
                       <div className="text-sm font-medium">
                         {formatCurrency(department.budget)}
@@ -638,7 +640,7 @@ const Departments = () => {
                     </div>
                     <div className="space-y-1">
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
-                        Created
+                        {t('Created')}
                       </div>
                       <div className="text-sm">
                         {formatDate(department.createdAt)}
@@ -649,31 +651,31 @@ const Departments = () => {
                   {/* Actions */}
                   <div className="flex items-center justify-between pt-2 border-t">
                     <div className="text-xs text-gray-500">
-                      Dept ID: {department.code}
+                      {t('Dept ID:')} {department.code}
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="sm">
                           <MoreVertical className="h-4 w-4 mr-1" />
-                          Actions
+                          {t('Actions')}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={() => handleViewDepartment(department)}
                         >
-                          View Details
+                          {t('View Details')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleEditClick(department)}
                         >
-                          Edit Department
+                          {t('Edit Department')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDeleteDepartment(department.id)}
                           className="text-red-600"
                         >
-                          Delete Department
+                          {t('Delete Department')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -28,6 +29,7 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
   itemName,
   onConfirm,
 }) => {
+  const { t } = useTranslation();
   const [isLoading, setIsLoading] = useState(false);
 
   const handleConfirm = async () => {
@@ -35,13 +37,13 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
     try {
       await onConfirm();
       toast({
-        title: "Deleted successfully",
-        description: `${itemName} has been permanently deleted.`,
+        title: t("Deleted successfully"),
+        description: `${itemName} ${t("has been permanently deleted.")}`,
       });
       onOpenChange(false);
     } catch (error) {
       toast({
-        title: "Error",
+        title: t("Error"),
         description: parseApiError(error),
         variant: "destructive",
       });
@@ -69,10 +71,10 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
               <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 mr-2 sm:mr-3 flex-shrink-0 mt-0.5" />
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-red-800 text-sm sm:text-base">
-                  You are about to delete: <strong className="break-words">{itemName}</strong>
+                  {t("You are about to delete:")}{" "}<strong className="break-words">{itemName}</strong>
                 </p>
                 <p className="text-xs sm:text-sm text-red-600 mt-1">
-                  This action cannot be undone.
+                  {t("This action cannot be undone.")}
                 </p>
               </div>
             </div>
@@ -86,7 +88,7 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
               className="w-full sm:w-auto h-9 sm:h-10"
             >
               <X className="h-4 w-4 mr-2" />
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button
               variant="destructive"
@@ -99,7 +101,7 @@ const DeleteConfirmModal: React.FC<DeleteConfirmModalProps> = ({
               ) : (
                 <Trash2 className="h-4 w-4 mr-2" />
               )}
-              Delete Permanently
+              {t("Delete Permanently")}
             </Button>
           </div>
         </div>

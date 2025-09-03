@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -61,6 +62,7 @@ import { CurrencyDisplay } from "@/components/ui/CurrencyDisplay";
 import { apiService, type InventoryItem } from "@/services/api";
 
 const Inventory = () => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [advancedFilters, setAdvancedFilters] = useState<Record<string, any>>(
@@ -162,13 +164,13 @@ const Inventory = () => {
     } catch (error) {
       console.error("Error fetching inventory:", error);
       const errorMessage = error instanceof Error && error.message.includes('401') 
-        ? "Access denied. Please check your clinic permissions." 
+        ? t("Access denied. Please check your clinic permissions.") 
         : error instanceof Error && error.message.includes('403')
-        ? "Insufficient permissions to view inventory for this clinic."
-        : "Failed to load inventory. Please try again.";
+        ? t("Insufficient permissions to view inventory for this clinic.")
+        : t("Failed to load inventory. Please try again.");
       
       toast({
-        title: "Error",
+        title: t("Error"),
         description: errorMessage,
         variant: "destructive",
       });
@@ -212,24 +214,24 @@ const Inventory = () => {
   const getStockStatus = (quantity: number, lowStockAlert: number) => {
     if (quantity === 0)
       return {
-        label: "Out of Stock",
+        label: t("Out of Stock"),
         color: "bg-red-100 text-red-800",
         urgency: "critical",
       };
     if (quantity <= lowStockAlert / 2)
       return {
-        label: "Critical",
+        label: t("Critical"),
         color: "bg-red-100 text-red-800",
         urgency: "critical",
       };
     if (quantity <= lowStockAlert)
       return {
-        label: "Low Stock",
+        label: t("Low Stock"),
         color: "bg-orange-100 text-orange-800",
         urgency: "warning",
       };
     return {
-      label: "In Stock",
+      label: t("In Stock"),
       color: "bg-green-100 text-green-800",
       urgency: "good",
     };
@@ -289,16 +291,16 @@ const Inventory = () => {
       await apiService.updateInventoryItem(editModal.item.id, updateData);
       
       toast({
-        title: "Item updated",
-        description: `${updatedData.name} has been updated successfully.`,
+        title: t("Item updated"),
+        description: `${updatedData.name} ${t('has been updated successfully.')}`,
       });
 
       setEditModal({ open: false, item: null });
       fetchInventory(true);
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update item. Please try again.",
+        title: t("Error"),
+        description: error.message || t("Failed to update item. Please try again."),
         variant: "destructive",
       });
     }
@@ -311,16 +313,16 @@ const Inventory = () => {
       await apiService.deleteInventoryItem(deleteModal.item.id);
       
       toast({
-        title: "Item deleted",
-        description: `${deleteModal.item.name} has been deleted successfully.`,
+        title: t("Item deleted"),
+        description: `${deleteModal.item.name} ${t('has been deleted successfully.')}`,
       });
 
       setDeleteModal({ open: false, item: null });
       fetchInventory(true);
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to delete item. Please try again.",
+        title: t("Error"),
+        description: error.message || t("Failed to delete item. Please try again."),
         variant: "destructive",
       });
     }
@@ -332,15 +334,15 @@ const Inventory = () => {
       await apiService.updateInventoryStock(item.id, { quantity: 10, operation: 'add' });
       
       toast({
-        title: "Stock Added",
-        description: `Added 10 units to ${item.name}`,
+        title: t("Stock Added"),
+        description: `${t('Added 10 units to')} ${item.name}`,
       });
 
       fetchInventory(true);
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to add stock. Please try again.",
+        title: t("Error"),
+        description: error.message || t("Failed to add stock. Please try again."),
         variant: "destructive",
       });
     }
@@ -352,15 +354,15 @@ const Inventory = () => {
       await apiService.updateInventoryStock(item.id, { quantity: 5, operation: 'subtract' });
       
       toast({
-        title: "Stock Removed",
-        description: `Removed 5 units from ${item.name}`,
+        title: t("Stock Removed"),
+        description: `${t('Removed 5 units from')} ${item.name}`,
       });
 
       fetchInventory(true);
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to remove stock. Please try again.",
+        title: t("Error"),
+        description: error.message || t("Failed to remove stock. Please try again."),
         variant: "destructive",
       });
     }
@@ -369,8 +371,8 @@ const Inventory = () => {
   const handleUpdateExpiry = (item: Medicine) => {
     // This would open a date picker modal in a real implementation
     toast({
-      title: "Update Expiry",
-      description: `Opening expiry date editor for ${item.name}`,
+      title: t("Update Expiry"),
+      description: `${t('Opening expiry date editor for')} ${item.name}`,
     });
   };
 
@@ -391,33 +393,33 @@ const Inventory = () => {
   const filterFields = [
     {
       key: "manufacturer",
-      label: "Manufacturer",
+      label: t("Manufacturer"),
       type: "select" as const,
       options: Array.from(new Set(medicines.map((m) => m.manufacturer))),
     },
     {
       key: "supplier",
-      label: "Supplier",
+      label: t("Supplier"),
       type: "select" as const,
       options: Array.from(new Set(medicines.map((m) => m.supplier))),
     },
     {
       key: "minQuantity",
-      label: "Minimum Quantity",
+      label: t("Minimum Quantity"),
       type: "number" as const,
-      placeholder: "Enter minimum quantity",
+      placeholder: t("Enter minimum quantity"),
     },
     {
       key: "maxQuantity",
-      label: "Maximum Quantity",
+      label: t("Maximum Quantity"),
       type: "number" as const,
-      placeholder: "Enter maximum quantity",
+      placeholder: t("Enter maximum quantity"),
     },
     {
       key: "status",
-      label: "Stock Status",
+      label: t("Stock Status"),
       type: "checkbox" as const,
-      options: ["In Stock", "Low Stock", "Out of Stock"],
+      options: [t("In Stock"), t("Low Stock"), t("Out of Stock")],
     },
   ];
 
@@ -439,7 +441,7 @@ const Inventory = () => {
         <div className="flex items-center justify-center h-64">
           <div className="flex items-center space-x-2">
             <RefreshCw className="h-6 w-6 animate-spin" />
-            <span>Loading inventory...</span>
+            <span>{t('Loading inventory...')}</span>
           </div>
         </div>
       </div>
@@ -452,10 +454,10 @@ const Inventory = () => {
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            Inventory Management
+            {t('Inventory Management')}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Track medical supplies and medication stock
+            {t('Track medical supplies and medication stock')}
           </p>
         </div>
         <div className="flex items-center space-x-3">
@@ -466,7 +468,7 @@ const Inventory = () => {
             disabled={isRefreshing}
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            Refresh
+            {t('Refresh')}
           </Button>
           <AddItemModal onSuccess={() => fetchInventory(true)} />
         </div>
@@ -484,7 +486,7 @@ const Inventory = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Items
+                    {t('Total Items')}
                   </p>
                   <p className="text-3xl font-bold text-foreground">
                     {totalItems}
@@ -505,7 +507,7 @@ const Inventory = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Low Stock</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('Low Stock')}</p>
                   <p className="text-3xl font-bold text-orange-600">
                     {lowStockItems}
                   </p>
@@ -526,7 +528,7 @@ const Inventory = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Out of Stock
+                    {t('Out of Stock')}
                   </p>
                   <p className="text-3xl font-bold text-red-600">
                     {outOfStockItems}
@@ -548,7 +550,7 @@ const Inventory = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Value
+                    {t('Total Value')}
                   </p>
                   <p className="text-3xl font-bold text-green-600">
                     <CurrencyDisplay amount={totalValue} variant="large" />
@@ -569,7 +571,7 @@ const Inventory = () => {
             <div className="relative flex-1 min-w-0 sm:min-w-[250px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name, manufacturer, or batch number..."
+                placeholder={t('Search by name, manufacturer, or batch number...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-full"
@@ -583,12 +585,12 @@ const Inventory = () => {
                 onValueChange={setSelectedCategory}
               >
                 <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Category" />
+                  <SelectValue placeholder={t('Category')} />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map((category) => (
                     <SelectItem key={category} value={category}>
-                      {category === "all" ? "All Categories" : category}
+                      {category === "all" ? t("All Categories") : category}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -613,9 +615,9 @@ const Inventory = () => {
       >
         <Card>
           <CardHeader>
-            <CardTitle>Medicine & Supplies Inventory</CardTitle>
+            <CardTitle>{t('Medicine & Supplies Inventory')}</CardTitle>
             <CardDescription>
-              Monitor stock levels, expiry dates, and inventory values
+              {t('Monitor stock levels, expiry dates, and inventory values')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -625,16 +627,16 @@ const Inventory = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="min-w-[200px]">
-                      Item Details
+                      {t('Item Details')}
                     </TableHead>
-                    <TableHead className="min-w-[120px]">Category</TableHead>
-                    <TableHead className="min-w-[140px]">Stock Level</TableHead>
-                    <TableHead className="min-w-[120px]">Unit Price</TableHead>
-                    <TableHead className="min-w-[130px]">Total Value</TableHead>
-                    <TableHead className="min-w-[130px]">Expiry Date</TableHead>
-                    <TableHead className="min-w-[100px]">Status</TableHead>
+                    <TableHead className="min-w-[120px]">{t('Category')}</TableHead>
+                    <TableHead className="min-w-[140px]">{t('Stock Level')}</TableHead>
+                    <TableHead className="min-w-[120px]">{t('Unit Price')}</TableHead>
+                    <TableHead className="min-w-[130px]">{t('Total Value')}</TableHead>
+                    <TableHead className="min-w-[130px]">{t('Expiry Date')}</TableHead>
+                    <TableHead className="min-w-[100px]">{t('Status')}</TableHead>
                     <TableHead className="text-right min-w-[120px]">
-                      Actions
+                      {t('Actions')}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -656,8 +658,7 @@ const Inventory = () => {
                           <div>
                             <div className="font-medium">{medicine.name}</div>
                             <div className="text-sm text-muted-foreground">
-                              {medicine.manufacturer} • Batch:{" "}
-                              {medicine.batchNumber}
+                              {medicine.manufacturer} • {t('Batch:')} {medicine.batchNumber}
                             </div>
                           </div>
                         </TableCell>
@@ -667,9 +668,9 @@ const Inventory = () => {
                         <TableCell>
                           <div className="space-y-2">
                             <div className="flex items-center justify-between text-sm">
-                              <span>{medicine.quantity} units</span>
+                              <span>{medicine.quantity} {t('units')}</span>
                               <span className="text-muted-foreground">
-                                Min: {medicine.lowStockAlert}
+                                {t('Min:')} {medicine.lowStockAlert}
                               </span>
                             </div>
                             <Progress value={stockLevel} className="h-2" />
@@ -690,7 +691,7 @@ const Inventory = () => {
                             {formatDate(medicine.expiryDate)}
                             {isExpiring && (
                               <div className="text-xs text-orange-600">
-                                Expiring Soon
+                                {t('Expiring Soon')}
                               </div>
                             )}
                           </div>
@@ -705,7 +706,7 @@ const Inventory = () => {
                             <DropdownMenuTrigger asChild>
                               <Button variant="outline" size="sm" className="h-8">
                                 <MoreVertical className="h-4 w-4 mr-1" />
-                                Actions
+                                {t('Actions')}
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
@@ -713,38 +714,38 @@ const Inventory = () => {
                                 onClick={() => handleViewDetails(medicine)}
                               >
                                 <Eye className="mr-2 h-4 w-4" />
-                                View Details
+                                {t('View Details')}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleEdit(medicine)}
                               >
                                 <Edit className="mr-2 h-4 w-4" />
-                                Edit Item
+                                {t('Edit Item')}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleAddStock(medicine)}
                               >
                                 <TrendingUp className="mr-2 h-4 w-4" />
-                                Add Stock
+                                {t('Add Stock')}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleRemoveStock(medicine)}
                               >
                                 <TrendingDown className="mr-2 h-4 w-4" />
-                                Remove Stock
+                                {t('Remove Stock')}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleUpdateExpiry(medicine)}
                               >
                                 <Calendar className="mr-2 h-4 w-4" />
-                                Update Expiry
+                                {t('Update Expiry')}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 className="text-red-600"
                                 onClick={() => handleDelete(medicine)}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Delete Item
+                                {t('Delete Item')}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -793,14 +794,14 @@ const Inventory = () => {
                     {/* Stock Level Progress */}
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Stock Level</span>
+                        <span className="text-muted-foreground">{t('Stock Level')}</span>
                         <span className="font-medium">
-                          {medicine.quantity} units
+                          {medicine.quantity} {t('units')}
                         </span>
                       </div>
                       <Progress value={stockLevel} className="h-2" />
                       <div className="text-xs text-gray-500">
-                        Low stock alert: {medicine.lowStockAlert} units
+                        {t('Low stock alert:')} {medicine.lowStockAlert} {t('units')}
                       </div>
                     </div>
 
@@ -808,7 +809,7 @@ const Inventory = () => {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <div className="text-xs text-gray-500 uppercase tracking-wide">
-                          Category
+                          {t('Category')}
                         </div>
                         <Badge variant="outline" className="text-xs">
                           {medicine.category}
@@ -816,7 +817,7 @@ const Inventory = () => {
                       </div>
                       <div className="space-y-1">
                         <div className="text-xs text-gray-500 uppercase tracking-wide">
-                          Unit Price
+                          {t('Unit Price')}
                         </div>
                         <div className="text-sm font-medium">
                           {formatCurrency(medicine.unitPrice)}
@@ -827,7 +828,7 @@ const Inventory = () => {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <div className="text-xs text-gray-500 uppercase tracking-wide">
-                          Total Value
+                          {t('Total Value')}
                         </div>
                         <div className="text-sm font-medium">
                           {formatCurrency(
@@ -837,7 +838,7 @@ const Inventory = () => {
                       </div>
                       <div className="space-y-1">
                         <div className="text-xs text-gray-500 uppercase tracking-wide">
-                          Expiry Date
+                          {t('Expiry Date')}
                         </div>
                         <div className="text-sm">
                           {medicine.expiryDate.toLocaleDateString()}
@@ -848,13 +849,13 @@ const Inventory = () => {
                     {/* Actions */}
                     <div className="flex items-center justify-between pt-2 border-t">
                       <div className="text-xs text-gray-500">
-                        Batch: {medicine.batchNumber}
+                        {t('Batch:')} {medicine.batchNumber}
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="outline" size="sm">
                             <MoreVertical className="h-4 w-4 mr-1" />
-                            Actions
+                            {t('Actions')}
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -862,26 +863,26 @@ const Inventory = () => {
                             onClick={() => handleViewDetails(medicine)}
                           >
                             <Eye className="mr-2 h-4 w-4" />
-                            View Details
+                            {t('View Details')}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleEdit(medicine)}
                           >
                             <Edit className="mr-2 h-4 w-4" />
-                            Edit Item
+                            {t('Edit Item')}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleAddStock(medicine)}
                           >
                             <Plus className="mr-2 h-4 w-4" />
-                            Add Stock
+                            {t('Add Stock')}
                           </DropdownMenuItem>
                           <DropdownMenuItem 
                             className="text-red-600"
                             onClick={() => handleDelete(medicine)}
                           >
                             <Trash2 className="mr-2 h-4 w-4" />
-                            Delete Item
+                            {t('Delete Item')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -896,10 +897,10 @@ const Inventory = () => {
               <div className="text-center py-12">
                 <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">
-                  No inventory items found
+                  {t('No inventory items found')}
                 </h3>
                 <p className="text-gray-500 mb-4">
-                  Get started by adding your first inventory item.
+                  {t('Get started by adding your first inventory item.')}
                 </p>
                 <AddItemModal onSuccess={() => fetchInventory(true)} />
               </div>
@@ -912,19 +913,19 @@ const Inventory = () => {
       <ViewDetailsModal
         open={viewDetailsModal.open}
         onOpenChange={(open) => setViewDetailsModal({ open, item: null })}
-        title={`Medicine Details - ${viewDetailsModal.item?.name || ""}`}
+        title={`${t('Medicine Details')} - ${viewDetailsModal.item?.name || ""}`}
         data={viewDetailsModal.item || {}}
         fields={[
-          { key: "name", label: "Name" },
-          { key: "category", label: "Category", type: "badge" },
-          { key: "manufacturer", label: "Manufacturer" },
-          { key: "batchNumber", label: "Batch Number" },
-          { key: "quantity", label: "Quantity" },
-          { key: "unitPrice", label: "Unit Price", type: "currency" },
-          { key: "expiryDate", label: "Expiry Date", type: "date" },
-          { key: "supplier", label: "Supplier" },
-          { key: "description", label: "Description" },
-          { key: "lowStockAlert", label: "Low Stock Alert" },
+          { key: "name", label: t("Name") },
+          { key: "category", label: t("Category"), type: "badge" },
+          { key: "manufacturer", label: t("Manufacturer") },
+          { key: "batchNumber", label: t("Batch Number") },
+          { key: "quantity", label: t("Quantity") },
+          { key: "unitPrice", label: t("Unit Price"), type: "currency" },
+          { key: "expiryDate", label: t("Expiry Date"), type: "date" },
+          { key: "supplier", label: t("Supplier") },
+          { key: "description", label: t("Description") },
+          { key: "lowStockAlert", label: t("Low Stock Alert") },
         ]}
       />
 
@@ -932,13 +933,13 @@ const Inventory = () => {
       <EditItemModal
         open={editModal.open}
         onOpenChange={(open) => setEditModal({ open, item: null })}
-        title={`Edit Medicine - ${editModal.item?.name || ""}`}
+        title={`${t('Edit Medicine')} - ${editModal.item?.name || ""}`}
         data={editModal.item || {}}
         fields={[
-          { key: "name", label: "Name", type: "text", required: true },
+          { key: "name", label: t("Name"), type: "text", required: true },
           {
             key: "category",
-            label: "Category",
+            label: t("Category"),
             type: "select",
             required: true,
             options: categories
@@ -947,27 +948,27 @@ const Inventory = () => {
           },
           {
             key: "manufacturer",
-            label: "Manufacturer",
+            label: t("Manufacturer"),
             type: "text",
             required: true,
           },
-          { key: "batchNumber", label: "Batch Number", type: "text" },
+          { key: "batchNumber", label: t("Batch Number"), type: "text" },
           {
             key: "quantity",
-            label: "Quantity",
+            label: t("Quantity"),
             type: "number",
             required: true,
           },
           {
             key: "unitPrice",
-            label: "Unit Price",
+            label: t("Unit Price"),
             type: "number",
             required: true,
           },
-          { key: "expiryDate", label: "Expiry Date", type: "date" },
-          { key: "supplier", label: "Supplier", type: "text" },
-          { key: "description", label: "Description", type: "textarea" },
-          { key: "lowStockAlert", label: "Low Stock Alert", type: "number" },
+          { key: "expiryDate", label: t("Expiry Date"), type: "date" },
+          { key: "supplier", label: t("Supplier"), type: "text" },
+          { key: "description", label: t("Description"), type: "textarea" },
+          { key: "lowStockAlert", label: t("Low Stock Alert"), type: "number" },
         ]}
         onSave={handleSaveEdit}
       />
@@ -976,8 +977,8 @@ const Inventory = () => {
       <DeleteConfirmModal
         open={deleteModal.open}
         onOpenChange={(open) => setDeleteModal({ open, item: null })}
-        title="Delete Medicine"
-        description="Are you sure you want to delete this medicine from the inventory?"
+        title={t("Delete Medicine")}
+        description={t("Are you sure you want to delete this medicine from the inventory?")}
         itemName={deleteModal.item?.name || ""}
         onConfirm={handleConfirmDelete}
       />

@@ -15,7 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { Patient } from "@/types";
-import { apiService, AITestComparison, AITestComparisonStats, ParameterComparison } from "@/services/api";
+import { apiService, type AITestComparison, type AITestComparisonStats, type ParameterComparison } from "@/services/api";
 import { ResponsiveTable } from "@/components/ui/table";
 import {
   Upload,
@@ -60,7 +60,7 @@ const AITestComparison: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [currentComparison, setCurrentComparison] = useState<AITestComparison | null>(null);
   const [showResults, setShowResults] = useState<boolean>(false);
-  const [patients, setPatients] = useState<Patient[]>([]);
+  const [patients, setPatients] = useState<any[]>([]);
   
   // Comparison management
   const [comparisons, setComparisons] = useState<AITestComparison[]>([]);
@@ -666,8 +666,8 @@ const AITestComparison: React.FC = () => {
                       <SelectContent>
                         {patients && patients.length > 0 ? (
                           patients.map((patient) => (
-                            <SelectItem key={patient._id} value={patient._id}>
-                              {patient.first_name} {patient.last_name}
+                            <SelectItem key={patient.id || patient._id} value={patient.id || patient._id}>
+                              {patient.firstName || patient.first_name} {patient.lastName || patient.last_name}
                               {patient.phone && ` - ${patient.phone}`}
                             </SelectItem>
                           ))
@@ -973,7 +973,7 @@ const AITestComparison: React.FC = () => {
                     <SelectItem value="failed">{t("Failed")}</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" onClick={fetchComparisons}>
+                <Button variant="outline" onClick={() => fetchComparisons()}>
                   <RefreshCw className="w-4 h-4 mr-2" />
                   {t("Refresh")}
                 </Button>

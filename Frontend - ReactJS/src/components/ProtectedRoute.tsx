@@ -6,7 +6,7 @@ import { clinicCookies } from "@/utils/cookies";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  requiredRole?: "admin" | "doctor" | "staff" | "receptionist" | "accountant";
+  requiredRole?: "admin" | "doctor" | "nurse" | "staff" | "receptionist" | "accountant";
   requireClinic?: boolean; // Whether this route requires clinic selection
 }
 

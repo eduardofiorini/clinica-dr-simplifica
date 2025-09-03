@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,6 +36,7 @@ const ConvertLeadModal: React.FC<ConvertLeadModalProps> = ({
   open, 
   onOpenChange 
 }) => {
+  const { t } = useTranslation();
   const [patientData, setPatientData] = useState({
     first_name: "",
     last_name: "",
@@ -96,14 +98,14 @@ const ConvertLeadModal: React.FC<ConvertLeadModalProps> = ({
       });
 
       toast({
-        title: "Lead converted successfully",
-        description: `${patientData.first_name} ${patientData.last_name} has been converted to a patient.`,
+        title: t("Lead converted successfully"),
+        description: `${patientData.first_name} ${patientData.last_name} ${t("has been converted to a patient.")}`,
       });
 
       onOpenChange(false);
     } catch (error) {
       toast({
-        title: "Error",
+        title: t("Error"),
         description: parseApiError(error),
         variant: "destructive",
       });
@@ -118,10 +120,10 @@ const ConvertLeadModal: React.FC<ConvertLeadModalProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserCheck className="h-5 w-5" />
-            Convert Lead to Patient
+            {t("Convert Lead to Patient")}
           </DialogTitle>
           <DialogDescription>
-            Complete the patient information to convert this lead.
+            {t("Complete the patient information to convert this lead.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -131,16 +133,16 @@ const ConvertLeadModal: React.FC<ConvertLeadModalProps> = ({
             <CardHeader>
               <CardTitle className="text-lg flex items-center">
                 <User className="h-4 w-4 mr-2" />
-                Lead Information
+                {t("Lead Information")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
               <div className="bg-blue-50 p-4 rounded-lg">
                 <p className="text-sm text-blue-800">
-                  <strong>Converting:</strong> {lead.firstName} {lead.lastName}
+                  <strong>{t("Converting:")}</strong> {lead.firstName} {lead.lastName}
                 </p>
                 <p className="text-sm text-blue-600">
-                  Source: {lead.source} • Service Interest: {lead.serviceInterest}
+                  {t("Source")}: {lead.source} • {t("Service Interest")}: {lead.serviceInterest}
                 </p>
               </div>
             </CardContent>
@@ -151,29 +153,29 @@ const ConvertLeadModal: React.FC<ConvertLeadModalProps> = ({
             <CardHeader>
               <CardTitle className="text-lg flex items-center">
                 <Phone className="h-4 w-4 mr-2" />
-                Basic Information
+                {t("Basic Information")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="first_name">First Name *</Label>
+                  <Label htmlFor="first_name">{t("First Name *")}</Label>
                   <Input
                     id="first_name"
                     value={patientData.first_name}
                     onChange={(e) => handleChange("first_name", e.target.value)}
-                    placeholder="Enter first name"
+                    placeholder={t("Enter first name")}
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="last_name">Last Name *</Label>
+                  <Label htmlFor="last_name">{t("Last Name *")}</Label>
                   <Input
                     id="last_name"
                     value={patientData.last_name}
                     onChange={(e) => handleChange("last_name", e.target.value)}
-                    placeholder="Enter last name"
+                    placeholder={t("Enter last name")}
                     required
                   />
                 </div>
@@ -181,7 +183,7 @@ const ConvertLeadModal: React.FC<ConvertLeadModalProps> = ({
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="date_of_birth">Date of Birth *</Label>
+                  <Label htmlFor="date_of_birth">{t("Date of Birth *")}</Label>
                   <Input
                     id="date_of_birth"
                     type="date"
@@ -192,29 +194,29 @@ const ConvertLeadModal: React.FC<ConvertLeadModalProps> = ({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="gender">Gender *</Label>
+                  <Label htmlFor="gender">{t("Gender *")}</Label>
                   <Select
                     value={patientData.gender}
                     onValueChange={(value) => handleChange("gender", value)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select gender" />
+                      <SelectValue placeholder={t("Select gender")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="male">{t("Male")}</SelectItem>
+                      <SelectItem value="female">{t("Female")}</SelectItem>
+                      <SelectItem value="other">{t("Other")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number *</Label>
+                  <Label htmlFor="phone">{t("Phone Number *")}</Label>
                   <Input
                     id="phone"
                     value={patientData.phone}
                     onChange={(e) => handleChange("phone", e.target.value)}
-                    placeholder="Enter phone number"
+                    placeholder={t("Enter phone number")}
                     required
                   />
                 </div>
@@ -222,23 +224,23 @@ const ConvertLeadModal: React.FC<ConvertLeadModalProps> = ({
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t("Email")}</Label>
                   <Input
                     id="email"
                     type="email"
                     value={patientData.email}
                     onChange={(e) => handleChange("email", e.target.value)}
-                    placeholder="Enter email address"
+                    placeholder={t("Enter email address")}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="address">Address *</Label>
+                  <Label htmlFor="address">{t("Address *")}</Label>
                   <Input
                     id="address"
                     value={patientData.address}
                     onChange={(e) => handleChange("address", e.target.value)}
-                    placeholder="Enter complete address"
+                    placeholder={t("Enter complete address")}
                     required
                   />
                 </div>
@@ -251,38 +253,38 @@ const ConvertLeadModal: React.FC<ConvertLeadModalProps> = ({
             <CardHeader>
               <CardTitle className="text-lg flex items-center">
                 <Phone className="h-4 w-4 mr-2" />
-                Emergency Contact
+                {t("Emergency Contact")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="emergency_name">Contact Name</Label>
+                  <Label htmlFor="emergency_name">{t("Contact Name")}</Label>
                   <Input
                     id="emergency_name"
                     value={patientData.emergency_contact.name}
                     onChange={(e) => handleChange("emergency_contact.name", e.target.value)}
-                    placeholder="Enter contact name"
+                    placeholder={t("Enter contact name")}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="emergency_relationship">Relationship</Label>
+                  <Label htmlFor="emergency_relationship">{t("Relationship")}</Label>
                   <Input
                     id="emergency_relationship"
                     value={patientData.emergency_contact.relationship}
                     onChange={(e) => handleChange("emergency_contact.relationship", e.target.value)}
-                    placeholder="e.g., Spouse, Parent"
+                    placeholder={t("e.g., Spouse, Parent")}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="emergency_phone">Emergency Phone</Label>
+                  <Label htmlFor="emergency_phone">{t("Emergency Phone")}</Label>
                   <Input
                     id="emergency_phone"
                     value={patientData.emergency_contact.phone}
                     onChange={(e) => handleChange("emergency_contact.phone", e.target.value)}
-                    placeholder="Enter emergency phone"
+                    placeholder={t("Enter emergency phone")}
                   />
                 </div>
               </div>
@@ -294,38 +296,38 @@ const ConvertLeadModal: React.FC<ConvertLeadModalProps> = ({
             <CardHeader>
               <CardTitle className="text-lg flex items-center">
                 <Mail className="h-4 w-4 mr-2" />
-                Insurance Information (Optional)
+                {t("Insurance Information (Optional)")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="insurance_provider">Insurance Provider</Label>
+                  <Label htmlFor="insurance_provider">{t("Insurance Provider")}</Label>
                   <Input
                     id="insurance_provider"
                     value={patientData.insurance_info.provider}
                     onChange={(e) => handleChange("insurance_info.provider", e.target.value)}
-                    placeholder="Enter insurance provider"
+                    placeholder={t("Enter insurance provider")}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="policy_number">Policy Number</Label>
+                  <Label htmlFor="policy_number">{t("Policy Number")}</Label>
                   <Input
                     id="policy_number"
                     value={patientData.insurance_info.policy_number}
                     onChange={(e) => handleChange("insurance_info.policy_number", e.target.value)}
-                    placeholder="Enter policy number"
+                    placeholder={t("Enter policy number")}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="group_number">Group Number</Label>
+                  <Label htmlFor="group_number">{t("Group Number")}</Label>
                   <Input
                     id="group_number"
                     value={patientData.insurance_info.group_number}
                     onChange={(e) => handleChange("insurance_info.group_number", e.target.value)}
-                    placeholder="Enter group number"
+                    placeholder={t("Enter group number")}
                   />
                 </div>
               </div>
@@ -340,7 +342,7 @@ const ConvertLeadModal: React.FC<ConvertLeadModalProps> = ({
               onClick={() => onOpenChange(false)}
               disabled={convertMutation.isPending}
             >
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button
               type="submit"
@@ -350,12 +352,12 @@ const ConvertLeadModal: React.FC<ConvertLeadModalProps> = ({
               {convertMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Converting...
+                  {t("Converting...")}
                 </>
               ) : (
                 <>
                   <UserCheck className="mr-2 h-4 w-4" />
-                  Convert to Patient
+                  {t("Convert to Patient")}
                 </>
               )}
             </Button>

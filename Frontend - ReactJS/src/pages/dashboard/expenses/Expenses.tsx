@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -71,6 +72,7 @@ import DeleteConfirmModal from "@/components/modals/DeleteConfirmModal";
 import { expenseApi, type Expense, type ExpenseStats } from "@/services/api/expenseApi";
 
 const Expenses = () => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -135,7 +137,7 @@ const Expenses = () => {
     } catch (err: any) {
       console.error("Error loading expenses:", err);
       setError(err);
-      toast.error("Failed to load expenses");
+      toast.error(t("Failed to load expenses"));
     } finally {
       setLoading(false);
     }
@@ -175,12 +177,12 @@ const Expenses = () => {
 
     try {
       await expenseApi.deleteExpense(deleteModal.expense._id);
-      toast.success("Expense deleted successfully");
+      toast.success(t("Expense deleted successfully"));
       setDeleteModal({ open: false, expense: null });
       loadExpenses();
       loadStats();
     } catch (err: any) {
-      toast.error("Failed to delete expense");
+      toast.error(t("Failed to delete expense"));
     }
   };
 
@@ -250,9 +252,9 @@ const Expenses = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Expenses</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('Expenses')}</h1>
           <p className="text-muted-foreground">
-            Manage and track clinic expenses and costs
+            {t('Manage and track clinic expenses and costs')}
           </p>
         </div>
         <div className="flex gap-2">
@@ -261,11 +263,11 @@ const Expenses = () => {
             onClick={() => {/* TODO: Export functionality */}}
           >
             <Download className="mr-2 h-4 w-4" />
-            Export
+            {t('Export')}
           </Button>
           <Button onClick={() => setAddModalOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
-            Add Expense
+            {t('Add Expense')}
           </Button>
         </div>
       </div>
@@ -275,7 +277,7 @@ const Expenses = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Expenses</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('Total Expenses')}</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -283,14 +285,14 @@ const Expenses = () => {
                 {formatAmount(stats.overview.total_amount)}
               </div>
               <p className="text-xs text-muted-foreground">
-                {stats.overview.total_expenses} expenses recorded
+                {stats.overview.total_expenses} {t('expenses recorded')}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">This Month</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('This Month')}</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -298,14 +300,14 @@ const Expenses = () => {
                 {formatAmount(stats.overview.monthly_total)}
               </div>
               <p className="text-xs text-muted-foreground">
-                {stats.overview.monthly_count} expenses this month
+                {stats.overview.monthly_count} {t('expenses this month')}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('Pending')}</CardTitle>
               <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -313,14 +315,14 @@ const Expenses = () => {
                 {formatAmount(stats.overview.pending_amount)}
               </div>
               <p className="text-xs text-muted-foreground">
-                {stats.overview.pending_expenses} pending expenses
+                {stats.overview.pending_expenses} {t('pending expenses')}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Paid</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('Paid')}</CardTitle>
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -328,7 +330,7 @@ const Expenses = () => {
                 {formatAmount(stats.overview.paid_amount)}
               </div>
               <p className="text-xs text-muted-foreground">
-                {stats.overview.paid_expenses} paid expenses
+                {stats.overview.paid_expenses} {t('paid expenses')}
               </p>
             </CardContent>
           </Card>
@@ -338,9 +340,9 @@ const Expenses = () => {
       {/* Filters */}
       <Card>
         <CardHeader>
-          <CardTitle>Filters</CardTitle>
+          <CardTitle>{t('Filters')}</CardTitle>
           <CardDescription>
-            Filter expenses by category, status, and payment method
+            {t('Filter expenses by category, status, and payment method')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -348,7 +350,7 @@ const Expenses = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Search expenses..."
+                placeholder={t('Search expenses...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -357,51 +359,51 @@ const Expenses = () => {
 
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger>
-                <SelectValue placeholder="All Categories" />
+                <SelectValue placeholder={t('All Categories')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="supplies">Supplies</SelectItem>
-                <SelectItem value="equipment">Equipment</SelectItem>
-                <SelectItem value="utilities">Utilities</SelectItem>
-                <SelectItem value="maintenance">Maintenance</SelectItem>
-                <SelectItem value="staff">Staff</SelectItem>
-                <SelectItem value="marketing">Marketing</SelectItem>
-                <SelectItem value="insurance">Insurance</SelectItem>
-                <SelectItem value="rent">Rent</SelectItem>
-                <SelectItem value="other">Other</SelectItem>
+                <SelectItem value="all">{t('All Categories')}</SelectItem>
+                <SelectItem value="supplies">{t('Supplies')}</SelectItem>
+                <SelectItem value="equipment">{t('Equipment')}</SelectItem>
+                <SelectItem value="utilities">{t('Utilities')}</SelectItem>
+                <SelectItem value="maintenance">{t('Maintenance')}</SelectItem>
+                <SelectItem value="staff">{t('Staff')}</SelectItem>
+                <SelectItem value="marketing">{t('Marketing')}</SelectItem>
+                <SelectItem value="insurance">{t('Insurance')}</SelectItem>
+                <SelectItem value="rent">{t('Rent')}</SelectItem>
+                <SelectItem value="other">{t('Other')}</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
               <SelectTrigger>
-                <SelectValue placeholder="All Statuses" />
+                <SelectValue placeholder={t('All Statuses')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="paid">Paid</SelectItem>
-                <SelectItem value="cancelled">Cancelled</SelectItem>
+                <SelectItem value="all">{t('All Statuses')}</SelectItem>
+                <SelectItem value="pending">{t('Pending')}</SelectItem>
+                <SelectItem value="paid">{t('Paid')}</SelectItem>
+                <SelectItem value="cancelled">{t('Cancelled')}</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={selectedPaymentMethod} onValueChange={setSelectedPaymentMethod}>
               <SelectTrigger>
-                <SelectValue placeholder="All Payment Methods" />
+                <SelectValue placeholder={t('All Payment Methods')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Payment Methods</SelectItem>
-                <SelectItem value="cash">Cash</SelectItem>
-                <SelectItem value="card">Card</SelectItem>
-                <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                <SelectItem value="check">Check</SelectItem>
+                <SelectItem value="all">{t('All Payment Methods')}</SelectItem>
+                <SelectItem value="cash">{t('Cash')}</SelectItem>
+                <SelectItem value="card">{t('Card')}</SelectItem>
+                <SelectItem value="bank_transfer">{t('Bank Transfer')}</SelectItem>
+                <SelectItem value="check">{t('Check')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
           <div className="flex justify-between items-center">
             <p className="text-sm text-muted-foreground">
-              Showing {expenses.length} of {totalItems} expenses
+              {t('Showing')} {expenses.length} {t('of')} {totalItems} {t('expenses')}
             </p>
             <Button
               variant="outline"
@@ -414,7 +416,7 @@ const Expenses = () => {
                 setCurrentPage(1);
               }}
             >
-              Clear Filters
+              {t('Clear Filters')}
             </Button>
           </div>
         </CardContent>
@@ -423,9 +425,9 @@ const Expenses = () => {
       {/* Expenses Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Expenses List</CardTitle>
+          <CardTitle>{t('Expenses List')}</CardTitle>
           <CardDescription>
-            View and manage all clinic expenses
+            {t('View and manage all clinic expenses')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -436,14 +438,14 @@ const Expenses = () => {
           ) : expenses.length === 0 ? (
             <div className="text-center py-8">
               <Receipt className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-2 text-sm font-semibold text-gray-900">No expenses found</h3>
+              <h3 className="mt-2 text-sm font-semibold text-gray-900">{t('No expenses found')}</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Get started by creating a new expense.
+                {t('Get started by creating a new expense.')}
               </p>
               <div className="mt-6">
                 <Button onClick={() => setAddModalOpen(true)}>
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Expense
+                  {t('Add Expense')}
                 </Button>
               </div>
             </div>
@@ -452,14 +454,14 @@ const Expenses = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Amount</TableHead>
-                    <TableHead>Payment Method</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Vendor</TableHead>
-                    <TableHead className="w-[100px] text-right">Actions</TableHead>
+                    <TableHead>{t('Title')}</TableHead>
+                    <TableHead>{t('Category')}</TableHead>
+                    <TableHead>{t('Amount')}</TableHead>
+                    <TableHead>{t('Payment Method')}</TableHead>
+                    <TableHead>{t('Status')}</TableHead>
+                    <TableHead>{t('Date')}</TableHead>
+                    <TableHead>{t('Vendor')}</TableHead>
+                    <TableHead className="w-[100px] text-right">{t('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -511,24 +513,24 @@ const Expenses = () => {
                             <DropdownMenuTrigger asChild>
                               <Button variant="outline" size="sm" className="h-8">
                                 <MoreVertical className="h-4 w-4 mr-1" />
-                                Actions
+                                {t('Actions')}
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => handleViewExpense(expense)}>
                                 <Eye className="mr-2 h-4 w-4" />
-                                View Details
+                                {t('View Details')}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleEditExpense(expense)}>
                                 <Edit className="mr-2 h-4 w-4" />
-                                Edit Expense
+                                {t('Edit Expense')}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleDeleteExpense(expense)}
                                 className="text-red-600"
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Delete Expense
+                                {t('Delete Expense')}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -543,7 +545,7 @@ const Expenses = () => {
               {totalPages > 1 && (
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
-                    Page {currentPage} of {totalPages}
+                    {t('Page')} {currentPage} {t('of')} {totalPages}
                   </p>
                   <div className="flex gap-2">
                     <Button
@@ -552,7 +554,7 @@ const Expenses = () => {
                       onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                       disabled={currentPage === 1}
                     >
-                      Previous
+                      {t('Previous')}
                     </Button>
                     <Button
                       variant="outline"
@@ -560,7 +562,7 @@ const Expenses = () => {
                       onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                       disabled={currentPage === totalPages}
                     >
-                      Next
+                      {t('Next')}
                     </Button>
                   </div>
                 </div>
@@ -592,8 +594,8 @@ const Expenses = () => {
 
       <DeleteConfirmModal
         open={deleteModal.open}
-        title="Delete Expense"
-        description={`Are you sure you want to delete "${deleteModal.expense?.title}"? This action cannot be undone.`}
+        title={t("Delete Expense")}
+        description={`${t('Are you sure you want to delete')} "${deleteModal.expense?.title}"? ${t('This action cannot be undone.')}`}
         onClose={() => setDeleteModal({ open: false, expense: null })}
         onConfirm={handleDeleteConfirm}
       />

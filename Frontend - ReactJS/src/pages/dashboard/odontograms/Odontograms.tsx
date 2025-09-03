@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -60,6 +61,7 @@ import NewOdontogramModal from "@/components/modals/NewOdontogramModal";
 import OdontogramHistoryModal from "@/components/modals/OdontogramHistoryModal";
 
 const Odontograms = () => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedPatient, setSelectedPatient] = useState("all");
   const [selectedDoctor, setSelectedDoctor] = useState("all");
@@ -153,8 +155,8 @@ const Odontograms = () => {
     } catch (error) {
       console.error("Error fetching odontograms:", error);
       toast({
-        title: "Error",
-        description: "Failed to fetch odontograms",
+        title: t("Error"),
+        description: t("Failed to fetch odontograms"),
         variant: "destructive",
       });
     } finally {
@@ -179,7 +181,7 @@ const Odontograms = () => {
       const result = await odontogramApi.recalculateTreatmentSummaries();
       
       toast({
-        title: "Success",
+        title: t("Success"),
         description: result.message,
       });
 
@@ -188,8 +190,8 @@ const Odontograms = () => {
     } catch (error) {
       console.error("Error recalculating stats:", error);
       toast({
-        title: "Error",
-        description: "Failed to recalculate treatment summaries",
+        title: t("Error"),
+        description: t("Failed to recalculate treatment summaries"),
         variant: "destructive",
       });
     } finally {
@@ -234,14 +236,14 @@ const Odontograms = () => {
     try {
       await odontogramApi.setActiveOdontogram(odontogramId);
       toast({
-        title: "Success",
-        description: "Odontogram set as active",
+        title: t("Success"),
+        description: t("Odontogram set as active"),
       });
       fetchOdontograms();
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to set odontogram as active",
+        title: t("Error"),
+        description: t("Failed to set odontogram as active"),
         variant: "destructive",
       });
     }
@@ -296,9 +298,9 @@ const Odontograms = () => {
       {/* Header */}
       <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Odontograms</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">{t("Odontograms")}</h1>
           <p className="text-muted-foreground">
-            Manage dental charts and treatment plans
+            {t("Manage dental charts and treatment plans")}
           </p>
         </div>
         <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:gap-2">
@@ -315,8 +317,8 @@ const Odontograms = () => {
             ) : (
               <TrendingUp className="mr-2 h-4 w-4" />
             )}
-            <span className="hidden sm:inline">Refresh Stats</span>
-            <span className="sm:hidden">Refresh</span>
+            <span className="hidden sm:inline">{t("Refresh Stats")}</span>
+            <span className="sm:hidden">{t("Refresh")}</span>
           </Button>
           
           <Button 
@@ -324,8 +326,8 @@ const Odontograms = () => {
             onClick={() => setNewOdontogramModalOpen(true)}
           >
             <Plus className="mr-2 h-4 w-4" />
-            <span className="hidden sm:inline">New Odontogram</span>
-            <span className="sm:hidden">New</span>
+            <span className="hidden sm:inline">{t("New Odontogram")}</span>
+            <span className="sm:hidden">{t("New")}</span>
           </Button>
         </div>
       </div>
@@ -335,52 +337,52 @@ const Odontograms = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Patients</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("Total Patients")}</CardTitle>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.total_patients}</div>
               <p className="text-xs text-muted-foreground">
-                with dental records
+                {t("with dental records")}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Completion Rate</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("Completion Rate")}</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.completion_rate}%</div>
               <p className="text-xs text-muted-foreground">
-                treatment completion
+                {t("treatment completion")}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Treatments</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("Active Treatments")}</CardTitle>
               <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.total_in_progress_treatments}</div>
               <p className="text-xs text-muted-foreground">
-                in progress
+                {t("in progress")}
               </p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <CardTitle className="text-sm font-medium">{t("Total Revenue")}</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{formatCurrency(stats.total_estimated_cost)}</div>
               <p className="text-xs text-muted-foreground">
-                estimated value
+                {t("estimated value")}
               </p>
             </CardContent>
           </Card>
@@ -390,7 +392,7 @@ const Odontograms = () => {
       {/* Filters and Search */}
       <Card>
         <CardHeader>
-          <CardTitle>Filters</CardTitle>
+          <CardTitle>{t("Filters")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -398,7 +400,7 @@ const Odontograms = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
               <Input
-                placeholder="Search by patient name..."
+                placeholder={t("Search by patient name...")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -409,34 +411,34 @@ const Odontograms = () => {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
                 <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Filter by doctor" />
+                  <SelectValue placeholder={t("Filter by doctor")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Doctors</SelectItem>
+                  <SelectItem value="all">{t("All Doctors")}</SelectItem>
                   {/* Add doctor options dynamically */}
                 </SelectContent>
               </Select>
 
               <Select value={selectedDateRange} onValueChange={setSelectedDateRange}>
                 <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Date range" />
+                  <SelectValue placeholder={t("Date range")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="week">Last Week</SelectItem>
-                  <SelectItem value="month">Last Month</SelectItem>
-                  <SelectItem value="quarter">Last Quarter</SelectItem>
+                  <SelectItem value="all">{t("All Time")}</SelectItem>
+                  <SelectItem value="today">{t("Today")}</SelectItem>
+                  <SelectItem value="week">{t("Last Week")}</SelectItem>
+                  <SelectItem value="month">{t("Last Month")}</SelectItem>
+                  <SelectItem value="quarter">{t("Last Quarter")}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={sortOrder} onValueChange={setSortOrder}>
                 <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Sort by time" />
+                  <SelectValue placeholder={t("Sort by time")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="newest">Newest First</SelectItem>
-                  <SelectItem value="oldest">Oldest First</SelectItem>
+                  <SelectItem value="newest">{t("Newest First")}</SelectItem>
+                  <SelectItem value="oldest">{t("Oldest First")}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -446,7 +448,7 @@ const Odontograms = () => {
                 className="w-full sm:w-auto"
               >
                 <Filter className="mr-2 h-4 w-4" />
-                Active Only
+                {t("Active Only")}
               </Button>
             </div>
           </div>
@@ -456,9 +458,9 @@ const Odontograms = () => {
       {/* Odontograms List */}
       <Card>
         <CardHeader>
-          <CardTitle>Dental Records</CardTitle>
+          <CardTitle>{t("Dental Records")}</CardTitle>
           <CardDescription>
-            View and manage patient dental charts
+            {t("View and manage patient dental charts")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -473,14 +475,14 @@ const Odontograms = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Patient</TableHead>
-                      <TableHead>Doctor</TableHead>
-                      <TableHead>Examination Date / Time</TableHead>
-                      <TableHead>Version</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Progress</TableHead>
-                      <TableHead>Treatments</TableHead>
-                      <TableHead>Actions</TableHead>
+                      <TableHead>{t("Patient")}</TableHead>
+                      <TableHead>{t("Doctor")}</TableHead>
+                      <TableHead>{t("Examination Date / Time")}</TableHead>
+                      <TableHead>{t("Version")}</TableHead>
+                      <TableHead>{t("Status")}</TableHead>
+                      <TableHead>{t("Progress")}</TableHead>
+                      <TableHead>{t("Treatments")}</TableHead>
+                      <TableHead>{t("Actions")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -494,7 +496,7 @@ const Odontograms = () => {
                             <div>
                               <div className="font-medium">{getPatientFullName(odontogram.patient_id)}</div>
                               <div className="text-sm text-gray-500">
-                                Age: {calculateAge(odontogram.patient_id.date_of_birth)}
+                                {t("Age:")}: {calculateAge(odontogram.patient_id.date_of_birth)}
                               </div>
                             </div>
                           </div>
@@ -528,7 +530,7 @@ const Odontograms = () => {
 
                         <TableCell>
                           <Badge variant={getStatusBadgeVariant(odontogram)}>
-                            {odontogram.is_active ? "Active" : "Inactive"}
+                            {odontogram.is_active ? t("Active") : t("Inactive")}
                           </Badge>
                         </TableCell>
 
@@ -549,7 +551,7 @@ const Odontograms = () => {
                         <TableCell>
                           <div className="text-sm">
                             <div>{odontogram.treatment_summary?.completed_treatments || 0} / {odontogram.treatment_summary?.total_planned_treatments || 0}</div>
-                            <div className="text-gray-500">treatments</div>
+                            <div className="text-gray-500">{t("treatments")}</div>
                           </div>
                         </TableCell>
 
@@ -564,7 +566,7 @@ const Odontograms = () => {
                               title="View Chart"
                             >
                               <Eye className="h-3 w-3 mr-1" />
-                              View
+                              {t("View")}
                             </Button>
                             
                             <Button 
@@ -575,7 +577,7 @@ const Odontograms = () => {
                               title="View History"
                             >
                               <History className="h-3 w-3 mr-1" />
-                              History
+                              {t("History")}
                             </Button>
 
                             {/* More Actions Dropdown */}
@@ -594,12 +596,12 @@ const Odontograms = () => {
                               <DropdownMenuContent align="end" className="w-48">
                                 <DropdownMenuItem onClick={() => handleViewDetails(odontogram._id)}>
                                   <Edit className="mr-2 h-4 w-4" />
-                                  Edit Chart
+                                  {t("Edit Chart")}
                                 </DropdownMenuItem>
                                 {!odontogram.is_active && (
                                   <DropdownMenuItem onClick={() => handleSetActive(odontogram._id)}>
                                     <CheckCircle className="mr-2 h-4 w-4" />
-                                    Set as Active
+                                    {t("Set as Active")}
                                   </DropdownMenuItem>
                                 )}
                               </DropdownMenuContent>
@@ -629,12 +631,12 @@ const Odontograms = () => {
                         </div>
                         <div>
                           <div className="font-semibold text-base">{getPatientFullName(odontogram.patient_id)}</div>
-                          <div className="text-sm text-muted-foreground">Age: {calculateAge(odontogram.patient_id.date_of_birth)}</div>
+                          <div className="text-sm text-muted-foreground">{t("Age:")}: {calculateAge(odontogram.patient_id.date_of_birth)}</div>
                         </div>
                       </div>
                       <div className="flex flex-col items-end space-y-2">
                         <Badge variant={getStatusBadgeVariant(odontogram)}>
-                          {odontogram.is_active ? "Active" : "Inactive"}
+                          {odontogram.is_active ? t("Active") : t("Inactive")}
                         </Badge>
                         <Badge variant="outline" className="text-xs">
                           v{odontogram.version}
@@ -660,13 +662,13 @@ const Odontograms = () => {
                     {/* Date & Time */}
                     <div className="flex items-center space-x-2 text-sm">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>Examination: {formatDateTime(odontogram.examination_date)}</span>
+                      <span>{t("Examination:")}: {formatDateTime(odontogram.examination_date)}</span>
                     </div>
 
                     {/* Progress Section */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium">Treatment Progress</span>
+                        <span className="font-medium">{t("Treatment Progress")}</span>
                         <span className={`font-semibold ${getProgressColor(odontogram.treatment_progress || 0)}`}>
                           {odontogram.treatment_progress || 0}%
                         </span>
@@ -678,7 +680,7 @@ const Odontograms = () => {
                         />
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {odontogram.treatment_summary?.completed_treatments || 0} of {odontogram.treatment_summary?.total_planned_treatments || 0} treatments completed
+                        {odontogram.treatment_summary?.completed_treatments || 0} {t("of")} {odontogram.treatment_summary?.total_planned_treatments || 0} {t("treatments completed")}
                       </div>
                     </div>
 
@@ -692,7 +694,7 @@ const Odontograms = () => {
                           className="flex-1"
                         >
                           <Eye className="h-4 w-4 mr-2" />
-                          View Chart
+                          {t("View Chart")}
                         </Button>
                         
                         <Button 
@@ -702,7 +704,7 @@ const Odontograms = () => {
                           className="flex-1"
                         >
                           <History className="h-4 w-4 mr-2" />
-                          History
+                          {t("History")}
                         </Button>
                       </div>
 
@@ -716,7 +718,7 @@ const Odontograms = () => {
                             className="flex-1"
                           >
                             <CheckCircle className="h-4 w-4 mr-2" />
-                            Set Active
+                            {t("Set Active")}
                           </Button>
                         )}
                         
@@ -733,7 +735,7 @@ const Odontograms = () => {
                           <DropdownMenuContent align="end" className="w-40">
                             <DropdownMenuItem onClick={() => handleViewDetails(odontogram._id)}>
                               <Edit className="mr-2 h-4 w-4" />
-                              Edit Chart
+                              {t("Edit Chart")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -746,13 +748,13 @@ const Odontograms = () => {
               {/* No Data State */}
               {odontograms.length === 0 && (
                 <div className="text-center py-8">
-                  <div className="text-muted-foreground">No dental records found</div>
+                  <div className="text-muted-foreground">{t("No dental records found")}</div>
                   <Button 
                     className="mt-4"
                     onClick={() => setNewOdontogramModalOpen(true)}
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    Create First Odontogram
+                    {t("Create First Odontogram")}
                   </Button>
                 </div>
               )}
@@ -761,9 +763,9 @@ const Odontograms = () => {
               {pagination.total_pages > 1 && (
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t">
                   <div className="text-sm text-muted-foreground order-2 sm:order-1">
-                    Showing {((currentPage - 1) * pagination.items_per_page) + 1} to{" "}
-                    {Math.min(currentPage * pagination.items_per_page, pagination.total_items)} of{" "}
-                    {pagination.total_items} results
+                    {t("Showing")} {((currentPage - 1) * pagination.items_per_page) + 1} {t("to")} 
+                    {Math.min(currentPage * pagination.items_per_page, pagination.total_items)} {t("of")} 
+                    {pagination.total_items} {t("results")}
                   </div>
                   <div className="flex space-x-2 order-1 sm:order-2">
                     <Button
@@ -773,7 +775,7 @@ const Odontograms = () => {
                       disabled={currentPage === 1}
                       className="px-3"
                     >
-                      Previous
+                      {t("Previous")}
                     </Button>
                     <Button
                       variant="outline"
@@ -782,7 +784,7 @@ const Odontograms = () => {
                       disabled={currentPage === pagination.total_pages}
                       className="px-3"
                     >
-                      Next
+                      {t("Next")}
                     </Button>
                   </div>
                 </div>

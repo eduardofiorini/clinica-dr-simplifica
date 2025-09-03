@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -81,6 +82,7 @@ import {
 } from "@/hooks/useDashboard";
 
 const Analytics = () => {
+  const { t } = useTranslation();
   const [selectedTimeframe, setSelectedTimeframe] = useState("3months");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
   const { formatAmount, currencyInfo } = useCurrency();
@@ -210,8 +212,8 @@ const Analytics = () => {
 
   const generateReport = (type: string) => {
     toast({
-      title: "Report Generated",
-      description: `${type} report is being prepared for download.`,
+      title: t("Report Generated"),
+      description: `${type} ${t("report is being prepared for download.")}`,
     });
   };
 
@@ -221,8 +223,8 @@ const Analytics = () => {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <AlertTriangle className="h-8 w-8 text-orange-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-foreground mb-2">Clinic Selection Required</h3>
-          <p className="text-muted-foreground mb-4">Please select a clinic to view analytics data.</p>
+          <h3 className="text-lg font-semibold text-foreground mb-2">{t('Clinic Selection Required')}</h3>
+          <p className="text-muted-foreground mb-4">{t('Please select a clinic to view analytics data.')}</p>
         </div>
       </div>
     );
@@ -234,9 +236,9 @@ const Analytics = () => {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading analytics data...</p>
+          <p className="text-muted-foreground">{t('Loading analytics data...')}</p>
           {currentClinic && (
-            <p className="text-sm text-muted-foreground mt-2">For {currentClinic.name}</p>
+            <p className="text-sm text-muted-foreground mt-2">{t('For')} {currentClinic.name}</p>
           )}
         </div>
       </div>
@@ -251,16 +253,16 @@ const Analytics = () => {
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center max-w-md">
           <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-foreground mb-2">Error Loading Analytics</h3>
+          <h3 className="text-lg font-semibold text-foreground mb-2">{t('Error Loading Analytics')}</h3>
           <p className="text-red-600 mb-4">
-            Failed to load {actualErrors.length} analytics module{actualErrors.length > 1 ? 's' : ''}
+            {t('Failed to load')} {actualErrors.length} {t('analytics module')}{actualErrors.length > 1 ? t('s') : ''}
           </p>
           {currentClinic && (
-            <p className="text-sm text-muted-foreground mb-4">For clinic: {currentClinic.name}</p>
+            <p className="text-sm text-muted-foreground mb-4">{t('For clinic:')} {currentClinic.name}</p>
           )}
           <details className="text-left mb-4">
             <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground">
-              Show error details
+              {t('Show error details')}
             </summary>
             <div className="mt-2 text-xs text-muted-foreground bg-muted p-2 rounded">
               {errorDetails}
@@ -268,10 +270,10 @@ const Analytics = () => {
           </details>
           <div className="space-x-2">
             <Button onClick={retryAll} variant="default">
-              Retry Failed Modules
+              {t('Retry Failed Modules')}
             </Button>
             <Button onClick={() => window.location.reload()} variant="outline">
-              Reload Page
+              {t('Reload Page')}
             </Button>
           </div>
         </div>
@@ -285,10 +287,10 @@ const Analytics = () => {
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between sm:flex-wrap">
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            Analytics & Reports
+            {t('Analytics & Reports')}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Comprehensive insights into clinic performance and metrics
+            {t('Comprehensive insights into clinic performance and metrics')}
           </p>
         </div>
       </div>
@@ -303,13 +305,13 @@ const Analytics = () => {
                 onValueChange={setSelectedTimeframe}
               >
                 <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="Timeframe" />
+                  <SelectValue placeholder={t('Timeframe')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1month">Last Month</SelectItem>
-                  <SelectItem value="3months">Last 3 Months</SelectItem>
-                  <SelectItem value="6months">Last 6 Months</SelectItem>
-                  <SelectItem value="1year">Last Year</SelectItem>
+                  <SelectItem value="1month">{t('Last Month')}</SelectItem>
+                  <SelectItem value="3months">{t('Last 3 Months')}</SelectItem>
+                  <SelectItem value="6months">{t('Last 6 Months')}</SelectItem>
+                  <SelectItem value="1year">{t('Last Year')}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -318,14 +320,14 @@ const Analytics = () => {
                 onValueChange={setSelectedDepartment}
               >
                 <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Department" />
+                  <SelectValue placeholder={t('Department')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Departments</SelectItem>
-                  <SelectItem value="general">General Medicine</SelectItem>
-                  <SelectItem value="cardiology">Cardiology</SelectItem>
-                  <SelectItem value="pediatrics">Pediatrics</SelectItem>
-                  <SelectItem value="orthopedics">Orthopedics</SelectItem>
+                  <SelectItem value="all">{t('All Departments')}</SelectItem>
+                  <SelectItem value="general">{t('General Medicine')}</SelectItem>
+                  <SelectItem value="cardiology">{t('Cardiology')}</SelectItem>
+                  <SelectItem value="pediatrics">{t('Pediatrics')}</SelectItem>
+                  <SelectItem value="orthopedics">{t('Orthopedics')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -345,7 +347,7 @@ const Analytics = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Revenue
+                    {t('Total Revenue')}
                   </p>
                   <p className="text-3xl font-bold text-foreground">
                     <CurrencyDisplay amount={currentRevenue} variant="large" />
@@ -377,7 +379,7 @@ const Analytics = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Patients
+                    {t('Total Patients')}
                   </p>
                   <p className="text-3xl font-bold text-foreground">
                     {currentPatients}
@@ -409,13 +411,13 @@ const Analytics = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Appointments
+                    {t('Appointments')}
                   </p>
                   <p className="text-3xl font-bold text-foreground">{totalAppointments}</p>
                   <div className="flex items-center mt-2">
                     <CheckCircle className="h-4 w-4 text-purple-600 mr-1" />
                     <span className="text-sm text-purple-600">
-                      {Math.round(completionRate)}% completed
+                      {Math.round(completionRate)}% {t('completed')}
                     </span>
                   </div>
                 </div>
@@ -435,13 +437,13 @@ const Analytics = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Avg. Wait Time
+                    {t('Avg. Wait Time')}
                   </p>
-                  <p className="text-3xl font-bold text-foreground">12 min</p>
+                  <p className="text-3xl font-bold text-foreground">12 {t('min')}</p>
                   <div className="flex items-center mt-2">
                     <TrendingDown className="h-4 w-4 text-orange-600 mr-1" />
                     <span className="text-sm text-orange-600">
-                      -15% from last month
+                      -15% {t('from last month')}
                     </span>
                   </div>
                 </div>
@@ -462,8 +464,8 @@ const Analytics = () => {
         >
           <Card>
             <CardHeader>
-              <CardTitle>Revenue Trend</CardTitle>
-              <CardDescription>Monthly revenue and expenses</CardDescription>
+              <CardTitle>{t('Revenue Trend')}</CardTitle>
+              <CardDescription>{t('Monthly revenue and expenses')}</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -505,8 +507,8 @@ const Analytics = () => {
         >
           <Card>
             <CardHeader>
-              <CardTitle>Department Performance</CardTitle>
-              <CardDescription>Revenue by department</CardDescription>
+              <CardTitle>{t('Department Performance')}</CardTitle>
+              <CardDescription>{t('Revenue by department')}</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -533,18 +535,18 @@ const Analytics = () => {
       {/* Tables Section */}
       <Tabs defaultValue="services" className="space-y-4">
         <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
-          <TabsTrigger value="services">Top Services</TabsTrigger>
-          <TabsTrigger value="payments">Payment Methods</TabsTrigger>
-          <TabsTrigger value="demographics">Demographics</TabsTrigger>
-          <TabsTrigger value="appointments">Appointments</TabsTrigger>
+          <TabsTrigger value="services">{t('Top Services')}</TabsTrigger>
+          <TabsTrigger value="payments">{t('Payment Methods')}</TabsTrigger>
+          <TabsTrigger value="demographics">{t('Demographics')}</TabsTrigger>
+          <TabsTrigger value="appointments">{t('Appointments')}</TabsTrigger>
         </TabsList>
 
         <TabsContent value="services">
           <Card>
             <CardHeader>
-              <CardTitle>Top Performing Services</CardTitle>
+              <CardTitle>{t('Top Performing Services')}</CardTitle>
               <CardDescription>
-                Most requested services and their revenue
+                {t('Most requested services and their revenue')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -553,10 +555,10 @@ const Analytics = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Service</TableHead>
-                      <TableHead>Count</TableHead>
-                      <TableHead>Revenue</TableHead>
-                      <TableHead>Avg. Price</TableHead>
+                      <TableHead>{t('Service')}</TableHead>
+                      <TableHead>{t('Count')}</TableHead>
+                      <TableHead>{t('Revenue')}</TableHead>
+                      <TableHead>{t('Avg. Price')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -593,7 +595,7 @@ const Analytics = () => {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <div className="text-xs text-gray-500 uppercase tracking-wide">
-                          Count
+                          {t('Count')}
                         </div>
                         <div className="text-sm font-medium">
                           {service.count}
@@ -601,7 +603,7 @@ const Analytics = () => {
                       </div>
                       <div className="space-y-1">
                         <div className="text-xs text-gray-500 uppercase tracking-wide">
-                          Revenue
+                          {t('Revenue')}
                         </div>
                         <div className="text-sm font-medium">
                           {formatCurrency(service.revenue)}
@@ -611,7 +613,7 @@ const Analytics = () => {
 
                     <div className="pt-2 border-t">
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
-                        Average Price
+                        {t('Average Price')}
                       </div>
                       <div className="text-sm font-medium">
                         {formatCurrency(service.revenue / service.count)}
@@ -627,9 +629,9 @@ const Analytics = () => {
         <TabsContent value="payments">
           <Card>
             <CardHeader>
-              <CardTitle>Payment Methods</CardTitle>
+              <CardTitle>{t('Payment Methods')}</CardTitle>
               <CardDescription>
-                Distribution of payment methods used
+                {t('Distribution of payment methods used')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -638,9 +640,9 @@ const Analytics = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Payment Method</TableHead>
-                      <TableHead>Percentage</TableHead>
-                      <TableHead>Amount</TableHead>
+                      <TableHead>{t('Payment Method')}</TableHead>
+                      <TableHead>{t('Percentage')}</TableHead>
+                      <TableHead>{t('Amount')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -673,7 +675,7 @@ const Analytics = () => {
 
                     <div className="space-y-1">
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
-                        Total Amount
+                        {t('Total Amount')}
                       </div>
                       <div className="text-lg font-medium">
                         {formatCurrency(method.amount)}
@@ -689,8 +691,8 @@ const Analytics = () => {
         <TabsContent value="demographics">
           <Card>
             <CardHeader>
-              <CardTitle>Patient Demographics</CardTitle>
-              <CardDescription>Age and gender distribution</CardDescription>
+              <CardTitle>{t('Patient Demographics')}</CardTitle>
+              <CardDescription>{t('Age and gender distribution')}</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -700,8 +702,8 @@ const Analytics = () => {
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Bar dataKey="male" fill="#3B82F6" name="Male" />
-                  <Bar dataKey="female" fill="#EC4899" name="Female" />
+                  <Bar dataKey="male" fill="#3B82F6" name={t('Male')} />
+                  <Bar dataKey="female" fill="#EC4899" name={t('Female')} />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -711,9 +713,9 @@ const Analytics = () => {
         <TabsContent value="appointments">
           <Card>
             <CardHeader>
-              <CardTitle>Appointment Status</CardTitle>
+              <CardTitle>{t('Appointment Status')}</CardTitle>
               <CardDescription>
-                Current appointment status distribution
+                {t('Current appointment status distribution')}
               </CardDescription>
             </CardHeader>
             <CardContent>

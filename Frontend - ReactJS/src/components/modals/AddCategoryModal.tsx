@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,6 +43,7 @@ interface AddCategoryModalProps {
 }
 
 const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ trigger }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState<CreateTestCategoryRequest>({
     name: "",
@@ -60,54 +62,54 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ trigger }) => {
   const createCategory = useCreateTestCategory();
 
   const departments = [
-    "Laboratory Medicine",
-    "Pathology", 
-    "Molecular Laboratory",
-    "Microbiology",
-    "Blood Bank",
-    "Chemistry",
-    "Hematology",
-    "Immunology",
-    "Cytology",
-    "Histology",
+    t("Laboratory Medicine"),
+    t("Pathology"), 
+    t("Molecular Laboratory"),
+    t("Microbiology"),
+    t("Blood Bank"),
+    t("Chemistry"),
+    t("Hematology"),
+    t("Immunology"),
+    t("Cytology"),
+    t("Histology"),
   ];
 
   const iconOptions = [
-    { value: "folder", label: "Folder", icon: <Folder className="h-4 w-4" /> },
-    { value: "beaker", label: "Beaker", icon: <Beaker className="h-4 w-4" /> },
+    { value: "folder", label: t("Folder"), icon: <Folder className="h-4 w-4" /> },
+    { value: "beaker", label: t("Beaker"), icon: <Beaker className="h-4 w-4" /> },
     {
       value: "test-tube",
-      label: "Test Tube",
+      label: t("Test Tube"),
       icon: <TestTube2 className="h-4 w-4" />,
     },
-    { value: "heart", label: "Heart", icon: <Heart className="h-4 w-4" /> },
-    { value: "zap", label: "Lightning", icon: <Zap className="h-4 w-4" /> },
+    { value: "heart", label: t("Heart"), icon: <Heart className="h-4 w-4" /> },
+    { value: "zap", label: t("Lightning"), icon: <Zap className="h-4 w-4" /> },
     {
       value: "microscope",
-      label: "Microscope",
+      label: t("Microscope"),
       icon: <Microscope className="h-4 w-4" />,
     },
   ];
 
   const colorOptions = [
-    { value: "#EF4444", label: "Red", bg: "bg-red-500" },
-    { value: "#F97316", label: "Orange", bg: "bg-orange-500" },
-    { value: "#F59E0B", label: "Amber", bg: "bg-amber-500" },
-    { value: "#EAB308", label: "Yellow", bg: "bg-yellow-500" },
-    { value: "#84CC16", label: "Lime", bg: "bg-lime-500" },
-    { value: "#22C55E", label: "Green", bg: "bg-green-500" },
-    { value: "#10B981", label: "Emerald", bg: "bg-emerald-500" },
-    { value: "#14B8A6", label: "Teal", bg: "bg-teal-500" },
-    { value: "#06B6D4", label: "Cyan", bg: "bg-cyan-500" },
-    { value: "#0EA5E9", label: "Sky", bg: "bg-sky-500" },
-    { value: "#3B82F6", label: "Blue", bg: "bg-blue-500" },
-    { value: "#6366F1", label: "Indigo", bg: "bg-indigo-500" },
-    { value: "#8B5CF6", label: "Violet", bg: "bg-violet-500" },
-    { value: "#A855F7", label: "Purple", bg: "bg-purple-500" },
-    { value: "#D946EF", label: "Fuchsia", bg: "bg-fuchsia-500" },
-    { value: "#EC4899", label: "Pink", bg: "bg-pink-500" },
-    { value: "#F43F5E", label: "Rose", bg: "bg-rose-500" },
-    { value: "#6B7280", label: "Gray", bg: "bg-gray-500" },
+    { value: "#EF4444", label: t("Red"), bg: "bg-red-500" },
+    { value: "#F97316", label: t("Orange"), bg: "bg-orange-500" },
+    { value: "#F59E0B", label: t("Amber"), bg: "bg-amber-500" },
+    { value: "#EAB308", label: t("Yellow"), bg: "bg-yellow-500" },
+    { value: "#84CC16", label: t("Lime"), bg: "bg-lime-500" },
+    { value: "#22C55E", label: t("Green"), bg: "bg-green-500" },
+    { value: "#10B981", label: t("Emerald"), bg: "bg-emerald-500" },
+    { value: "#14B8A6", label: t("Teal"), bg: "bg-teal-500" },
+    { value: "#06B6D4", label: t("Cyan"), bg: "bg-cyan-500" },
+    { value: "#0EA5E9", label: t("Sky"), bg: "bg-sky-500" },
+    { value: "#3B82F6", label: t("Blue"), bg: "bg-blue-500" },
+    { value: "#6366F1", label: t("Indigo"), bg: "bg-indigo-500" },
+    { value: "#8B5CF6", label: t("Violet"), bg: "bg-violet-500" },
+    { value: "#A855F7", label: t("Purple"), bg: "bg-purple-500" },
+    { value: "#D946EF", label: t("Fuchsia"), bg: "bg-fuchsia-500" },
+    { value: "#EC4899", label: t("Pink"), bg: "bg-pink-500" },
+    { value: "#F43F5E", label: t("Rose"), bg: "bg-rose-500" },
+    { value: "#6B7280", label: t("Gray"), bg: "bg-gray-500" },
   ];
 
   const handleChange = (field: keyof CreateTestCategoryRequest, value: any) => {
@@ -126,8 +128,8 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ trigger }) => {
       handleChange("code", code);
     } else {
       toast({
-        title: "Info",
-        description: "Please enter category name first",
+        title: t("Info"),
+        description: t("Please enter category name first"),
         variant: "default",
       });
     }
@@ -159,8 +161,8 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ trigger }) => {
 
     if (missing.length > 0) {
       toast({
-        title: "Validation Error",
-        description: `Please fill in all required fields: ${missing.join(", ")}`,
+        title: t("Validation Error"),
+        description: `${t("Please fill in all required fields:")}: ${missing.join(", ")}`,
         variant: "destructive",
       });
       return false;
@@ -191,8 +193,8 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ trigger }) => {
       await createCategory.mutateAsync(categoryData);
 
       toast({
-        title: "Category created successfully",
-        description: `${formData.name} (${formData.code}) has been added to the category catalog.`,
+        title: t("Category created successfully"),
+        description: `${formData.name} (${formData.code}) ${t("has been added to the category catalog.")}`
       });
 
       // Reset form
@@ -212,8 +214,8 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ trigger }) => {
       setOpen(false);
     } catch (error) {
       toast({
-        title: "Error creating category",
-        description: error instanceof Error ? error.message : "Something went wrong",
+        title: t("Error creating category"),
+        description: error instanceof Error ? error.message : t("Something went wrong"),
         variant: "destructive",
       });
     }
@@ -225,16 +227,15 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ trigger }) => {
         {trigger || (
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            Add Category
+            {t("Add Category")}
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Test Category</DialogTitle>
+          <DialogTitle>{t("Add New Test Category")}</DialogTitle>
           <DialogDescription>
-            Create a new test category to organize your laboratory tests
-            effectively.
+            {t("Create a new test category to organize your laboratory tests effectively.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -244,33 +245,33 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ trigger }) => {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base font-medium">
-                  Basic Information
+                  {t("Basic Information")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">
-                    Category Name <span className="text-red-500">*</span>
+                    {t("Category Name")} <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="name"
                     value={formData.name}
                     onChange={(e) => handleChange("name", e.target.value)}
-                    placeholder="e.g., Hematology"
+                    placeholder={t("e.g., Hematology")}
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="code">
-                    Category Code <span className="text-red-500">*</span>
+                    {t("Category Code")} <span className="text-red-500">*</span>
                   </Label>
                   <div className="flex space-x-2">
                     <Input
                       id="code"
                       value={formData.code}
                       onChange={(e) => handleChange("code", e.target.value.toUpperCase())}
-                      placeholder="e.g., HEM"
+                      placeholder={t("e.g., HEM")}
                       className="flex-1"
                       required
                     />
@@ -284,19 +285,19 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ trigger }) => {
                     </Button>
                   </div>
                   <p className="text-xs text-gray-500">
-                    Auto-generate from category name or enter manually
+                    {t("Auto-generate from category name or enter manually")}
                   </p>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="description">
-                    Description <span className="text-red-500">*</span>
+                    {t("Description")} <span className="text-red-500">*</span>
                   </Label>
                   <Textarea
                     id="description"
                     value={formData.description}
                     onChange={(e) => handleChange("description", e.target.value)}
-                    placeholder="Brief description of this test category..."
+                    placeholder={t("Brief description of this test category...")}
                     className="min-h-20"
                     required
                   />
@@ -304,7 +305,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ trigger }) => {
 
                 <div className="space-y-2">
                   <Label htmlFor="department">
-                    Department <span className="text-red-500">*</span>
+                    {t("Department")} <span className="text-red-500">*</span>
                   </Label>
                   <Select
                     value={formData.department}
@@ -312,7 +313,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ trigger }) => {
                     required
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select department" />
+                      <SelectValue placeholder={t("Select department")} />
                     </SelectTrigger>
                     <SelectContent>
                       {departments.map((dept) => (
@@ -330,12 +331,12 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ trigger }) => {
             <Card>
               <CardHeader>
                 <CardTitle className="text-base font-medium">
-                  Visual Settings
+                  {t("Visual Settings")}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Icon</Label>
+                  <Label>{t("Icon")}</Label>
                   <div className="grid grid-cols-3 gap-2">
                     {iconOptions.map((option) => (
                       <button
@@ -356,7 +357,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ trigger }) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Color</Label>
+                  <Label>{t("Color")}</Label>
                   <div className="grid grid-cols-6 gap-2">
                     {colorOptions.map((color) => (
                       <button
@@ -375,23 +376,23 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ trigger }) => {
                   <div className="flex items-center space-x-2 mt-2">
                     <Palette className="h-4 w-4 text-gray-500" />
                     <span className="text-sm text-gray-600">
-                      Selected: {formData.color}
+                      {t("Selected:")}: {formData.color}
                     </span>
                   </div>
                 </div>
 
                 {/* Preview */}
                 <div className="space-y-2">
-                  <Label>Preview</Label>
+                  <Label>{t("Preview")}</Label>
                   <div className="p-3 border rounded-lg bg-gray-50">
                     <div className="flex items-center space-x-3">
                       {getIconComponent(formData.icon, formData.color)}
                       <div>
                         <div className="font-medium">
-                          {formData.name || "Category Name"}
+                          {formData.name || t("Category Name")}
                         </div>
                         <div className="text-sm text-gray-500">
-                          Code: {formData.code || "CODE"}
+                          {t("Code:")}: {formData.code || t("CODE")}
                         </div>
                       </div>
                     </div>
@@ -405,37 +406,37 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ trigger }) => {
           <Card>
             <CardHeader>
               <CardTitle className="text-base font-medium">
-                Additional Information
+                {t("Additional Information")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="commonTests">Common Tests</Label>
+                  <Label htmlFor="commonTests">{t("Common Tests")}</Label>
                   <Textarea
                     id="commonTests"
                     value={commonTestsInput}
                     onChange={(e) => setCommonTestsInput(e.target.value)}
-                    placeholder="Enter common tests, separated by commas (e.g., CBC, ESR, Platelet Count)"
+                    placeholder={t("Enter common tests, separated by commas (e.g., CBC, ESR, Platelet Count)")}
                     className="min-h-20"
                   />
                   <p className="text-xs text-gray-500">
-                    Enter test names separated by commas
+                    {t("Enter test names separated by commas")}
                   </p>
                 </div>
 
                 <div className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="sortOrder">Sort Order</Label>
+                    <Label htmlFor="sortOrder">{t("Sort Order")}</Label>
                     <Input
                       id="sortOrder"
                       type="number"
                       value={formData.sortOrder}
                       onChange={(e) => handleChange("sortOrder", parseInt(e.target.value) || 0)}
-                      placeholder="0"
+                      placeholder={t("0")}
                     />
                     <p className="text-xs text-gray-500">
-                      Lower numbers appear first in lists
+                      {t("Lower numbers appear first in lists")}
                     </p>
                   </div>
 
@@ -447,7 +448,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ trigger }) => {
                     />
                     <Label htmlFor="isActive" className="flex items-center space-x-2">
                       <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span>Active Category</span>
+                      <span>{t("Active Category")}</span>
                     </Label>
                   </div>
                 </div>
@@ -463,7 +464,7 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ trigger }) => {
               onClick={() => setOpen(false)}
               disabled={createCategory.isPending}
             >
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button 
               type="submit" 
@@ -472,12 +473,12 @@ const AddCategoryModal: React.FC<AddCategoryModalProps> = ({ trigger }) => {
               {createCategory.isPending ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Creating...
+                  {t("Creating...")}
                 </>
               ) : (
                 <>
                   <Plus className="h-4 w-4 mr-2" />
-                  Create Category
+                  {t("Create Category")}
                 </>
               )}
             </Button>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAppointments, useUpdateAppointment, useDeleteAppointment } from "@/hooks/useApi";
@@ -84,6 +85,7 @@ import type { Service } from "@/types";
 import NewAppointmentModal from "@/components/modals/NewAppointmentModal";
 
 const Appointments = () => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedDate, setSelectedDate] = useState("all");
@@ -507,8 +509,8 @@ const Appointments = () => {
       console.error('Error loading edit modal data:', error);
       setEditModalData(prev => ({ ...prev, loading: false }));
       toast({
-        title: "Error loading data",
-        description: "Failed to load patients, doctors, nurses, and services.",
+        title: t("Error loading data"),
+        description: t("Failed to load patients, doctors, nurses, and services."),
         variant: "destructive",
       });
     }
@@ -561,8 +563,8 @@ const Appointments = () => {
     // For now, just show edit modal with focus on date/time
     setEditModal({ open: true, appointment });
     toast({
-      title: "Reschedule",
-      description: "Update the date and time to reschedule this appointment.",
+      title: t("Reschedule"),
+      description: t("Update the date and time to reschedule this appointment."),
     });
   };
 
@@ -573,13 +575,13 @@ const Appointments = () => {
         data: { status: 'completed' }
       });
       toast({
-        title: "Success",
-        description: "Appointment marked as completed.",
+        title: t("Success"),
+        description: t("Appointment marked as completed."),
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to update appointment status.",
+        title: t("Error"),
+        description: t("Failed to update appointment status."),
         variant: "destructive",
       });
     }
@@ -599,13 +601,13 @@ const Appointments = () => {
       });
       setCancelModal({ open: false, appointment: null });
       toast({
-        title: "Success",
-        description: "Appointment has been cancelled.",
+        title: t("Success"),
+        description: t("Appointment has been cancelled."),
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to cancel appointment.",
+        title: t("Error"),
+        description: t("Failed to cancel appointment."),
         variant: "destructive",
       });
     }
@@ -617,8 +619,8 @@ const Appointments = () => {
     // Validate required fields
     if (!editFormData.patientId || editFormData.patientId === "loading" || editFormData.patientId === "no-patients") {
       toast({
-        title: "Validation Error",
-        description: "Please select a valid patient.",
+        title: t("Validation Error"),
+        description: t("Please select a valid patient."),
         variant: "destructive",
       });
       return;
@@ -626,8 +628,8 @@ const Appointments = () => {
 
     if (!editFormData.doctorId || editFormData.doctorId === "loading" || editFormData.doctorId === "no-doctors") {
       toast({
-        title: "Validation Error", 
-        description: "Please select a valid doctor.",
+        title: t("Validation Error"), 
+        description: t("Please select a valid doctor."),
         variant: "destructive",
       });
       return;
@@ -635,8 +637,8 @@ const Appointments = () => {
 
     if (!editFormData.date || !editFormData.time) {
       toast({
-        title: "Validation Error",
-        description: "Please provide both date and time for the appointment.",
+        title: t("Validation Error"),
+        description: t("Please provide both date and time for the appointment."),
         variant: "destructive",
       });
       return;
@@ -644,8 +646,8 @@ const Appointments = () => {
 
     if (!editFormData.type || editFormData.type === "") {
       toast({
-        title: "Validation Error",
-        description: "Please select an appointment type.",
+        title: t("Validation Error"),
+        description: t("Please select an appointment type."),
         variant: "destructive",
       });
       return;
@@ -654,8 +656,8 @@ const Appointments = () => {
     const duration = parseInt(editFormData.duration);
     if (isNaN(duration) || duration < 15 || duration > 240) {
       toast({
-        title: "Validation Error",
-        description: "Duration must be between 15 and 240 minutes.",
+        title: t("Validation Error"),
+        description: t("Duration must be between 15 and 240 minutes."),
         variant: "destructive",
       });
       return;
@@ -668,8 +670,8 @@ const Appointments = () => {
       // Validate the date is not invalid
       if (isNaN(appointmentDateTime.getTime())) {
         toast({
-          title: "Validation Error",
-          description: "Please provide a valid date and time.",
+          title: t("Validation Error"),
+          description: t("Please provide a valid date and time."),
           variant: "destructive",
         });
         return;
@@ -706,14 +708,14 @@ const Appointments = () => {
 
       setEditModal({ open: false, appointment: null });
       toast({
-        title: "Success",
-        description: "Appointment has been updated successfully.",
+        title: t("Success"),
+        description: t("Appointment has been updated successfully."),
       });
     } catch (error) {
       console.error('Update appointment error:', error);
       toast({
-        title: "Error",
-        description: "Failed to update appointment. Please try again.",
+        title: t("Error"),
+        description: t("Failed to update appointment. Please try again."),
         variant: "destructive",
       });
     }
@@ -790,7 +792,7 @@ const Appointments = () => {
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Failed to load appointments. Please check your connection and try again.
+            {t("Failed to load appointments. Please check your connection and try again.")}
           </AlertDescription>
         </Alert>
       </div>
@@ -803,10 +805,10 @@ const Appointments = () => {
       <div className="flex flex-col space-y-3 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1 min-w-0">
           <h1 className="text-xl xs:text-2xl sm:text-3xl font-bold text-foreground">
-            Appointments
+            {t("Appointments")}
           </h1>
           <p className="text-xs xs:text-sm sm:text-base text-muted-foreground mt-1">
-            Manage patient appointments and schedules
+            {t("Manage patient appointments and schedules")}
           </p>
         </div>
         <div className="flex-shrink-0 w-full sm:w-auto">
@@ -826,7 +828,7 @@ const Appointments = () => {
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                    Today's Appointments
+                    {t("Today's Appointments")}
                   </p>
                   <p className="text-lg xs:text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mt-1">
                     {appointmentsLoading ? "..." : todayStats.today}
@@ -848,7 +850,7 @@ const Appointments = () => {
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                    Completed
+                    {t("Completed")}
                   </p>
                   <p className="text-lg xs:text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mt-1">
                     {appointmentsLoading ? "..." : todayStats.completed}
@@ -870,7 +872,7 @@ const Appointments = () => {
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                    Pending
+                    {t("Pending")}
                   </p>
                   <p className="text-lg xs:text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mt-1">
                     {appointmentsLoading ? "..." : todayStats.scheduled}
@@ -892,7 +894,7 @@ const Appointments = () => {
               <div className="flex items-center justify-between">
                 <div className="min-w-0 flex-1">
                   <p className="text-xs sm:text-sm font-medium text-muted-foreground">
-                    Cancelled
+                    {t("Cancelled")}
                   </p>
                   <p className="text-lg xs:text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mt-1">
                     {appointmentsLoading ? "..." : todayStats.cancelled}
@@ -913,7 +915,7 @@ const Appointments = () => {
             <div className="relative flex-1 min-w-0">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search appointments by patient or doctor..."
+                placeholder={t("Search appointments by patient or doctor...")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-full h-10"
@@ -924,28 +926,28 @@ const Appointments = () => {
             <div className="flex flex-col xs:flex-row gap-2 xs:gap-3 sm:gap-4">
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger className="w-full xs:w-40">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t("Status")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="scheduled">Scheduled</SelectItem>
-                  <SelectItem value="confirmed">Confirmed</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                  <SelectItem value="no-show">No Show</SelectItem>
+                  <SelectItem value="all">{t("All Status")}</SelectItem>
+                  <SelectItem value="scheduled">{t("Scheduled")}</SelectItem>
+                  <SelectItem value="confirmed">{t("Confirmed")}</SelectItem>
+                  <SelectItem value="completed">{t("Completed")}</SelectItem>
+                  <SelectItem value="cancelled">{t("Cancelled")}</SelectItem>
+                  <SelectItem value="no-show">{t("No Show")}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={selectedDate} onValueChange={setSelectedDate}>
                 <SelectTrigger className="w-full xs:w-48">
-                  <SelectValue placeholder="Date Range" />
+                  <SelectValue placeholder={t("Date Range")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="tomorrow">Tomorrow</SelectItem>
-                  <SelectItem value="this-week">This Week</SelectItem>
-                  <SelectItem value="next-week">Next Week</SelectItem>
-                  <SelectItem value="all">All Dates</SelectItem>
+                  <SelectItem value="today">{t("Today")}</SelectItem>
+                  <SelectItem value="tomorrow">{t("Tomorrow")}</SelectItem>
+                  <SelectItem value="this-week">{t("This Week")}</SelectItem>
+                  <SelectItem value="next-week">{t("Next Week")}</SelectItem>
+                  <SelectItem value="all">{t("All Dates")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -963,9 +965,9 @@ const Appointments = () => {
           <CardHeader className="pb-3">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
-                <CardTitle className="text-base xs:text-lg sm:text-xl">Appointment Schedule</CardTitle>
+                <CardTitle className="text-base xs:text-lg sm:text-xl">{t("Appointment Schedule")}</CardTitle>
                 <CardDescription className="text-xs xs:text-sm">
-                  Manage and track all patient appointments
+                  {t("Manage and track all patient appointments")}
                 </CardDescription>
               </div>
               <div className="flex items-center space-x-1 bg-muted rounded-lg p-1">
@@ -976,7 +978,7 @@ const Appointments = () => {
                   className="h-8 px-3"
                 >
                   <TableIcon className="h-4 w-4 mr-1" />
-                  Table
+                  {t("Table")}
                 </Button>
                 <Button
                   variant={currentView === "calendar" ? "default" : "ghost"}
@@ -985,7 +987,7 @@ const Appointments = () => {
                   className="h-8 px-3"
                 >
                   <CalendarDays className="h-4 w-4 mr-1" />
-                  Calendar
+                  {t("Calendar")}
                 </Button>
               </div>
             </div>
@@ -998,12 +1000,12 @@ const Appointments = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Patient</TableHead>
-                    <TableHead>Doctor</TableHead>
-                    <TableHead>Date & Time</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableHead>{t("Patient")}</TableHead>
+                    <TableHead>{t("Doctor")}</TableHead>
+                    <TableHead>{t("Date & Time")}</TableHead>
+                    <TableHead>{t("Type")}</TableHead>
+                    <TableHead>{t("Status")}</TableHead>
+                    <TableHead className="text-right">{t("Actions")}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1042,7 +1044,7 @@ const Appointments = () => {
                       <TableCell colSpan={6} className="text-center py-8">
                         <Alert variant="destructive" className="mx-auto max-w-md">
                           <AlertDescription>
-                            Failed to load appointments. Please try again.
+                            {t("Failed to load appointments. Please try again.")}
                           </AlertDescription>
                         </Alert>
                       </TableCell>
@@ -1052,10 +1054,10 @@ const Appointments = () => {
                       <TableCell colSpan={6} className="text-center py-8">
                         <div className="text-muted-foreground">
                           <Calendar className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                          <p className="text-sm">No appointments found</p>
+                          <p className="text-sm">{t("No appointments found")}</p>
                           {searchTerm && (
                             <p className="text-xs mt-1">
-                              Try adjusting your search criteria
+                              {t("Try adjusting your search criteria")}
                             </p>
                           )}
                         </div>
@@ -1073,7 +1075,7 @@ const Appointments = () => {
                             </Avatar>
                             <div>
                               <p className="font-medium text-foreground">
-                                {appointment.patient?.name || "Unknown Patient"}
+                                {appointment.patient?.name || t("Unknown Patient")}
                               </p>
                               <p className="text-sm text-muted-foreground">
                                 {appointment.patient?.phone}
@@ -1084,7 +1086,7 @@ const Appointments = () => {
                         <TableCell>
                           <div>
                             <p className="font-medium text-foreground">
-                              {appointment.doctor?.name || "Unknown Doctor"}
+                              {appointment.doctor?.name || t("Unknown Doctor")}
                             </p>
                             <p className="text-sm text-muted-foreground">
                               {appointment.doctor?.specialty}
@@ -1117,22 +1119,22 @@ const Appointments = () => {
                             <DropdownMenuTrigger asChild>
                               <Button variant="outline" size="sm" className="h-8">
                                 <MoreVertical className="h-4 w-4 mr-1" />
-                                Actions
+                                {t("Actions")}
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => handleViewDetails(appointment)}>
                                 <Eye className="mr-2 h-4 w-4" />
-                                View Details
+                                {t("View Details")}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleEditAppointment(appointment)}>
                                 <Edit className="mr-2 h-4 w-4" />
-                                Edit
+                                {t("Edit")}
                               </DropdownMenuItem>
                               {appointment.status !== "completed" && (
                                 <DropdownMenuItem onClick={() => handleMarkComplete(appointment)}>
                                   <CheckCircle className="mr-2 h-4 w-4" />
-                                  Mark Complete
+                                  {t("Mark Complete")}
                                 </DropdownMenuItem>
                               )}
                               <DropdownMenuItem 
@@ -1140,7 +1142,7 @@ const Appointments = () => {
                                 className="text-red-600"
                               >
                                 <XCircle className="mr-2 h-4 w-4" />
-                                Cancel
+                                {t("Cancel")}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -1178,10 +1180,10 @@ const Appointments = () => {
                 ) : filteredAppointments.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <Calendar className="h-12 w-12 mx-auto mb-3 opacity-50" />
-                    <p className="text-sm font-medium">No appointments found</p>
+                    <p className="text-sm font-medium">{t("No appointments found")}</p>
                     {searchTerm && (
                       <p className="text-xs mt-1">
-                        Try adjusting your search criteria
+                        {t("Try adjusting your search criteria")}
                       </p>
                     )}
                   </div>
@@ -1198,7 +1200,7 @@ const Appointments = () => {
                           </Avatar>
                           <div className="flex-1 min-w-0">
                             <p className="font-semibold text-sm text-foreground truncate">
-                              {appointment.patient?.name || "Unknown Patient"}
+                              {appointment.patient?.name || t("Unknown Patient")}
                             </p>
                             <p className="text-xs text-muted-foreground">
                               {appointment.patient?.phone}
@@ -1219,16 +1221,16 @@ const Appointments = () => {
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center space-x-2">
                             <Stethoscope className="h-4 w-4 text-primary" />
-                            <span className="font-medium">Doctor</span>
+                            <span className="font-medium">{t("Doctor")}</span>
                           </div>
                           <span className="text-foreground">
-                            {appointment.doctor?.name || "Unknown Doctor"}
+                            {appointment.doctor?.name || t("Unknown Doctor")}
                           </span>
                         </div>
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center space-x-2">
                             <Calendar className="h-4 w-4 text-green-600" />
-                            <span className="font-medium">Date</span>
+                            <span className="font-medium">{t("Date")}</span>
                           </div>
                           <span className="text-foreground">
                             {formatDate(appointment.date)}
@@ -1237,7 +1239,7 @@ const Appointments = () => {
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center space-x-2">
                             <Clock className="h-4 w-4 text-orange-600" />
-                            <span className="font-medium">Time</span>
+                            <span className="font-medium">{t("Time")}</span>
                           </div>
                           <span className="text-foreground">
                             {formatTime(appointment.date)} ({appointment.duration} min)
@@ -1254,22 +1256,22 @@ const Appointments = () => {
                           <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm" className="h-8">
                               <MoreVertical className="h-4 w-4 mr-1" />
-                              Actions
+                              {t("Actions")}
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end" className="w-48">
                             <DropdownMenuItem onClick={() => handleViewDetails(appointment)}>
                               <Eye className="mr-2 h-4 w-4" />
-                              View Details
+                              {t("View Details")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEditAppointment(appointment)}>
                               <Edit className="mr-2 h-4 w-4" />
-                              Edit
+                              {t("Edit")}
                             </DropdownMenuItem>
                             {appointment.status !== "completed" && (
                               <DropdownMenuItem onClick={() => handleMarkComplete(appointment)}>
                                 <CheckCircle className="mr-2 h-4 w-4" />
-                                Mark Complete
+                                {t("Mark Complete")}
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuItem 
@@ -1277,7 +1279,7 @@ const Appointments = () => {
                               className="text-red-600"
                             >
                               <XCircle className="mr-2 h-4 w-4" />
-                              Cancel
+                              {t("Cancel")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -1291,7 +1293,7 @@ const Appointments = () => {
             <div className="flex flex-col xs:flex-row items-center justify-between gap-3 xs:gap-4 mt-4 pt-4 border-t">
               <div className="flex flex-col xs:flex-row items-center gap-2 xs:gap-4">
                 <div className="text-xs xs:text-sm text-muted-foreground">
-                  Showing {((pagination.page - 1) * pagination.limit) + 1} to {Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total} appointments
+                  {t("Showing")} {((pagination.page - 1) * pagination.limit) + 1} {t("to")} {Math.min(pagination.page * pagination.limit, pagination.total)} {t("of")} {pagination.total} {t("appointments")}
                 </div>
                 <Select value={pageSize.toString()} onValueChange={handlePageSizeChange}>
                   <SelectTrigger className="w-20 h-8 text-xs">
@@ -1315,7 +1317,7 @@ const Appointments = () => {
                   disabled={currentPage <= 1}
                 >
                   <ChevronLeft className="h-3 w-3 mr-1" />
-                  Previous
+                  {t("Previous")}
                 </Button>
                 
                 {/* Page numbers */}
@@ -1353,7 +1355,7 @@ const Appointments = () => {
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage >= pagination.pages}
                 >
-                  Next
+                  {t("Next")}
                   <ChevronRight className="h-3 w-3 ml-1" />
                 </Button>
               </div>
@@ -1383,7 +1385,7 @@ const Appointments = () => {
                         size="sm"
                         onClick={() => setCurrentCalendarDate(new Date())}
                       >
-                        Today
+                        {t("Today")}
                       </Button>
                       <Button
                         variant="outline"
@@ -1496,19 +1498,19 @@ const Appointments = () => {
                                 })}
                                 {isTodayDate && (
                                   <Badge variant="secondary" className="ml-2 text-xs">
-                                    Today
+                                    {t("Today")}
                                   </Badge>
                                 )}
                               </h4>
                               {dayAppointments.length > 0 && (
                                 <Badge variant="outline" className="text-xs">
-                                  {dayAppointments.length} appointment{dayAppointments.length !== 1 ? 's' : ''}
+                                  {dayAppointments.length} {t(dayAppointments.length === 1 ? "appointment" : "appointments")}
                                 </Badge>
                               )}
                             </div>
 
                             {dayAppointments.length === 0 ? (
-                              <p className="text-sm text-muted-foreground">No appointments</p>
+                              <p className="text-sm text-muted-foreground">{t("No appointments")}</p>
                             ) : (
                               <div className="space-y-2">
                                 {dayAppointments.map((appointment) => (
@@ -1547,19 +1549,19 @@ const Appointments = () => {
                   <div className="flex flex-wrap gap-4 text-xs text-muted-foreground pt-4 border-t border-border">
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-green-100 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded"></div>
-                      <span>Completed</span>
+                      <span>{t("Completed")}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-blue-100 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded"></div>
-                      <span>Scheduled</span>
+                      <span>{t("Scheduled")}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-red-100 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded"></div>
-                      <span>Cancelled</span>
+                      <span>{t("Cancelled")}</span>
                     </div>
                     <div className="flex items-center space-x-2">
                       <div className="w-3 h-3 bg-orange-100 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded"></div>
-                      <span>No Show</span>
+                      <span>{t("No Show")}</span>
                     </div>
                   </div>
                 </div>
@@ -1572,22 +1574,22 @@ const Appointments = () => {
       <Dialog open={viewDetailsModal.open} onOpenChange={(open) => setViewDetailsModal({ open, appointment: null })}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Appointment Details</DialogTitle>
+            <DialogTitle>{t("Appointment Details")}</DialogTitle>
             <DialogDescription>
-              View complete appointment information
+              {t("View complete appointment information")}
             </DialogDescription>
           </DialogHeader>
           {viewDetailsModal.appointment && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Patient</h4>
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">{t("Patient")}</h4>
                   <p className="text-lg font-medium text-foreground">{viewDetailsModal.appointment.patient?.name}</p>
                   <p className="text-sm text-muted-foreground">{viewDetailsModal.appointment.patient?.phone}</p>
                   <p className="text-sm text-muted-foreground">{viewDetailsModal.appointment.patient?.email}</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Doctor</h4>
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">{t("Doctor")}</h4>
                   <p className="text-lg font-medium text-foreground">{viewDetailsModal.appointment.doctor?.name}</p>
                   <p className="text-sm text-muted-foreground">{viewDetailsModal.appointment.doctor?.specialty}</p>
                 </div>
@@ -1595,22 +1597,22 @@ const Appointments = () => {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Date & Time</h4>
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">{t("Date & Time")}</h4>
                   <p className="text-lg font-medium text-foreground">{formatDate(viewDetailsModal.appointment.date)} at {formatTime(viewDetailsModal.appointment.date)}</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Duration</h4>
-                  <p className="text-lg font-medium text-foreground">{viewDetailsModal.appointment.duration} minutes</p>
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">{t("Duration")}</h4>
+                  <p className="text-lg font-medium text-foreground">{viewDetailsModal.appointment.duration} {t("minutes")}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Type</h4>
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">{t("Type")}</h4>
                   <p className="text-lg font-medium text-foreground capitalize">{viewDetailsModal.appointment.type}</p>
                 </div>
                 <div>
-                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Status</h4>
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">{t("Status")}</h4>
                   <Badge className={`${getStatusColor(viewDetailsModal.appointment.status)}`}>
                     {viewDetailsModal.appointment.status}
                   </Badge>
@@ -1619,7 +1621,7 @@ const Appointments = () => {
 
               {viewDetailsModal.appointment.notes && (
                 <div>
-                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">Notes</h4>
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase tracking-wide">{t("Notes")}</h4>
                   <p className="text-sm text-foreground bg-muted p-3 rounded-lg">{viewDetailsModal.appointment.notes}</p>
                 </div>
               )}
@@ -1632,29 +1634,29 @@ const Appointments = () => {
       <Dialog open={editModal.open} onOpenChange={(open) => setEditModal({ open, appointment: null })}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Appointment</DialogTitle>
+            <DialogTitle>{t("Edit Appointment")}</DialogTitle>
             <DialogDescription>
-              Update appointment details for {editModal.appointment?.patient?.name}
+              {t("Update appointment details for")} {editModal.appointment?.patient?.name}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6">
             {/* Patient, Doctor and Nurse Selection */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Patient, Doctor & Nurse</h3>
+              <h3 className="text-lg font-medium">{t("Patient, Doctor & Nurse")}</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-patient">Select Patient *</Label>
+                  <Label htmlFor="edit-patient">{t("Select Patient")} *</Label>
                   <Select
                     value={editFormData.patientId}
                     onValueChange={(value) => setEditFormData(prev => ({ ...prev, patientId: value }))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose a patient" />
+                      <SelectValue placeholder={t("Choose a patient")} />
                     </SelectTrigger>
                     <SelectContent>
                       {editModalData.loading ? (
                         <SelectItem value="loading" disabled>
-                          Loading patients...
+                          {t("Loading patients...")}
                         </SelectItem>
                       ) : (
                         editModalData.patients.map((patient) => (
@@ -1675,22 +1677,22 @@ const Appointments = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="edit-doctor">Select Doctor *</Label>
+                  <Label htmlFor="edit-doctor">{t("Select Doctor")} *</Label>
                   <Select
                     value={editFormData.doctorId}
                     onValueChange={(value) => setEditFormData(prev => ({ ...prev, doctorId: value }))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose a doctor" />
+                      <SelectValue placeholder={t("Choose a doctor")} />
                     </SelectTrigger>
                     <SelectContent>
                       {editModalData.loading ? (
                         <SelectItem value="loading" disabled>
-                          Loading doctors...
+                          {t("Loading doctors...")}
                         </SelectItem>
                       ) : editModalData.doctors.length === 0 ? (
                         <SelectItem value="no-doctors" disabled>
-                          No doctors available.
+                          {t("No doctors available.")}
                         </SelectItem>
                       ) : (
                         editModalData.doctors.map((doctor) => (
@@ -1711,23 +1713,23 @@ const Appointments = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="edit-nurse">Select Nurse (Optional)</Label>
+                  <Label htmlFor="edit-nurse">{t("Select Nurse (Optional)")}</Label>
                   <Select
                     value={editFormData.nurseId}
                     onValueChange={(value) => setEditFormData(prev => ({ ...prev, nurseId: value }))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Choose a nurse (optional)" />
+                      <SelectValue placeholder={t("Choose a nurse (optional)")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">No nurse assigned</SelectItem>
+                      <SelectItem value="none">{t("No nurse assigned")}</SelectItem>
                       {editModalData.loading ? (
                         <SelectItem value="loading" disabled>
-                          Loading nurses...
+                          {t("Loading nurses...")}
                         </SelectItem>
                       ) : editModalData.nurses.length === 0 ? (
                         <SelectItem value="no-nurses" disabled>
-                          No nurses available.
+                          {t("No nurses available.")}
                         </SelectItem>
                       ) : (
                         editModalData.nurses.map((nurse) => (
@@ -1751,9 +1753,9 @@ const Appointments = () => {
 
             {/* Service Selection */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Service & Schedule</h3>
+              <h3 className="text-lg font-medium">{t("Service & Schedule")}</h3>
               <div className="space-y-2">
-                <Label htmlFor="edit-service">Service Type</Label>
+                <Label htmlFor="edit-service">{t("Service Type")}</Label>
                 <Select
                   value={editFormData.serviceId}
                   onValueChange={(value) => {
@@ -1769,16 +1771,16 @@ const Appointments = () => {
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select service type" />
+                    <SelectValue placeholder={t("Select service type")} />
                   </SelectTrigger>
                   <SelectContent>
                     {editModalData.loading ? (
                       <SelectItem value="loading" disabled>
-                        Loading services...
+                        {t("Loading services...")}
                       </SelectItem>
                     ) : editModalData.services.length === 0 ? (
                       <SelectItem value="no-services" disabled>
-                        No services available.
+                        {t("No services available.")}
                       </SelectItem>
                     ) : (
                       editModalData.services.map((service) => (
@@ -1798,7 +1800,7 @@ const Appointments = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-date">Date</Label>
+                  <Label htmlFor="edit-date">{t("Date")}</Label>
                   <Input
                     id="edit-date"
                     type="date"
@@ -1807,7 +1809,7 @@ const Appointments = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-time">Time</Label>
+                  <Label htmlFor="edit-time">{t("Time")}</Label>
                   <Input
                     id="edit-time"
                     type="time"
@@ -1819,7 +1821,7 @@ const Appointments = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="edit-duration">Duration (minutes)</Label>
+                  <Label htmlFor="edit-duration">{t("Duration (minutes)")}</Label>
                   <Input
                     id="edit-duration"
                     type="number"
@@ -1831,24 +1833,24 @@ const Appointments = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="edit-type">Type</Label>
+                  <Label htmlFor="edit-type">{t("Type")}</Label>
                   <Select 
                     value={editFormData.type} 
                     onValueChange={(value) => setEditFormData(prev => ({ ...prev, type: value }))}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select type" />
+                      <SelectValue placeholder={t("Select type")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="consultation">Consultation</SelectItem>
-                      <SelectItem value="follow-up">Follow-up</SelectItem>
-                      <SelectItem value="check-up">Check-up</SelectItem>
-                      <SelectItem value="vaccination">Vaccination</SelectItem>
-                      <SelectItem value="procedure">Procedure</SelectItem>
-                      <SelectItem value="emergency">Emergency</SelectItem>
-                      <SelectItem value="screening">Screening</SelectItem>
-                      <SelectItem value="therapy">Therapy</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="consultation">{t("Consultation")}</SelectItem>
+                      <SelectItem value="follow-up">{t("Follow-up")}</SelectItem>
+                      <SelectItem value="check-up">{t("Check-up")}</SelectItem>
+                      <SelectItem value="vaccination">{t("Vaccination")}</SelectItem>
+                      <SelectItem value="procedure">{t("Procedure")}</SelectItem>
+                      <SelectItem value="emergency">{t("Emergency")}</SelectItem>
+                      <SelectItem value="screening">{t("Screening")}</SelectItem>
+                      <SelectItem value="therapy">{t("Therapy")}</SelectItem>
+                      <SelectItem value="other">{t("Other")}</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -1857,12 +1859,12 @@ const Appointments = () => {
 
             {/* Additional Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Additional Information</h3>
+              <h3 className="text-lg font-medium">{t("Additional Information")}</h3>
               <div className="space-y-2">
-                <Label htmlFor="edit-notes">Notes</Label>
+                <Label htmlFor="edit-notes">{t("Notes")}</Label>
                 <Textarea
                   id="edit-notes"
-                  placeholder="Add any additional notes..."
+                  placeholder={t("Add any additional notes...")}
                   value={editFormData.notes}
                   onChange={(e) => setEditFormData(prev => ({ ...prev, notes: e.target.value }))}
                   rows={3}
@@ -1875,13 +1877,13 @@ const Appointments = () => {
               variant="outline" 
               onClick={() => setEditModal({ open: false, appointment: null })}
             >
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button 
               onClick={handleSaveEdit}
               disabled={updateAppointmentMutation.isPending}
             >
-              {updateAppointmentMutation.isPending ? "Saving..." : "Save Changes"}
+              {updateAppointmentMutation.isPending ? t("Saving...") : t("Save Changes")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1891,19 +1893,19 @@ const Appointments = () => {
       <AlertDialog open={cancelModal.open} onOpenChange={(open) => setCancelModal({ open, appointment: null })}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Appointment</AlertDialogTitle>
+            <AlertDialogTitle>{t("Cancel Appointment")}</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to cancel this appointment with {cancelModal.appointment?.patient?.name}? 
-              This action cannot be undone.
+              {t("Are you sure you want to cancel this appointment with")} {cancelModal.appointment?.patient?.name}? 
+              {t("This action cannot be undone.")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Keep Appointment</AlertDialogCancel>
+            <AlertDialogCancel>{t("Keep Appointment")}</AlertDialogCancel>
             <AlertDialogAction 
               onClick={confirmCancelAppointment}
               className="bg-red-600 hover:bg-red-700"
             >
-              Cancel Appointment
+              {t("Cancel Appointment")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

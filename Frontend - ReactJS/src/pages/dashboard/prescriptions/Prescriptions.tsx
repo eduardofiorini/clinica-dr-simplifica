@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -65,6 +66,7 @@ import {
 import { printPrescription } from "@/utils/prescriptionPrint";
 
 const Prescriptions = () => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedDoctor, setSelectedDoctor] = useState("all");
@@ -184,14 +186,14 @@ const Prescriptions = () => {
       printPrescription(prescription);
       
       toast({
-        title: "Prescription Printed",
-        description: `Prescription ${prescription.prescription_id} has been sent to printer.`,
+        title: t("Prescription Printed"),
+        description: `${t("Prescription")} ${prescription.prescription_id} ${t("has been sent to printer.")}`,
       });
     } catch (err: any) {
       console.error("Error printing prescription:", err);
       toast({
-        title: "Error",
-        description: err.message || "Failed to print prescription.",
+        title: t("Error"),
+        description: err.message || t("Failed to print prescription."),
         variant: "destructive",
       });
     }
@@ -201,13 +203,13 @@ const Prescriptions = () => {
     try {
       await sendToPharmacyMutation.mutateAsync(prescriptionId);
       toast({
-        title: "Sent to Pharmacy",
-        description: `Prescription ${prescriptionId} has been sent to pharmacy.`,
+        title: t("Sent to Pharmacy"),
+        description: `${t("Prescription")} ${prescriptionId} ${t("has been sent to pharmacy.")}`,
       });
     } catch (err: any) {
       toast({
-        title: "Error",
-        description: "Failed to send prescription to pharmacy.",
+        title: t("Error"),
+        description: t("Failed to send prescription to pharmacy."),
         variant: "destructive",
       });
     }
@@ -217,13 +219,13 @@ const Prescriptions = () => {
     try {
       await updateStatusMutation.mutateAsync({ id: prescriptionId, status: newStatus });
       toast({
-        title: "Status Updated",
-        description: `Prescription status updated to ${newStatus}.`,
+        title: t("Status Updated"),
+        description: `${t("Prescription status updated to")} ${newStatus}.`,
       });
     } catch (err: any) {
       toast({
-        title: "Error",
-        description: "Failed to update prescription status.",
+        title: t("Error"),
+        description: t("Failed to update prescription status."),
         variant: "destructive",
       });
     }
@@ -289,7 +291,7 @@ const Prescriptions = () => {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2">Loading prescriptions...</span>
+        <span className="ml-2">{t("Loading prescriptions...")}</span>
       </div>
     );
   }
@@ -299,9 +301,9 @@ const Prescriptions = () => {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
-          <p className="text-red-600">{error.message || 'An error occurred'}</p>
+          <p className="text-red-600">{error.message || t('An error occurred')}</p>
           <Button onClick={() => refetch()} className="mt-2">
-            Try Again
+            {t("Try Again")}
           </Button>
         </div>
       </div>
@@ -314,10 +316,10 @@ const Prescriptions = () => {
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between sm:flex-wrap">
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            Prescriptions
+            {t("Prescriptions")}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage patient prescriptions and medications
+            {t("Manage patient prescriptions and medications")}
           </p>
         </div>
         <div className="flex-shrink-0">
@@ -337,7 +339,7 @@ const Prescriptions = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Prescriptions
+                    {t("Total Prescriptions")}
                   </p>
                   <p className="text-3xl font-bold text-foreground">
                     {stats?.totalPrescriptions || 0}
@@ -358,7 +360,7 @@ const Prescriptions = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Active</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t("Active")}</p>
                   <p className="text-3xl font-bold text-green-600 dark:text-green-400">
                     {stats?.activePrescriptions || 0}
                   </p>
@@ -378,7 +380,7 @@ const Prescriptions = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Pending</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t("Pending")}</p>
                   <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">
                     {stats?.pendingPrescriptions || 0}
                   </p>
@@ -398,7 +400,7 @@ const Prescriptions = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Dispensed</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t("Dispensed")}</p>
                   <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
                     {stats?.dispensedPrescriptions || 0}
                   </p>
@@ -418,7 +420,7 @@ const Prescriptions = () => {
             <div className="relative flex-1 min-w-0 sm:min-w-[250px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by prescription ID, patient name, doctor, or diagnosis..."
+                placeholder={t("Search by prescription ID, patient name, doctor, or diagnosis...")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-full"
@@ -429,26 +431,26 @@ const Prescriptions = () => {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t("Status")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="completed">Completed</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="cancelled">Cancelled</SelectItem>
-                  <SelectItem value="expired">Expired</SelectItem>
+                  <SelectItem value="all">{t("All Status")}</SelectItem>
+                  <SelectItem value="active">{t("Active")}</SelectItem>
+                  <SelectItem value="completed">{t("Completed")}</SelectItem>
+                  <SelectItem value="pending">{t("Pending")}</SelectItem>
+                  <SelectItem value="cancelled">{t("Cancelled")}</SelectItem>
+                  <SelectItem value="expired">{t("Expired")}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={selectedDoctor} onValueChange={setSelectedDoctor}>
                 <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Doctor" />
+                  <SelectValue placeholder={t("Doctor")} />
                 </SelectTrigger>
                 <SelectContent>
                   {doctors.map((doctor) => (
                     <SelectItem key={doctor} value={doctor}>
-                      {doctor === "all" ? "All Doctors" : doctor}
+                      {doctor === "all" ? t("All Doctors") : doctor}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -459,13 +461,13 @@ const Prescriptions = () => {
                 onValueChange={setSelectedDateRange}
               >
                 <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="Date Range" />
+                  <SelectValue placeholder={t("Date Range")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Time</SelectItem>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="week">This Week</SelectItem>
-                  <SelectItem value="month">This Month</SelectItem>
+                  <SelectItem value="all">{t("All Time")}</SelectItem>
+                  <SelectItem value="today">{t("Today")}</SelectItem>
+                  <SelectItem value="week">{t("This Week")}</SelectItem>
+                  <SelectItem value="month">{t("This Month")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -481,21 +483,21 @@ const Prescriptions = () => {
       >
         <Card>
           <CardHeader>
-            <CardTitle>Prescription Records</CardTitle>
+            <CardTitle>{t("Prescription Records")}</CardTitle>
             <CardDescription>
-              Complete list of all patient prescriptions and medication orders
+              {t("Complete list of all patient prescriptions and medication orders")}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="flex items-center justify-center h-32">
                 <Loader2 className="h-6 w-6 animate-spin" />
-                <span className="ml-2">Loading...</span>
+                <span className="ml-2">{t("Loading...")}</span>
               </div>
             ) : prescriptions.length === 0 ? (
               <div className="text-center py-8">
                 <Stethoscope className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No prescriptions found</p>
+                <p className="text-muted-foreground">{t("No prescriptions found")}</p>
               </div>
             ) : (
               <>
@@ -504,14 +506,14 @@ const Prescriptions = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Prescription</TableHead>
-                        <TableHead>Patient</TableHead>
-                        <TableHead>Doctor</TableHead>
-                        <TableHead>Diagnosis</TableHead>
-                        <TableHead>Medications</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
+                        <TableHead>{t("Prescription")}</TableHead>
+                        <TableHead>{t("Patient")}</TableHead>
+                        <TableHead>{t("Doctor")}</TableHead>
+                        <TableHead>{t("Diagnosis")}</TableHead>
+                        <TableHead>{t("Medications")}</TableHead>
+                        <TableHead>{t("Status")}</TableHead>
+                        <TableHead>{t("Date")}</TableHead>
+                        <TableHead className="text-right">{t("Actions")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -524,7 +526,7 @@ const Prescriptions = () => {
                                 <div className="font-medium">{prescription.prescription_id}</div>
                                 {prescription.appointment_id && (
                                   <div className="text-sm text-muted-foreground">
-                                    Apt: {prescription.appointment_id._id}
+                                    {t("Apt:")}: {prescription.appointment_id._id}
                                   </div>
                                 )}
                               </div>
@@ -535,13 +537,13 @@ const Prescriptions = () => {
                               <div className="font-medium">
                                 {prescription.patient_id ? 
                                   `${prescription.patient_id.first_name} ${prescription.patient_id.last_name}` : 
-                                  'Unknown Patient'
+                                  t('Unknown Patient')
                                 }
                               </div>
                               <div className="text-sm text-gray-500">
                                 {prescription.patient_id?.date_of_birth ? 
-                                  `Age: ${calculateAge(prescription.patient_id.date_of_birth)}` : 
-                                  'Age: N/A'
+                                  `${t("Age:")}: ${calculateAge(prescription.patient_id.date_of_birth)}` : 
+                                  t('Age: N/A')
                                 }
                               </div>
                             </div>
@@ -549,7 +551,7 @@ const Prescriptions = () => {
                           <TableCell>
                             {prescription.doctor_id ? 
                               `${prescription.doctor_id.first_name} ${prescription.doctor_id.last_name}` : 
-                              'Unknown Doctor'
+                              t('Unknown Doctor')
                             }
                           </TableCell>
                           <TableCell>
@@ -571,7 +573,7 @@ const Prescriptions = () => {
                                 ))}
                               {prescription.medications.length > 2 && (
                                 <div className="text-xs text-gray-500">
-                                  +{prescription.medications.length - 2} more
+                                  +{prescription.medications.length - 2} {t("more")}
                                 </div>
                               )}
                             </div>
@@ -596,7 +598,7 @@ const Prescriptions = () => {
                               <DropdownMenuTrigger asChild>
                                 <Button variant="outline" size="sm" className="h-8">
                                   <MoreVertical className="h-4 w-4 mr-1" />
-                                  Actions
+                                  {t("Actions")}
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
@@ -604,19 +606,19 @@ const Prescriptions = () => {
                                   onClick={() => handleViewPrescription(prescription._id)}
                                 >
                                   <Eye className="mr-2 h-4 w-4" />
-                                  View Details
+                                  {t("View Details")}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleEditPrescription(prescription._id)}
                                 >
                                   <Edit className="mr-2 h-4 w-4" />
-                                  Edit Prescription
+                                  {t("Edit Prescription")}
                                 </DropdownMenuItem>
                                 {prescription.status === "active" && (
                                   <DropdownMenuItem
                                     onClick={() => handleStatusUpdate(prescription._id, "completed")}
                                   >
-                                    Mark as Completed
+                                    {t("Mark as Completed")}
                                   </DropdownMenuItem>
                                 )}
                               </DropdownMenuContent>
@@ -668,13 +670,13 @@ const Prescriptions = () => {
                             <div className="font-medium text-sm">
                               {prescription.patient_id ? 
                                 `${prescription.patient_id.first_name} ${prescription.patient_id.last_name}` : 
-                                'Unknown Patient'
+                                t('Unknown Patient')
                               }
                             </div>
                             <div className="text-xs text-gray-500">
                               {prescription.patient_id?.date_of_birth ? 
                                 `Age: ${calculateAge(prescription.patient_id.date_of_birth)}` : 
-                                'Age: N/A'
+                                t('Age: N/A')
                               }
                             </div>
                           </div>
@@ -686,19 +688,19 @@ const Prescriptions = () => {
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center space-x-2">
                             <Stethoscope className="h-4 w-4 text-purple-600" />
-                            <span className="font-medium text-gray-500">Doctor</span>
+                            <span className="font-medium text-gray-500">{t("Doctor")}</span>
                           </div>
                           <span className="text-gray-900 font-medium">
                             {prescription.doctor_id ? 
                               `${prescription.doctor_id.first_name} ${prescription.doctor_id.last_name}` : 
-                              'Unknown Doctor'
+                              t('Unknown Doctor')
                             }
                           </span>
                         </div>
                         <div className="flex items-center justify-between text-sm">
                           <div className="flex items-center space-x-2">
                             <Calendar className="h-4 w-4 text-green-600" />
-                            <span className="font-medium text-gray-500">Diagnosis</span>
+                            <span className="font-medium text-gray-500">{t("Diagnosis")}</span>
                           </div>
                           <Badge variant="outline" className="text-xs">
                             {prescription.diagnosis}
@@ -710,7 +712,7 @@ const Prescriptions = () => {
                       <div className="space-y-2">
                         <div className="flex items-center justify-between">
                           <div className="text-sm font-medium text-gray-700">
-                            Medications ({prescription.medications.length})
+                            {t("Medications")} ({prescription.medications.length})
                           </div>
                         </div>
                         <div className="space-y-2 max-h-32 overflow-y-auto">
@@ -737,7 +739,7 @@ const Prescriptions = () => {
                           ))}
                           {prescription.medications.length > 3 && (
                             <div className="text-xs text-gray-500 text-center py-1">
-                              +{prescription.medications.length - 3} more medications
+                              +{prescription.medications.length - 3} {t("more medications")}
                             </div>
                           )}
                         </div>
@@ -752,7 +754,7 @@ const Prescriptions = () => {
                           <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm" className="h-8">
                               <MoreVertical className="h-4 w-4 mr-1" />
-                              Actions
+                              {t("Actions")}
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
@@ -760,19 +762,19 @@ const Prescriptions = () => {
                               onClick={() => handleViewPrescription(prescription._id)}
                             >
                               <Eye className="mr-2 h-4 w-4" />
-                              View Details
+                              {t("View Details")}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleEditPrescription(prescription._id)}
                             >
                               <Edit className="mr-2 h-4 w-4" />
-                              Edit Prescription
+                              {t("Edit Prescription")}
                             </DropdownMenuItem>
                             {prescription.status === "active" && (
                               <DropdownMenuItem
                                 onClick={() => handleStatusUpdate(prescription._id, "completed")}
                               >
-                                Mark as Completed
+                                {t("Mark as Completed")}
                               </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>
@@ -790,17 +792,17 @@ const Prescriptions = () => {
                       onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                       disabled={currentPage === 1}
                     >
-                      Previous
+                      {t("Previous")}
                     </Button>
                     <span className="text-sm text-gray-600">
-                      Page {currentPage} of {totalPages}
+                      {t("Page")} {currentPage} {t("of")} {totalPages}
                     </span>
                     <Button
                       variant="outline"
                       onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
                       disabled={currentPage === totalPages}
                     >
-                      Next
+                      {t("Next")}
                     </Button>
                   </div>
                 )}

@@ -20,6 +20,7 @@ void i18n
       "en-za",
       "es",
       "fr",
+      "ha",
       "hi",
       "vi",
       "pt-br",

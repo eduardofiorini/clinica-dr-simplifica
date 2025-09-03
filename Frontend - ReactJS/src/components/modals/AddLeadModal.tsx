@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +30,7 @@ interface AddLeadModalProps {
 }
 
 const AddLeadModal: React.FC<AddLeadModalProps> = ({ trigger }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -45,24 +47,24 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ trigger }) => {
   const createLeadMutation = useCreateLead();
 
   const leadSources = [
-    { value: "website", label: "Website Form" },
-    { value: "referral", label: "Patient Referral" },
-    { value: "social", label: "Social Media" },
-    { value: "advertisement", label: "Advertisement" },
-    { value: "walk-in", label: "Walk-in" },
+    { value: "website", label: t("Website Form") },
+    { value: "referral", label: t("Patient Referral") },
+    { value: "social", label: t("Social Media") },
+    { value: "advertisement", label: t("Advertisement") },
+    { value: "walk-in", label: t("Walk-in") },
   ];
 
   const services = [
-    "General Consultation",
-    "Cardiology",
-    "Neurology",
-    "Pediatrics",
-    "Dermatology",
-    "Orthopedics",
-    "Gynecology",
-    "Mental Health",
-    "Dental Care",
-    "Physical Therapy",
+    t("General Consultation"),
+    t("Cardiology"),
+    t("Neurology"),
+    t("Pediatrics"),
+    t("Dermatology"),
+    t("Orthopedics"),
+    t("Gynecology"),
+    t("Mental Health"),
+    t("Dental Care"),
+    t("Physical Therapy"),
   ];
 
   const handleChange = (field: string, value: string) => {
@@ -74,8 +76,8 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ trigger }) => {
 
     if (!formData.source) {
       toast({
-        title: "Error",
-        description: "Please select a lead source.",
+        title: t("Error"),
+        description: t("Please select a lead source."),
         variant: "destructive",
       });
       return;
@@ -88,8 +90,8 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ trigger }) => {
       });
 
       toast({
-        title: "Lead added successfully",
-        description: `${formData.firstName} ${formData.lastName} has been added as a new lead.`,
+        title: t("Lead added successfully"),
+        description: `${formData.firstName} ${formData.lastName} ${t("has been added as a new lead.")}`,
       });
 
       // Reset form
@@ -108,7 +110,7 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ trigger }) => {
       setOpen(false);
     } catch (error) {
       toast({
-        title: "Error",
+        title: t("Error"),
         description: parseApiError(error),
         variant: "destructive",
       });
@@ -121,7 +123,7 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ trigger }) => {
         {trigger || (
           <Button className="flex items-center gap-2">
             <Plus className="h-4 w-4" />
-            Add Lead
+            {t("Add Lead")}
           </Button>
         )}
       </DialogTrigger>
@@ -129,10 +131,10 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ trigger }) => {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserPlus className="h-5 w-5" />
-            Add New Lead
+            {t("Add New Lead")}
           </DialogTitle>
           <DialogDescription>
-            Capture information about potential patients and track them through the conversion process.
+            {t("Capture information about potential patients and track them through the conversion process.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -143,29 +145,29 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ trigger }) => {
             <CardHeader>
               <CardTitle className="text-lg flex items-center">
                 <Phone className="h-4 w-4 mr-2" />
-                Contact Information
+                {t("Contact Information")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName">First Name *</Label>
+                  <Label htmlFor="firstName">{t("First Name *")}</Label>
                   <Input
                     id="firstName"
                     value={formData.firstName}
                     onChange={(e) => handleChange("firstName", e.target.value)}
-                    placeholder="Enter first name"
+                    placeholder={t("Enter first name")}
                     required
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Label htmlFor="lastName">{t("Last Name *")}</Label>
                   <Input
                     id="lastName"
                     value={formData.lastName}
                     onChange={(e) => handleChange("lastName", e.target.value)}
-                    placeholder="Enter last name"
+                    placeholder={t("Enter last name")}
                     required
                   />
                 </div>
@@ -173,23 +175,23 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ trigger }) => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{t("Email")}</Label>
                   <Input
                     id="email"
                     type="email"
                     value={formData.email}
                     onChange={(e) => handleChange("email", e.target.value)}
-                    placeholder="Enter email address"
+                    placeholder={t("Enter email address")}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number *</Label>
+                  <Label htmlFor="phone">{t("Phone Number *")}</Label>
                   <Input
                     id="phone"
                     value={formData.phone}
                     onChange={(e) => handleChange("phone", e.target.value)}
-                    placeholder="Enter phone number"
+                    placeholder={t("Enter phone number")}
                     required
                   />
                 </div>
@@ -202,19 +204,19 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ trigger }) => {
             <CardHeader>
               <CardTitle className="text-lg flex items-center">
                 <Globe className="h-4 w-4 mr-2" />
-                Lead Details
+                {t("Lead Details")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="source">Lead Source *</Label>
+                  <Label htmlFor="source">{t("Lead Source *")}</Label>
                   <Select
                     value={formData.source}
                     onValueChange={(value) => handleChange("source", value)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="How did they find us?" />
+                      <SelectValue placeholder={t("How did they find us?")} />
                     </SelectTrigger>
                     <SelectContent>
                       {leadSources.map((source) => (
@@ -227,7 +229,7 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ trigger }) => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="serviceInterest">Service Interest *</Label>
+                  <Label htmlFor="serviceInterest">{t("Service Interest *")}</Label>
                   <Select
                     value={formData.serviceInterest}
                     onValueChange={(value) =>
@@ -235,7 +237,7 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ trigger }) => {
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="What service are they interested in?" />
+                      <SelectValue placeholder={t("What service are they interested in?")} />
                     </SelectTrigger>
                     <SelectContent>
                       {services.map((service) => (
@@ -249,22 +251,22 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ trigger }) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="assignedTo">Assigned To</Label>
+                <Label htmlFor="assignedTo">{t("Assigned To")}</Label>
                 <Input
                   id="assignedTo"
                   value={formData.assignedTo}
                   onChange={(e) => handleChange("assignedTo", e.target.value)}
-                  placeholder="Assign to staff member (optional)"
+                  placeholder={t("Assign to staff member (optional)")}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="notes">Notes</Label>
+                <Label htmlFor="notes">{t("Notes")}</Label>
                 <Textarea
                   id="notes"
                   value={formData.notes}
                   onChange={(e) => handleChange("notes", e.target.value)}
-                  placeholder="Additional information about the lead, their needs, timeline, etc."
+                  placeholder={t("Additional information about the lead, their needs, timeline, etc.")}
                   rows={3}
                 />
               </div>
@@ -279,7 +281,7 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ trigger }) => {
               onClick={() => setOpen(false)}
               disabled={createLeadMutation.isPending}
             >
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button
               type="submit"
@@ -288,12 +290,12 @@ const AddLeadModal: React.FC<AddLeadModalProps> = ({ trigger }) => {
               {createLeadMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Adding Lead...
+                  {t("Adding Lead...")}
                 </>
               ) : (
                 <>
                   <UserPlus className="mr-2 h-4 w-4" />
-                  Add Lead
+                  {t("Add Lead")}
                 </>
               )}
             </Button>

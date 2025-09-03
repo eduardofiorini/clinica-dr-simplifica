@@ -7,6 +7,32 @@ import { getClinicScopedFilter } from '../middleware/clinicContext';
 export class ClinicController {
   
   /**
+   * Get all clinics for admin management (admin only)
+   * GET /api/clinics/all
+   */
+  static async getAllClinics(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const clinics = await Clinic.find({})
+        .select('name code description address contact is_active created_at updated_at')
+        .sort({ name: 1 });
+
+      res.json({
+        success: true,
+        data: {
+          clinics: clinics
+        },
+        total: clinics.length
+      });
+    } catch (error) {
+      console.error('Error fetching all clinics:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching clinics'
+      });
+    }
+  }
+
+  /**
    * Get all clinics that the current user has access to
    * GET /api/clinics
    */
@@ -369,15 +395,22 @@ export class ClinicController {
       const { id } = req.params;
       const { page = 1, limit = 20, role } = req.query;
 
-      // Verify user is admin of this clinic
-      const userClinic = await UserClinic.findOne({
-        user_id: req.user?._id,
-        clinic_id: id,
-        role: 'admin',
-        is_active: true
-      });
+      // Verify current user is either global admin or admin of this clinic
+      const isGlobalAdmin = req.user?.role === 'admin';
+      
+      let hasPermission = isGlobalAdmin;
+      
+      if (!hasPermission) {
+        const currentUserClinic = await UserClinic.findOne({
+          user_id: req.user?._id,
+          clinic_id: id,
+          role: 'admin',
+          is_active: true
+        });
+        hasPermission = !!currentUserClinic;
+      }
 
-      if (!userClinic) {
+      if (!hasPermission) {
         res.status(403).json({
           success: false,
           message: 'Admin access required'
@@ -392,7 +425,7 @@ export class ClinicController {
 
       const users = await UserClinic.find(filter)
         .populate('user_id', 'first_name last_name email phone is_active created_at')
-        .sort({ role: 1, joined_at: 1 })
+        .sort({ joined_at: 1 })
         .limit(Number(limit) * 1)
         .skip((Number(page) - 1) * Number(limit));
 
@@ -400,7 +433,9 @@ export class ClinicController {
 
       res.json({
         success: true,
-        data: users,
+        data: {
+          users: users
+        },
         pagination: {
           page: Number(page),
           limit: Number(limit),
@@ -413,6 +448,42 @@ export class ClinicController {
       res.status(500).json({
         success: false,
         message: 'Error fetching clinic users'
+      });
+    }
+  }
+
+  /**
+   * Get user's clinic access for admin management
+   * GET /api/clinics/user/:userId/access
+   */
+  static async getUserClinicAccess(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { userId } = req.params;
+
+      const userClinics = await UserClinic.find({
+        user_id: userId,
+        is_active: true
+      }).populate({
+        path: 'clinic_id',
+        select: 'name code is_active'
+      }).sort({ joined_at: 1 });
+
+      const clinicsWithAccess = userClinics
+        .filter(uc => uc.clinic_id)
+        .map(uc => uc.clinic_id);
+
+      res.json({
+        success: true,
+        data: {
+          clinics: clinicsWithAccess
+        },
+        total: clinicsWithAccess.length
+      });
+    } catch (error) {
+      console.error('Error fetching user clinic access:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error fetching user clinic access'
       });
     }
   }
@@ -436,15 +507,22 @@ export class ClinicController {
       const { id } = req.params;
       const { user_id, role, permissions } = req.body;
 
-      // Verify current user is admin of this clinic
-      const currentUserClinic = await UserClinic.findOne({
-        user_id: req.user?._id,
-        clinic_id: id,
-        role: 'admin',
-        is_active: true
-      });
+      // Verify current user is either global admin or admin of this clinic
+      const isGlobalAdmin = req.user?.role === 'admin';
+      
+      let hasPermission = isGlobalAdmin;
+      
+      if (!hasPermission) {
+        const currentUserClinic = await UserClinic.findOne({
+          user_id: req.user?._id,
+          clinic_id: id,
+          role: 'admin',
+          is_active: true
+        });
+        hasPermission = !!currentUserClinic;
+      }
 
-      if (!currentUserClinic) {
+      if (!hasPermission) {
         res.status(403).json({
           success: false,
           message: 'Admin access required'
@@ -494,12 +572,33 @@ export class ClinicController {
         }
       }
 
-      // Create new user-clinic relationship
+      // Find the role by name
+      const roleDoc = await Role.findOne({ name: role.toLowerCase(), is_system_role: true });
+      
+      if (!roleDoc) {
+        res.status(400).json({
+          success: false,
+          message: `Role '${role}' not found`
+        });
+        return;
+      }
+
+      // Create new user-clinic relationship with proper role structure
       const userClinic = new UserClinic({
         user_id,
         clinic_id: id,
-        role,
-        permissions: permissions || [],
+        roles: [{
+          role_id: roleDoc._id,
+          assigned_at: new Date(),
+          assigned_by: req.user!._id,
+          is_primary: true
+        }],
+        permission_overrides: permissions ? permissions.map((perm: any) => ({
+          permission_name: perm,
+          granted: true,
+          granted_at: new Date(),
+          granted_by: req.user!._id
+        })) : [],
         is_active: true
       });
 
@@ -510,11 +609,12 @@ export class ClinicController {
         message: 'User added to clinic successfully',
         data: userClinic
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding user to clinic:', error);
       res.status(500).json({
         success: false,
-        message: 'Error adding user to clinic'
+        message: 'Error adding user to clinic',
+        error: error.message
       });
     }
   }
@@ -538,15 +638,22 @@ export class ClinicController {
       const { id, userId } = req.params;
       const { role, permissions } = req.body;
 
-      // Verify current user is admin of this clinic
-      const currentUserClinic = await UserClinic.findOne({
-        user_id: req.user?._id,
-        clinic_id: id,
-        role: 'admin',
-        is_active: true
-      });
+      // Verify current user is either global admin or admin of this clinic
+      const isGlobalAdmin = req.user?.role === 'admin';
+      
+      let hasPermission = isGlobalAdmin;
+      
+      if (!hasPermission) {
+        const currentUserClinic = await UserClinic.findOne({
+          user_id: req.user?._id,
+          clinic_id: id,
+          role: 'admin',
+          is_active: true
+        });
+        hasPermission = !!currentUserClinic;
+      }
 
-      if (!currentUserClinic) {
+      if (!hasPermission) {
         res.status(403).json({
           success: false,
           message: 'Admin access required'
@@ -590,15 +697,22 @@ export class ClinicController {
     try {
       const { id, userId } = req.params;
 
-      // Verify current user is admin of this clinic
-      const currentUserClinic = await UserClinic.findOne({
-        user_id: req.user?._id,
-        clinic_id: id,
-        role: 'admin',
-        is_active: true
-      });
+      // Verify current user is either global admin or admin of this clinic
+      const isGlobalAdmin = req.user?.role === 'admin';
+      
+      let hasPermission = isGlobalAdmin;
+      
+      if (!hasPermission) {
+        const currentUserClinic = await UserClinic.findOne({
+          user_id: req.user?._id,
+          clinic_id: id,
+          role: 'admin',
+          is_active: true
+        });
+        hasPermission = !!currentUserClinic;
+      }
 
-      if (!currentUserClinic) {
+      if (!hasPermission) {
         res.status(403).json({
           success: false,
           message: 'Admin access required'

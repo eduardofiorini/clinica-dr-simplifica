@@ -858,6 +858,22 @@ class ApiService {
     await apiClient.put(`/users/${id}/password`, { new_password: newPassword });
   }
 
+  // Admin-specific user management methods
+  async getAllUsersForAdmin(): Promise<{ success: boolean; data: { users: User[] }; total: number }> {
+    const response = await apiClient.get<{ success: boolean; data: { users: User[] }; total: number }>('/users/all');
+    return response.data;
+  }
+
+  async getAllClinicsForAdmin(): Promise<{ success: boolean; data: { clinics: any[] }; total: number }> {
+    const response = await apiClient.get<{ success: boolean; data: { clinics: any[] }; total: number }>('/clinics/all');
+    return response.data;
+  }
+
+  async getUserClinicAccess(userId: string): Promise<{ success: boolean; data: { clinics: any[] } }> {
+    const response = await apiClient.get<{ success: boolean; data: { clinics: any[] } }>(`/clinics/user/${userId}/access`);
+    return response.data;
+  }
+
   // Avatar management
   async uploadAvatar(file: File): Promise<{ avatar: string }> {
     const formData = new FormData();

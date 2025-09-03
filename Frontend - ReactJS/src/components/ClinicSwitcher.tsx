@@ -26,16 +26,7 @@ const ClinicSwitcher: React.FC = () => {
   
   const [switchingTo, setSwitchingTo] = useState<string | null>(null);
 
-  // Enhanced debug logging
-  console.log('ClinicSwitcher Enhanced Debug:', {
-    currentClinic,
-    userClinics,
-    userClinicsLength: userClinics?.length || 0,
-    currentUserClinic,
-    loading,
-    cookie_clinic_id: clinicCookies.getClinicId(),
-    cookie_clinic_token: clinicCookies.getClinicToken(),
-  });
+
 
   const handleSwitchClinic = async (clinicId: string) => {
     if (clinicId === currentClinic?._id) return;
@@ -93,12 +84,25 @@ const ClinicSwitcher: React.FC = () => {
     );
   }
 
+  // Filter clinics to only show ones user has access to
+  const accessibleClinics = userClinics?.filter(uc => uc.hasRelationship === true) || [];
+
   // Show message if no clinics are available
   if (!userClinics || userClinics.length === 0) {
     return (
       <div className="flex items-center space-x-2 h-10 px-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md">
         <Building2 className="h-4 w-4 text-yellow-600 dark:text-yellow-400" />
         <span className="text-sm text-yellow-700 dark:text-yellow-300">No clinics available</span>
+      </div>
+    );
+  }
+
+  // Show message if no accessible clinics
+  if (accessibleClinics.length === 0) {
+    return (
+      <div className="flex items-center space-x-2 h-10 px-3 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-md">
+        <Building2 className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+        <span className="text-sm text-orange-700 dark:text-orange-300">No clinic access</span>
       </div>
     );
   }
@@ -113,7 +117,10 @@ const ClinicSwitcher: React.FC = () => {
     );
   }
 
-  // Always show the clinic switcher with all available clinics
+  // Get current user's role in the selected clinic
+  const currentUserRole = accessibleClinics.find(uc => uc.clinic_id._id === currentClinic._id)?.role || 'staff';
+
+  // Always show the clinic switcher with all accessible clinics
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -128,9 +135,14 @@ const ClinicSwitcher: React.FC = () => {
             </AvatarFallback>
           </Avatar>
           <div className="flex flex-col items-start min-w-0">
-            <span className="text-sm font-medium text-foreground truncate max-w-32">
-              {currentClinic.name}
-            </span>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm font-medium text-foreground truncate max-w-24">
+                {currentClinic.name}
+              </span>
+              <Badge variant="secondary" className={`${getRoleBadgeColor(currentUserRole)} text-xs px-1 py-0`}>
+                {currentUserRole}
+              </Badge>
+            </div>
             <span className="text-xs text-muted-foreground truncate">
               {currentClinic.code}
             </span>
@@ -150,10 +162,11 @@ const ClinicSwitcher: React.FC = () => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
 
-        {userClinics.map((userClinic) => {
+        {accessibleClinics.map((userClinic) => {
           const clinic = userClinic.clinic_id;
           const isCurrentClinic = clinic._id === currentClinic._id;
           const isSwitching = switchingTo === clinic._id;
+          const userRole = userClinic.role || 'staff';
 
           return (
             <DropdownMenuItem
@@ -171,14 +184,19 @@ const ClinicSwitcher: React.FC = () => {
                 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm font-medium text-foreground truncate">
-                      {clinic.name}
-                    </p>
+                    <div className="flex items-center space-x-2 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">
+                        {clinic.name}
+                      </p>
+                      <Badge variant="secondary" className={`${getRoleBadgeColor(userRole)} text-xs px-2 py-0`}>
+                        {userRole}
+                      </Badge>
+                    </div>
                     {isCurrentClinic && (
-                      <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
+                      <Check className="h-4 w-4 text-green-600 dark:text-green-400 ml-2" />
                     )}
                     {isSwitching && (
-                      <Loader2 className="h-4 w-4 animate-spin text-primary" />
+                      <Loader2 className="h-4 w-4 animate-spin text-primary ml-2" />
                     )}
                   </div>
                   
@@ -202,7 +220,10 @@ const ClinicSwitcher: React.FC = () => {
         <DropdownMenuSeparator />
         <DropdownMenuItem className="text-xs text-muted-foreground cursor-default">
           <Building2 className="h-3 w-3 mr-1" />
-          {userClinics.length} clinic{userClinics.length !== 1 ? 's' : ''} available
+          {accessibleClinics.length} accessible clinic{accessibleClinics.length !== 1 ? 's' : ''}
+          {userClinics && userClinics.length > accessibleClinics.length && (
+            <span className="text-muted-foreground/60"> of {userClinics.length} total</span>
+          )}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

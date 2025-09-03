@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -59,6 +60,7 @@ import ViewLeadModal from "@/components/modals/ViewLeadModal";
 import ConvertLeadModal from "@/components/modals/ConvertLeadModal";
 
 const Leads = () => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedSource, setSelectedSource] = useState("all");
@@ -161,33 +163,33 @@ const Leads = () => {
     try {
       await updateStatusMutation.mutateAsync({ id: leadId, status: newStatus });
       toast({
-        title: "Status updated",
-        description: "Lead status has been updated successfully.",
+        title: t("Status updated"),
+        description: t("Lead status has been updated successfully."),
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to update lead status.",
+        title: t("Error"),
+        description: t("Failed to update lead status."),
         variant: "destructive",
       });
     }
   };
 
   const handleDeleteLead = async (leadId: string) => {
-    if (!confirm("Are you sure you want to delete this lead? This action cannot be undone.")) {
+    if (!confirm(t("Are you sure you want to delete this lead? This action cannot be undone."))) {
       return;
     }
 
     try {
       await deleteLeadMutation.mutateAsync(leadId);
       toast({
-        title: "Lead deleted",
-        description: "Lead has been deleted successfully.",
+        title: t("Lead deleted"),
+        description: t("Lead has been deleted successfully."),
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to delete lead.",
+        title: t("Error"),
+        description: t("Failed to delete lead."),
         variant: "destructive",
       });
     }
@@ -223,10 +225,10 @@ const Leads = () => {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
-          <p className="text-red-600 mb-4">Error loading leads: {error.message}</p>
+          <p className="text-red-600 mb-4">{t("Error loading leads:")}&nbsp;{error.message}</p>
           <Button onClick={() => window.location.reload()}>
             <RefreshCw className="h-4 w-4 mr-2" />
-            Retry
+            {t("Retry")}
           </Button>
         </div>
       </div>
@@ -239,10 +241,10 @@ const Leads = () => {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight truncate">
-            Leads & CRM
+            {t("Leads & CRM")}
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground mt-1">
-            Manage potential patients and track conversions
+            {t("Manage potential patients and track conversions")}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -254,14 +256,14 @@ const Leads = () => {
             className="h-9"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-            <span className="hidden sm:inline">Refresh</span>
+            <span className="hidden sm:inline">{t("Refresh")}</span>
           </Button>
           <AddLeadModal 
             trigger={
               <Button size="sm" className="h-9">
                 <Plus className="h-4 w-4 mr-2" />
-                <span className="hidden sm:inline">Add Lead</span>
-                <span className="sm:hidden">Add</span>
+                <span className="hidden sm:inline">{t("Add Lead")}</span>
+                <span className="sm:hidden">{t("Add")}</span>
               </Button>
             }
           />
@@ -272,7 +274,7 @@ const Leads = () => {
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Total Leads</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">{t("Total Leads")}</CardTitle>
             <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -280,47 +282,47 @@ const Leads = () => {
               {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : totalLeads}
             </div>
             <p className="text-xs text-muted-foreground">
-              All potential patients
+              {t("All potential patients")}
             </p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">New Leads</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">{t("New Leads")}</CardTitle>
             <UserPlus className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-bold text-blue-600">
               {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : newLeads}
             </div>
-            <p className="text-xs text-muted-foreground">Awaiting contact</p>
+            <p className="text-xs text-muted-foreground">{t("Awaiting contact")}</p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Converted</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">{t("Converted")}</CardTitle>
             <UserCheck className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-bold text-green-600">
               {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : convertedLeads}
             </div>
-            <p className="text-xs text-muted-foreground">Now patients</p>
+            <p className="text-xs text-muted-foreground">{t("Now patients")}</p>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-xs sm:text-sm font-medium">Conversion Rate</CardTitle>
+            <CardTitle className="text-xs sm:text-sm font-medium">{t("Conversion Rate")}</CardTitle>
             <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
           </CardHeader>
           <CardContent>
             <div className="text-xl sm:text-2xl font-bold text-green-600">
               {isLoading ? <Loader2 className="h-6 w-6 animate-spin" /> : `${conversionRate}%`}
             </div>
-            <p className="text-xs text-muted-foreground">Success rate</p>
+            <p className="text-xs text-muted-foreground">{t("Success rate")}</p>
           </CardContent>
         </Card>
       </div>
@@ -333,7 +335,7 @@ const Leads = () => {
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search leads by name, email, or phone..."
+                  placeholder={t("Search leads by name, email, or phone...")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8 h-9 sm:h-10"
@@ -343,28 +345,28 @@ const Leads = () => {
             <div className="flex flex-col xs:flex-row gap-2">
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger className="w-full xs:w-[120px] sm:w-[140px] h-9 sm:h-10">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t("Status")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="new">New</SelectItem>
-                  <SelectItem value="contacted">Contacted</SelectItem>
-                  <SelectItem value="converted">Converted</SelectItem>
-                  <SelectItem value="lost">Lost</SelectItem>
+                  <SelectItem value="all">{t("All Status")}</SelectItem>
+                  <SelectItem value="new">{t("New")}</SelectItem>
+                  <SelectItem value="contacted">{t("Contacted")}</SelectItem>
+                  <SelectItem value="converted">{t("Converted")}</SelectItem>
+                  <SelectItem value="lost">{t("Lost")}</SelectItem>
                 </SelectContent>
               </Select>
 
               <Select value={selectedSource} onValueChange={setSelectedSource}>
                 <SelectTrigger className="w-full xs:w-[120px] sm:w-[140px] h-9 sm:h-10">
-                  <SelectValue placeholder="Source" />
+                  <SelectValue placeholder={t("Source")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Sources</SelectItem>
-                  <SelectItem value="website">Website</SelectItem>
-                  <SelectItem value="referral">Referral</SelectItem>
-                  <SelectItem value="social">Social Media</SelectItem>
-                  <SelectItem value="advertisement">Advertisement</SelectItem>
-                  <SelectItem value="walk-in">Walk-in</SelectItem>
+                  <SelectItem value="all">{t("All Sources")}</SelectItem>
+                  <SelectItem value="website">{t("Website")}</SelectItem>
+                  <SelectItem value="referral">{t("Referral")}</SelectItem>
+                  <SelectItem value="social">{t("Social Media")}</SelectItem>
+                  <SelectItem value="advertisement">{t("Advertisement")}</SelectItem>
+                  <SelectItem value="walk-in">{t("Walk-in")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -375,30 +377,30 @@ const Leads = () => {
       {/* Leads Table */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg sm:text-xl">Lead Management ({totalLeads})</CardTitle>
+          <CardTitle className="text-lg sm:text-xl">{t("Lead Management")} ({totalLeads})</CardTitle>
           <CardDescription className="text-sm">
-            Track and manage potential patients through the conversion funnel
+            {t("Track and manage potential patients through the conversion funnel")}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           {isLoading ? (
             <div className="flex justify-center items-center py-12">
               <Loader2 className="h-8 w-8 animate-spin" />
-              <span className="ml-2">Loading leads...</span>
+              <span className="ml-2">{t("Loading leads...")}</span>
             </div>
           ) : leads.length === 0 ? (
             <div className="text-center py-12">
               <UserPlus className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <p className="text-gray-500 mb-4">
                 {searchTerm || selectedStatus !== "all" || selectedSource !== "all" 
-                  ? "No leads found matching your filters." 
-                  : "No leads found. Add your first lead to get started."}
+                  ? t("No leads found matching your filters.") 
+                  : t("No leads found. Add your first lead to get started.")}
               </p>
               <AddLeadModal 
                 trigger={
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Your First Lead
+                    {t("Add Your First Lead")}
                   </Button>
                 }
               />
@@ -410,14 +412,14 @@ const Leads = () => {
                 <Table>
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
-                      <TableHead className="min-w-[200px]">Lead Details</TableHead>
-                      <TableHead className="min-w-[180px]">Contact Info</TableHead>
-                      <TableHead className="min-w-[120px] hidden lg:table-cell">Source</TableHead>
-                      <TableHead className="min-w-[140px] hidden lg:table-cell">Service Interest</TableHead>
-                      <TableHead className="min-w-[120px] hidden xl:table-cell">Assigned To</TableHead>
-                      <TableHead className="min-w-[100px]">Status</TableHead>
-                      <TableHead className="min-w-[100px] hidden xl:table-cell">Created</TableHead>
-                      <TableHead className="text-right min-w-[100px]">Actions</TableHead>
+                      <TableHead className="min-w-[200px]">{t("Lead Details")}</TableHead>
+                      <TableHead className="min-w-[180px]">{t("Contact Info")}</TableHead>
+                      <TableHead className="min-w-[120px] hidden lg:table-cell">{t("Source")}</TableHead>
+                      <TableHead className="min-w-[140px] hidden lg:table-cell">{t("Service Interest")}</TableHead>
+                      <TableHead className="min-w-[120px] hidden xl:table-cell">{t("Assigned To")}</TableHead>
+                      <TableHead className="min-w-[100px]">{t("Status")}</TableHead>
+                      <TableHead className="min-w-[100px] hidden xl:table-cell">{t("Created")}</TableHead>
+                      <TableHead className="text-right min-w-[100px]">{t("Actions")}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -436,7 +438,7 @@ const Leads = () => {
                                 {lead.firstName} {lead.lastName}
                               </div>
                               <div className="text-xs text-muted-foreground truncate">
-                                Lead #{(lead._id || lead.id).slice(-6)}
+                                {t("Lead #")}{(lead._id || lead.id).slice(-6)}
                               </div>
                             </div>
                           </div>
@@ -469,7 +471,7 @@ const Leads = () => {
                         <TableCell className="hidden xl:table-cell">
                           <span className="text-sm">
                             {lead.assignedTo || (
-                              <span className="text-muted-foreground">Unassigned</span>
+                              <span className="text-muted-foreground">{t("Unassigned")}</span>
                             )}
                           </span>
                         </TableCell>
@@ -492,30 +494,30 @@ const Leads = () => {
                             <DropdownMenuTrigger asChild>
                               <Button variant="outline" size="sm" className="h-8">
                                 <MoreVertical className="h-4 w-4 mr-1" />
-                                Actions
+                                {t("Actions")}
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => handleViewLead(lead)}>
                                 <Eye className="mr-2 h-4 w-4" />
-                                View Details
+                                {t("View Details")}
                               </DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleEditLead(lead)}>
                                 <Edit className="mr-2 h-4 w-4" />
-                                Edit Lead
+                                {t("Edit Lead")}
                               </DropdownMenuItem>
                               {lead.status === "new" && (
                                 <DropdownMenuItem 
                                   onClick={() => handleStatusUpdate(lead._id || lead.id, "contacted")}
                                 >
                                   <Phone className="mr-2 h-4 w-4" />
-                                  Mark as Contacted
+                                  {t("Mark as Contacted")}
                                 </DropdownMenuItem>
                               )}
                               {lead.status !== "converted" && (
                                 <DropdownMenuItem onClick={() => handleConvertLead(lead)}>
                                   <UserCheck className="mr-2 h-4 w-4" />
-                                  Convert to Patient
+                                  {t("Convert to Patient")}
                                 </DropdownMenuItem>
                               )}
                               {lead.status !== "lost" && (
@@ -524,14 +526,14 @@ const Leads = () => {
                                   onClick={() => handleStatusUpdate(lead._id || lead.id, "lost")}
                                 >
                                   <UserX className="mr-2 h-4 w-4" />
-                                  Mark as Lost
+                                  {t("Mark as Lost")}
                                 </DropdownMenuItem>
                               )}
                               <DropdownMenuItem 
                                 className="text-red-600"
                                 onClick={() => handleDeleteLead(lead._id || lead.id)}
                               >
-                                Delete Lead
+                                {t("Delete Lead")}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -563,7 +565,7 @@ const Leads = () => {
                             {lead.firstName} {lead.lastName}
                           </div>
                           <div className="text-xs text-muted-foreground">
-                            Lead #{(lead._id || lead.id).slice(-6)}
+                            {t("Lead #")}{(lead._id || lead.id).slice(-6)}
                           </div>
                         </div>
                       </div>
@@ -596,7 +598,7 @@ const Leads = () => {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <div className="text-xs text-gray-500 uppercase tracking-wide">
-                          Source
+                          {t("Source")}
                         </div>
                         <div className="flex items-center space-x-2">
                           {getSourceIcon(lead.source)}
@@ -607,7 +609,7 @@ const Leads = () => {
                       </div>
                       <div className="space-y-1">
                         <div className="text-xs text-gray-500 uppercase tracking-wide">
-                          Service Interest
+                          {t("Service Interest")}
                         </div>
                         <Badge variant="outline" className="text-xs w-fit">
                           {lead.serviceInterest}
@@ -618,17 +620,17 @@ const Leads = () => {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <div className="text-xs text-gray-500 uppercase tracking-wide">
-                          Assigned To
+                          {t("Assigned To")}
                         </div>
                         <div className="text-sm">
                           {lead.assignedTo || (
-                            <span className="text-gray-400">Unassigned</span>
+                            <span className="text-gray-400">{t("Unassigned")}</span>
                           )}
                         </div>
                       </div>
                       <div className="space-y-1">
                         <div className="text-xs text-gray-500 uppercase tracking-wide">
-                          Created
+                          {t("Created")}
                         </div>
                         <div className="text-sm text-gray-900">
                           {formatDate(lead.created_at || lead.createdAt)}
@@ -639,36 +641,36 @@ const Leads = () => {
                     {/* Notes and Actions */}
                     <div className="space-y-2 pt-2 border-t">
                       <div className="text-xs text-gray-500">
-                        Notes: {lead.notes || "No notes available"}
+                        {t("Notes:")} {lead.notes || t("No notes available")}
                       </div>
                       <div className="flex items-center justify-between">
                         <div className="text-xs text-gray-400">
-                          ID: {(lead._id || lead.id).slice(-8)}
+                          {t("ID:")} {(lead._id || lead.id).slice(-8)}
                         </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm">
                               <MoreVertical className="h-4 w-4 mr-1" />
-                              Actions
+                              {t("Actions")}
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => handleViewLead(lead)}>
                               <Eye className="mr-2 h-4 w-4" />
-                              View Details
+                              {t("View Details")}
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleEditLead(lead)}>
                               <Edit className="mr-2 h-4 w-4" />
-                              Edit Lead
+                              {t("Edit Lead")}
                             </DropdownMenuItem>
                             <DropdownMenuItem>
                               <Phone className="mr-2 h-4 w-4" />
-                              Call Lead
+                              {t("Call Lead")}
                             </DropdownMenuItem>
                             {lead.email && (
                               <DropdownMenuItem>
                                 <Mail className="mr-2 h-4 w-4" />
-                                Send Email
+                                {t("Send Email")}
                               </DropdownMenuItem>
                             )}
                             {lead.status === "new" && (
@@ -676,13 +678,13 @@ const Leads = () => {
                                 onClick={() => handleStatusUpdate(lead._id || lead.id, "contacted")}
                               >
                                 <Phone className="mr-2 h-4 w-4" />
-                                Mark as Contacted
+                                {t("Mark as Contacted")}
                               </DropdownMenuItem>
                             )}
                             {lead.status !== "converted" && (
                               <DropdownMenuItem onClick={() => handleConvertLead(lead)}>
                                 <UserCheck className="mr-2 h-4 w-4" />
-                                Convert to Patient
+                                {t("Convert to Patient")}
                               </DropdownMenuItem>
                             )}
                             {lead.status !== "lost" && (
@@ -691,14 +693,14 @@ const Leads = () => {
                                 onClick={() => handleStatusUpdate(lead._id || lead.id, "lost")}
                               >
                                 <UserX className="mr-2 h-4 w-4" />
-                                Mark as Lost
+                                {t("Mark as Lost")}
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuItem 
                               className="text-red-600"
                               onClick={() => handleDeleteLead(lead._id || lead.id)}
                             >
-                              Delete Lead
+                              {t("Delete Lead")}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

@@ -826,3 +826,108 @@ export interface ConditionColorMap {
 export interface PriorityColorMap {
   [key in TreatmentPriority]: string;
 }
+
+// Payment related interfaces
+export interface Payment {
+  _id: string;
+  clinic_id: string;
+  invoice_id?: {
+    _id: string;
+    invoice_number: string;
+    total_amount: number;
+  };
+  patient_id: {
+    _id: string;
+    first_name: string;
+    last_name: string;
+    email: string;
+    phone?: string;
+  };
+  amount: number;
+  currency: string;
+  method: 'credit_card' | 'cash' | 'bank_transfer' | 'upi' | 'insurance' | 'stripe';
+  status: 'completed' | 'pending' | 'processing' | 'failed' | 'refunded';
+  transaction_id?: string;
+  processing_fee: number;
+  net_amount: number;
+  payment_date: string;
+  failure_reason?: string;
+  description: string;
+  
+  // Stripe-specific fields
+  stripe_payment_intent_id?: string;
+  stripe_checkout_session_id?: string;
+  stripe_customer_id?: string;
+  payment_link?: string;
+  customer_email?: string;
+  
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreatePaymentData {
+  invoice_id?: string;
+  patient_id: string;
+  amount: number;
+  currency?: string;
+  method: 'credit_card' | 'cash' | 'bank_transfer' | 'upi' | 'insurance' | 'stripe';
+  description: string;
+  processing_fee?: number;
+  card_last4?: string;
+  insurance_provider?: string;
+  customer_email?: string;
+}
+
+export interface CreateStripePaymentLinkData {
+  amount: number;
+  currency?: string;
+  description: string;
+  customer_email: string;
+  patient_id: string;
+  success_url?: string;
+  cancel_url?: string;
+  metadata?: Record<string, string>;
+}
+
+export interface StripePaymentLinkResponse {
+  payment_id: string;
+  payment_link: string;
+  checkout_session_id: string;
+  expires_at: number;
+  amount: number;
+  currency: string;
+  customer_email: string;
+  patient: {
+    id: string;
+    name: string;
+    email: string;
+  };
+}
+
+export interface PaymentStats {
+  overview: {
+    total_payments: number;
+    total_revenue: number;
+    completed_payments: number;
+    failed_payments: number;
+    pending_payments: number;
+    processing_payments: number;
+    monthly_revenue: number;
+    monthly_payments_count: number;
+  };
+  by_method: Array<{
+    _id: string;
+    count: number;
+    total_amount: number;
+  }>;
+}
+
+export interface StripeStats {
+  total_payments: number;
+  successful_payments: number;
+  failed_payments: number;
+  pending_payments: number;
+  total_amount: number;
+  total_fees: number;
+  net_amount: number;
+}

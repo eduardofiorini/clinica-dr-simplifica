@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,6 +32,7 @@ interface EditLeadModalProps {
 }
 
 const EditLeadModal: React.FC<EditLeadModalProps> = ({ lead, open, onOpenChange }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -62,31 +64,31 @@ const EditLeadModal: React.FC<EditLeadModalProps> = ({ lead, open, onOpenChange 
   }, [lead]);
 
   const leadSources = [
-    { value: "website", label: "Website Form" },
-    { value: "referral", label: "Patient Referral" },
-    { value: "social", label: "Social Media" },
-    { value: "advertisement", label: "Advertisement" },
-    { value: "walk-in", label: "Walk-in" },
+    { value: "website", label: t("Website Form") },
+    { value: "referral", label: t("Patient Referral") },
+    { value: "social", label: t("Social Media") },
+    { value: "advertisement", label: t("Advertisement") },
+    { value: "walk-in", label: t("Walk-in") },
   ];
 
   const services = [
-    "General Consultation",
-    "Cardiology",
-    "Neurology",
-    "Pediatrics",
-    "Dermatology",
-    "Orthopedics",
-    "Gynecology",
-    "Mental Health",
-    "Dental Care",
-    "Physical Therapy",
+    t("General Consultation"),
+    t("Cardiology"),
+    t("Neurology"),
+    t("Pediatrics"),
+    t("Dermatology"),
+    t("Orthopedics"),
+    t("Gynecology"),
+    t("Mental Health"),
+    t("Dental Care"),
+    t("Physical Therapy"),
   ];
 
   const statusOptions = [
-    { value: "new", label: "New" },
-    { value: "contacted", label: "Contacted" },
-    { value: "converted", label: "Converted" },
-    { value: "lost", label: "Lost" },
+    { value: "new", label: t("New") },
+    { value: "contacted", label: t("Contacted") },
+    { value: "converted", label: t("Converted") },
+    { value: "lost", label: t("Lost") },
   ];
 
   const handleChange = (field: string, value: string) => {
@@ -103,14 +105,14 @@ const EditLeadModal: React.FC<EditLeadModalProps> = ({ lead, open, onOpenChange 
       });
 
       toast({
-        title: "Lead updated successfully",
-        description: `${formData.firstName} ${formData.lastName} has been updated.`,
+        title: t("Lead updated successfully"),
+        description: `${formData.firstName} ${formData.lastName} ${t("has been updated.")}`
       });
 
       onOpenChange(false);
     } catch (error) {
       toast({
-        title: "Error",
+        title: t("Error"),
         description: parseApiError(error),
         variant: "destructive",
       });
@@ -123,10 +125,10 @@ const EditLeadModal: React.FC<EditLeadModalProps> = ({ lead, open, onOpenChange 
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Edit className="h-5 w-5" />
-            Edit Lead
+            {t("Edit Lead")}
           </DialogTitle>
           <DialogDescription>
-            Update lead information and track their progress.
+            {t("Update lead information and track their progress.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -136,7 +138,7 @@ const EditLeadModal: React.FC<EditLeadModalProps> = ({ lead, open, onOpenChange 
             <CardHeader>
               <CardTitle className="text-lg flex items-center">
                 <Phone className="h-4 w-4 mr-2" />
-                Contact Information
+                {t("Contact Information")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -195,7 +197,7 @@ const EditLeadModal: React.FC<EditLeadModalProps> = ({ lead, open, onOpenChange 
             <CardHeader>
               <CardTitle className="text-lg flex items-center">
                 <Globe className="h-4 w-4 mr-2" />
-                Lead Details
+                {t("Lead Details")}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -207,7 +209,7 @@ const EditLeadModal: React.FC<EditLeadModalProps> = ({ lead, open, onOpenChange 
                     onValueChange={(value) => handleChange("source", value)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="How did they find us?" />
+                      <SelectValue placeholder={t("How did they find us?")} />
                     </SelectTrigger>
                     <SelectContent>
                       {leadSources.map((source) => (
@@ -228,7 +230,7 @@ const EditLeadModal: React.FC<EditLeadModalProps> = ({ lead, open, onOpenChange 
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="What service are they interested in?" />
+                      <SelectValue placeholder={t("What service are they interested in?")} />
                     </SelectTrigger>
                     <SelectContent>
                       {services.map((service) => (
@@ -251,7 +253,7 @@ const EditLeadModal: React.FC<EditLeadModalProps> = ({ lead, open, onOpenChange 
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
+                      <SelectValue placeholder={t("Select status")} />
                     </SelectTrigger>
                     <SelectContent>
                       {statusOptions.map((status) => (
@@ -269,7 +271,7 @@ const EditLeadModal: React.FC<EditLeadModalProps> = ({ lead, open, onOpenChange 
                     id="assignedTo"
                     value={formData.assignedTo}
                     onChange={(e) => handleChange("assignedTo", e.target.value)}
-                    placeholder="Assign to staff member"
+                    placeholder={t("Assign to staff member")}
                   />
                 </div>
               </div>
@@ -280,7 +282,7 @@ const EditLeadModal: React.FC<EditLeadModalProps> = ({ lead, open, onOpenChange 
                   id="notes"
                   value={formData.notes}
                   onChange={(e) => handleChange("notes", e.target.value)}
-                  placeholder="Additional information about the lead, their needs, timeline, etc."
+                  placeholder={t("Additional information about the lead, their needs, timeline, etc.")}
                   rows={3}
                 />
               </div>
@@ -295,7 +297,7 @@ const EditLeadModal: React.FC<EditLeadModalProps> = ({ lead, open, onOpenChange 
               onClick={() => onOpenChange(false)}
               disabled={updateLeadMutation.isPending}
             >
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button
               type="submit"
@@ -304,12 +306,12 @@ const EditLeadModal: React.FC<EditLeadModalProps> = ({ lead, open, onOpenChange 
               {updateLeadMutation.isPending ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Updating Lead...
+                  {t("Updating Lead...")}
                 </>
               ) : (
                 <>
                   <Edit className="mr-2 h-4 w-4" />
-                  Update Lead
+                  {t("Update Lead")}
                 </>
               )}
             </Button>

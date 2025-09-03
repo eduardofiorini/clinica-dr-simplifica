@@ -4,19 +4,108 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Loader2, Building2, MapPin, Phone, Mail, Users, Clock, ChevronRight } from 'lucide-react';
+import { Loader2, Building2, MapPin, Phone, Mail, Users, Clock, ChevronRight, Lock } from 'lucide-react';
 import { useClinic, useClinicSelection } from '@/contexts/ClinicContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
 import PublicHeader from '@/components/layout/PublicHeader';
+import apiService from '@/services/api';
+
+interface AllClinic {
+  _id: string;
+  name: string;
+  code: string;
+  description?: string;
+  address: {
+    street: string;
+    city: string;
+    state: string;
+    zipCode: string;
+    country: string;
+  };
+  contact: {
+    phone: string;
+    email: string;
+    website?: string;
+  };
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ClinicDisplayItem {
+  clinic: AllClinic;
+  userClinic?: any;
+  hasAccess: boolean;
+  role?: string;
+  joined_at?: string;
+}
 
 const ClinicSelection: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { selectClinic } = useClinic();
-  const { userClinics, loading, requiresSelection, hasClinics } = useClinicSelection();
+  const { userClinics, loading: userClinicsLoading, requiresSelection, hasClinics } = useClinicSelection();
   const [selectedClinicId, setSelectedClinicId] = useState<string | null>(null);
   const [isSelecting, setIsSelecting] = useState(false);
+  const [allClinics, setAllClinics] = useState<AllClinic[]>([]);
+  const [allClinicsLoading, setAllClinicsLoading] = useState(false);
+  const [combinedClinics, setCombinedClinics] = useState<ClinicDisplayItem[]>([]);
+
+  // Fetch all clinics
+  const fetchAllClinics = async () => {
+    try {
+      setAllClinicsLoading(true);
+      const response = await apiService.getAllClinicsForAdmin();
+      setAllClinics(response.data?.clinics || []);
+    } catch (error) {
+      console.error('Error fetching all clinics:', error);
+      // If we can't fetch all clinics, we'll just show user clinics
+      setAllClinics([]);
+    } finally {
+      setAllClinicsLoading(false);
+    }
+  };
+
+  // Combine all clinics with user clinic data
+  useEffect(() => {
+    if (allClinics.length > 0) {
+      const userClinicMap = new Map();
+      
+      // Create a map of clinic IDs to user clinic data
+      userClinics.forEach(uc => {
+        userClinicMap.set(uc.clinic_id._id, uc);
+      });
+
+      const combined: ClinicDisplayItem[] = allClinics.map(clinic => {
+        const userClinic = userClinicMap.get(clinic._id);
+        
+        // Check if user has actual relationship with this clinic
+        const hasAccess = userClinic && userClinic.hasRelationship === true;
+        
+        // Extract role name if user has access
+        let roleName = undefined;
+        if (hasAccess && userClinic) {
+          roleName = userClinic.role || 'staff'; // Use the role field from the API response
+        }
+        
+        return {
+          clinic,
+          userClinic,
+          hasAccess,
+          role: roleName,
+          joined_at: userClinic?.joined_at,
+        };
+      });
+
+      setCombinedClinics(combined);
+    }
+  }, [allClinics, userClinics]);
+
+  // Fetch all clinics on component mount
+  useEffect(() => {
+    fetchAllClinics();
+  }, []);
 
   useEffect(() => {
     // If user doesn't require selection (already has clinic selected), redirect
@@ -25,7 +114,12 @@ const ClinicSelection: React.FC = () => {
     }
   }, [requiresSelection, hasClinics, navigate]);
 
-  const handleSelectClinic = async (clinicId: string) => {
+  const handleSelectClinic = async (clinicId: string, hasAccess: boolean) => {
+    if (!hasAccess) {
+      toast.error('You do not have access to this clinic. Contact your administrator.');
+      return;
+    }
+
     try {
       setIsSelecting(true);
       setSelectedClinicId(clinicId);
@@ -56,8 +150,8 @@ const ClinicSelection: React.FC = () => {
       .slice(0, 2);
   };
 
-  const formatAddress = (clinic: any): string => {
-    const addr = clinic.clinic_id.address;
+  const formatAddress = (clinic: AllClinic): string => {
+    const addr = clinic.address;
     return `${addr.city}, ${addr.state}`;
   };
 
@@ -73,6 +167,8 @@ const ClinicSelection: React.FC = () => {
     return colors[role] || colors.staff;
   };
 
+  const loading = userClinicsLoading || allClinicsLoading;
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -80,7 +176,7 @@ const ClinicSelection: React.FC = () => {
         <div className="flex items-center justify-center min-h-[calc(100vh-4rem)]">
         <div className="flex flex-col items-center space-y-4">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">Loading your clinics...</p>
+          <p className="text-muted-foreground">Loading clinics...</p>
         </div>
         </div>
       </div>
@@ -122,44 +218,67 @@ const ClinicSelection: React.FC = () => {
       {/* Content */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h2 className="text-2xl font-bold text-foreground mb-2">Your Clinics</h2>
+          <h2 className="text-2xl font-bold text-foreground mb-2">Available Clinics</h2>
           <p className="text-muted-foreground">
-            You have access to {userClinics.length} clinic{userClinics.length !== 1 ? 's' : ''}. 
+            You have access to {userClinics.length} out of {combinedClinics.length} clinic{combinedClinics.length !== 1 ? 's' : ''}. 
             Select one to continue.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {userClinics.map((userClinic) => {
-            const clinic = userClinic.clinic_id;
+          {combinedClinics.map((clinicItem) => {
+            const clinic = clinicItem.clinic;
             const isCurrentlySelecting = selectedClinicId === clinic._id;
+            const hasAccess = clinicItem.hasAccess;
 
             return (
               <Card 
                 key={clinic._id} 
-                className="hover:shadow-lg transition-all duration-200 cursor-pointer group relative overflow-hidden"
-                onClick={() => !isSelecting && handleSelectClinic(clinic._id)}
+                className={`transition-all duration-200 relative overflow-hidden ${
+                  hasAccess 
+                    ? 'hover:shadow-lg cursor-pointer group' 
+                    : 'opacity-50 cursor-not-allowed bg-muted/30'
+                }`}
+                onClick={() => !isSelecting && handleSelectClinic(clinic._id, hasAccess)}
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center space-x-3">
-                      <Avatar className="h-12 w-12">
-                        <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                      <Avatar className={`h-12 w-12 ${!hasAccess ? 'opacity-50' : ''}`}>
+                        <AvatarFallback className={`font-semibold ${
+                          hasAccess 
+                            ? 'bg-primary/10 text-primary' 
+                            : 'bg-muted text-muted-foreground'
+                        }`}>
                           {getClinicInitials(clinic.name)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                          {clinic.name}
-                        </CardTitle>
+                        <div className="flex items-center gap-2">
+                          <CardTitle className={`text-lg transition-colors ${
+                            hasAccess 
+                              ? 'group-hover:text-primary' 
+                              : 'text-muted-foreground'
+                          }`}>
+                            {clinic.name}
+                          </CardTitle>
+                          {!hasAccess && <Lock className="h-4 w-4 text-muted-foreground" />}
+                        </div>
                         <p className="text-sm text-muted-foreground font-mono">
                           {clinic.code}
                         </p>
                       </div>
                     </div>
-                    <Badge className={getRoleBadgeColor(userClinic.role)}>
-                      {userClinic.role}
-                    </Badge>
+                    {hasAccess && clinicItem.role && (
+                      <Badge className={getRoleBadgeColor(clinicItem.role)}>
+                        {clinicItem.role}
+                      </Badge>
+                    )}
+                    {!hasAccess && (
+                      <Badge variant="secondary" className="bg-muted text-muted-foreground">
+                        No Access
+                      </Badge>
+                    )}
                   </div>
                 </CardHeader>
 
@@ -173,7 +292,7 @@ const ClinicSelection: React.FC = () => {
                   <div className="space-y-2">
                     <div className="flex items-center space-x-2 text-sm text-muted-foreground">
                       <MapPin className="h-4 w-4" />
-                      <span>{formatAddress(userClinic)}</span>
+                      <span>{formatAddress(clinic)}</span>
                     </div>
                     
                     <div className="flex items-center space-x-2 text-sm text-muted-foreground">
@@ -186,22 +305,46 @@ const ClinicSelection: React.FC = () => {
                       <span>{clinic.contact.email}</span>
                     </div>
 
-                    <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                      <Clock className="h-4 w-4" />
-                      <span>Joined {new Date(userClinic.joined_at).toLocaleDateString()}</span>
-                    </div>
+                    {hasAccess && clinicItem.joined_at && (
+                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                        <Clock className="h-4 w-4" />
+                        <span>Joined {new Date(clinicItem.joined_at).toLocaleDateString()}</span>
+                      </div>
+                    )}
+
+                    {!hasAccess && (
+                      <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                        <Lock className="h-4 w-4" />
+                        <span>Contact administrator for access</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="pt-4">
                     <Button 
-                      className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-all"
-                      variant={isCurrentlySelecting ? "default" : "outline"}
-                      disabled={isSelecting}
+                      className={`w-full transition-all ${
+                        hasAccess 
+                          ? 'group-hover:bg-primary group-hover:text-primary-foreground' 
+                          : ''
+                      }`}
+                      variant={
+                        !hasAccess 
+                          ? "secondary" 
+                          : isCurrentlySelecting 
+                            ? "default" 
+                            : "outline"
+                      }
+                      disabled={isSelecting || !hasAccess}
                     >
                       {isCurrentlySelecting ? (
                         <>
                           <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                           Selecting...
+                        </>
+                      ) : !hasAccess ? (
+                        <>
+                          <Lock className="h-4 w-4 mr-2" />
+                          No Access
                         </>
                       ) : (
                         <>
@@ -213,8 +356,10 @@ const ClinicSelection: React.FC = () => {
                   </div>
                 </CardContent>
 
-                {/* Hover overlay */}
-                <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                {/* Hover overlay - only for accessible clinics */}
+                {hasAccess && (
+                  <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                )}
               </Card>
             );
           })}

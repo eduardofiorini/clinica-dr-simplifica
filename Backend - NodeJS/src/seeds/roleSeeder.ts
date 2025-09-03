@@ -89,15 +89,38 @@ const defaultRoles = [
     can_be_modified: true,
     can_be_deleted: false,
     permissions: [
-      'patients.view', 'patients.create', 'patients.edit',
-      'appointments.view', 'appointments.create', 'appointments.edit', 'appointments.reschedule',
-      'prescriptions.view', 'prescriptions.dispense',
-      'test_reports.view',
-      'tests.view',
-      'inventory.view', 'inventory.edit', 'inventory.stock_update',
-      'services.view',
+      // Patient Management - Full access
+      'patients.view', 'patients.create', 'patients.edit', 'patients.export',
+      
+      // Appointment Management - Full access  
+      'appointments.view', 'appointments.create', 'appointments.edit', 'appointments.reschedule', 'appointments.assign', 'appointments.export',
+      
+      // Medical Services
+      'prescriptions.view', 'prescriptions.create', 'prescriptions.edit', 'prescriptions.print', 'prescriptions.dispense',
+      'test_reports.view', 'test_reports.create', 'test_reports.edit', 'test_reports.verify',
+      'tests.view', 'tests.create', 'tests.edit',
+      'odontogram.view', 'odontogram.create', 'odontogram.edit',
+      'xray_analysis.view', 'xray_analysis.create',
+      
+      // Inventory & Operations
+      'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.stock_update',
+      'services.view', 'services.create', 'services.edit',
       'departments.view',
-      'analytics.dashboard',
+      'lab_vendors.view',
+      
+      // Financial (view only)
+      'invoices.view', 'payments.view', 'expenses.view', 'payroll.view',
+      
+      // Lead Management
+      'leads.view', 'leads.create', 'leads.edit', 'leads.convert',
+      
+      // Analytics & Reporting
+      'analytics.dashboard', 'analytics.reports', 'analytics.export',
+      
+      // System Access
+      'clinics.view', 'clinics.switch_clinic',
+      
+      // Training
       'training.view'
     ]
   },

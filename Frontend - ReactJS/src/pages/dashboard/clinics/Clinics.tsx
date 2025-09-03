@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -90,6 +91,7 @@ interface Clinic {
 }
 
 const Clinics = () => {
+  const { t } = useTranslation();
   const { formatAmount } = useCurrency();
 
   const [clinics, setClinics] = useState<Clinic[]>([]);
@@ -169,8 +171,8 @@ const Clinics = () => {
     } catch (error) {
       console.error('Error fetching clinics:', error);
       toast({
-        title: "Error",
-        description: "Failed to load clinics. Please try again.",
+        title: t("Error"),
+        description: t("Failed to load clinics. Please try again."),
         variant: "destructive",
       });
     } finally {
@@ -238,8 +240,8 @@ const Clinics = () => {
       setIsAddModalOpen(false);
       
       toast({
-        title: "Clinic Added",
-        description: `${clinicData.name} has been successfully added.`,
+        title: t("Clinic Added"),
+        description: `${clinicData.name} ${t('has been successfully added.')}`,
       });
     } catch (error: any) {
       console.error('Error adding clinic:', error);
@@ -249,14 +251,14 @@ const Clinics = () => {
         const validationErrors = error.response.data.errors;
         const errorMessages = validationErrors.map((err: any) => `${err.path}: ${err.msg}`).join(', ');
         toast({
-          title: "Validation Error",
+          title: t("Validation Error"),
           description: errorMessages,
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Error",
-          description: error.response?.data?.message || "Failed to add clinic. Please try again.",
+          title: t("Error"),
+          description: error.response?.data?.message || t("Failed to add clinic. Please try again."),
           variant: "destructive",
         });
       }
@@ -312,8 +314,8 @@ const Clinics = () => {
       setSelectedClinic(null);
 
       toast({
-        title: "Clinic Updated",
-        description: `${clinicData.name} has been successfully updated.`,
+        title: t("Clinic Updated"),
+        description: `${clinicData.name} ${t('has been successfully updated.')}`,
       });
     } catch (error: any) {
       console.error('Error updating clinic:', error);
@@ -323,14 +325,14 @@ const Clinics = () => {
         const validationErrors = error.response.data.errors;
         const errorMessages = validationErrors.map((err: any) => `${err.path}: ${err.msg}`).join(', ');
         toast({
-          title: "Validation Error",
+          title: t("Validation Error"),
           description: errorMessages,
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Error",
-          description: error.response?.data?.message || "Failed to update clinic. Please try again.",
+          title: t("Error"),
+          description: error.response?.data?.message || t("Failed to update clinic. Please try again."),
           variant: "destructive",
         });
       }
@@ -386,8 +388,8 @@ const Clinics = () => {
       );
 
       toast({
-        title: newStatus ? "Clinic Enabled" : "Clinic Disabled",
-        description: `${clinic.name} has been ${newStatus ? "enabled" : "disabled"}.`,
+        title: newStatus ? t("Clinic Enabled") : t("Clinic Disabled"),
+        description: `${clinic.name} ${t('has been')} ${newStatus ? t("enabled") : t("disabled")}.`,
       });
     } catch (error: any) {
       console.error('Error updating clinic status:', error);
@@ -397,14 +399,14 @@ const Clinics = () => {
         const validationErrors = error.response.data.errors;
         const errorMessages = validationErrors.map((err: any) => `${err.path}: ${err.msg}`).join(', ');
         toast({
-          title: "Validation Error",
+          title: t("Validation Error"),
           description: errorMessages,
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Error",
-          description: error.response?.data?.message || "Failed to update clinic status. Please try again.",
+          title: t("Error"),
+          description: error.response?.data?.message || t("Failed to update clinic status. Please try again."),
           variant: "destructive",
         });
       }
@@ -433,12 +435,12 @@ const Clinics = () => {
     return status ? (
       <Badge className="bg-green-100 text-green-800">
         <CheckCircle className="h-3 w-3 mr-1" />
-        Active
+        {t('Active')}
       </Badge>
     ) : (
       <Badge className="bg-red-100 text-red-800">
         <AlertCircle className="h-3 w-3 mr-1" />
-        Inactive
+        {t('Inactive')}
       </Badge>
     );
   };
@@ -454,16 +456,16 @@ const Clinics = () => {
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            Clinics
+            {t('Clinics')}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage clinic locations and their settings
+            {t('Manage clinic locations and their settings')}
           </p>
         </div>
         <div className="flex-shrink-0">
           <Button onClick={() => setIsAddModalOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Clinic
+            {t('Add Clinic')}
           </Button>
         </div>
       </div>
@@ -483,7 +485,7 @@ const Clinics = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Clinics
+                    {t('Total Clinics')}
                   </p>
                   <p className="text-2xl font-bold text-foreground">
                     {totalClinics}
@@ -507,7 +509,7 @@ const Clinics = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Active Clinics
+                    {t('Active Clinics')}
                   </p>
                   <p className="text-2xl font-bold text-foreground">
                     {activeClinics}
@@ -531,7 +533,7 @@ const Clinics = () => {
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Inactive Clinics
+                    {t('Inactive Clinics')}
                   </p>
                   <p className="text-2xl font-bold text-foreground">
                     {inactiveClinics}
@@ -551,7 +553,7 @@ const Clinics = () => {
             <div className="relative flex-1 min-w-0 sm:min-w-[250px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search clinics..."
+                placeholder={t('Search clinics...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-full"
@@ -569,16 +571,16 @@ const Clinics = () => {
       >
         <Card>
           <CardHeader>
-            <CardTitle>Clinic Directory</CardTitle>
+            <CardTitle>{t('Clinic Directory')}</CardTitle>
             <CardDescription>
-              Complete list of clinic locations with their details and settings
+              {t('Complete list of clinic locations with their details and settings')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {loading ? (
               <div className="flex items-center justify-center h-64">
                 <Loader2 className="h-8 w-8 animate-spin" />
-                <span className="ml-2">Loading clinics...</span>
+                <span className="ml-2">{t('Loading clinics...')}</span>
               </div>
             ) : (
               <>
@@ -587,14 +589,14 @@ const Clinics = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="min-w-[200px]">Clinic</TableHead>
-                        <TableHead className="min-w-[200px]">Contact</TableHead>
-                        <TableHead className="min-w-[180px]">Address</TableHead>
-                        <TableHead className="min-w-[140px]">Settings</TableHead>
-                        <TableHead className="min-w-[100px]">Status</TableHead>
-                        <TableHead className="min-w-[100px]">Created</TableHead>
+                        <TableHead className="min-w-[200px]">{t('Clinic')}</TableHead>
+                        <TableHead className="min-w-[200px]">{t('Contact')}</TableHead>
+                        <TableHead className="min-w-[180px]">{t('Address')}</TableHead>
+                        <TableHead className="min-w-[140px]">{t('Settings')}</TableHead>
+                        <TableHead className="min-w-[100px]">{t('Status')}</TableHead>
+                        <TableHead className="min-w-[100px]">{t('Created')}</TableHead>
                         <TableHead className="text-right min-w-[120px]">
-                          Actions
+                          {t('Actions')}
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -654,7 +656,7 @@ const Clinics = () => {
                                 {clinic.settings?.timezone || ''}
                               </div>
                               <div className="text-sm text-muted-foreground">
-                                Lang: {clinic.settings?.language?.toUpperCase() || ''}
+                                {t('Lang:')} {clinic.settings?.language?.toUpperCase() || ''}
                               </div>
                             </div>
                           </TableCell>
@@ -665,24 +667,24 @@ const Clinics = () => {
                               <DropdownMenuTrigger asChild>
                                 <Button variant="outline" size="sm" className="h-8">
                                   <MoreVertical className="h-4 w-4 mr-1" />
-                                  Actions
+                                  {t('Actions')}
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
                                 <DropdownMenuItem
                                   onClick={() => handleViewClinic(clinic)}
                                 >
-                                  View Details
+                                  {t('View Details')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleEditClick(clinic)}
                                 >
-                                  Edit Clinic
+                                  {t('Edit Clinic')}
                                 </DropdownMenuItem>
                                 <DropdownMenuItem
                                   onClick={() => handleToggleStatus(clinic.id, !clinic.is_active)}
                                 >
-                                  {clinic.is_active ? "Disable" : "Enable"} Clinic
+                                  {clinic.is_active ? t("Disable") : t("Enable")} {t('Clinic')}
                                 </DropdownMenuItem>
                               </DropdownMenuContent>
                             </DropdownMenu>
@@ -759,7 +761,7 @@ const Clinics = () => {
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
                           <div className="text-xs text-gray-500 uppercase tracking-wide">
-                            Currency
+                            {t('Currency')}
                           </div>
                           <div className="text-sm font-medium">
                             {clinic.settings?.currency || ''}
@@ -767,7 +769,7 @@ const Clinics = () => {
                         </div>
                         <div className="space-y-1">
                           <div className="text-xs text-gray-500 uppercase tracking-wide">
-                            Language
+                            {t('Language')}
                           </div>
                           <div className="text-sm font-medium">
                             {clinic.settings?.language?.toUpperCase() || ''}
@@ -778,7 +780,7 @@ const Clinics = () => {
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
                           <div className="text-xs text-gray-500 uppercase tracking-wide">
-                            Timezone
+                            {t('Timezone')}
                           </div>
                           <div className="text-sm font-medium">
                             {clinic.settings?.timezone || ''}
@@ -786,7 +788,7 @@ const Clinics = () => {
                         </div>
                         <div className="space-y-1">
                           <div className="text-xs text-gray-500 uppercase tracking-wide">
-                            Created
+                            {t('Created')}
                           </div>
                           <div className="text-sm">
                             {formatDate(clinic.createdAt)}
@@ -797,30 +799,30 @@ const Clinics = () => {
                       {/* Actions */}
                       <div className="flex items-center justify-between pt-2 border-t">
                         <div className="text-xs text-gray-500">
-                          ID: {clinic.code}
+                          {t('ID:')} {clinic.code}
                         </div>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm">
                               <MoreVertical className="h-4 w-4 mr-1" />
-                              Actions
+                              {t('Actions')}
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
                               onClick={() => handleViewClinic(clinic)}
                             >
-                              View Details
+                              {t('View Details')}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleEditClick(clinic)}
                             >
-                              Edit Clinic
+                              {t('Edit Clinic')}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleToggleStatus(clinic.id, !clinic.is_active)}
                             >
-                              {clinic.is_active ? "Disable" : "Enable"} Clinic
+                              {clinic.is_active ? t("Disable") : t("Enable")} {t('Clinic')}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

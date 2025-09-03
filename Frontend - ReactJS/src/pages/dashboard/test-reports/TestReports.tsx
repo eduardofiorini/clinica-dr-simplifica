@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -78,6 +79,7 @@ import {
 } from "@/hooks/useApi";
 
 const TestReports = () => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -172,7 +174,7 @@ const TestReports = () => {
       return `${patient.first_name} ${patient.last_name}`;
     }
     const patient = (patients || []).find(p => p._id === patientId);
-    return patient ? `${patient.first_name} ${patient.last_name}` : 'Unknown Patient';
+    return patient ? `${patient.first_name} ${patient.last_name}` : t('Unknown Patient');
   };
 
   const getTestName = (testId: string | Test) => {
@@ -181,7 +183,7 @@ const TestReports = () => {
       return test.name;
     }
     const test = (tests || []).find(t => t._id === testId);
-    return test?.name || 'Unknown Test';
+    return test?.name || t('Unknown Test');
   };
 
   const getTestCode = (testId: string | Test) => {
@@ -190,7 +192,7 @@ const TestReports = () => {
       return test.code;
     }
     const test = (tests || []).find(t => t._id === testId);
-    return test?.code || 'N/A';
+    return test?.code || t('N/A');
   };
 
   const getStatusIcon = (status: string) => {
@@ -234,9 +236,9 @@ const TestReports = () => {
   };
 
   const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return '0 Bytes';
+    if (bytes === 0) return t('0 Bytes');
     const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const sizes = [t('Bytes'), t('KB'), t('MB'), t('GB')];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
@@ -270,7 +272,7 @@ const TestReports = () => {
         printWindow.document.write(`
           <html>
             <head>
-              <title>Test Report - ${report.reportNumber}</title>
+              <title>${t('Test Report')} - ${report.reportNumber}</title>
               <style>
                 body { font-family: Arial, sans-serif; margin: 20px; }
                 .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
@@ -283,34 +285,34 @@ const TestReports = () => {
             </head>
             <body>
               <div class="header">
-                <h1>Laboratory Test Report</h1>
-                <h2>Report Number: ${report.reportNumber}</h2>
+                <h1>${t('Laboratory Test Report')}</h1>
+                <h2>${t('Report Number:')}: ${report.reportNumber}</h2>
               </div>
               
               <div class="section">
-                <h3>Patient Information</h3>
+                <h3>${t('Patient Information')}</h3>
                 <table>
-                  <tr><td class="label">Name:</td><td>${patientName}</td></tr>
-                  <tr><td class="label">Age:</td><td>${report.patientAge} years</td></tr>
-                  <tr><td class="label">Gender:</td><td>${report.patientGender}</td></tr>
+                  <tr><td class="label">${t('Name:')}:</td><td>${patientName}</td></tr>
+                  <tr><td class="label">${t('Age:')}:</td><td>${report.patientAge} ${t('years')}</td></tr>
+                  <tr><td class="label">${t('Gender:')}:</td><td>${report.patientGender}</td></tr>
                 </table>
               </div>
 
               <div class="section">
-                <h3>Test Information</h3>
+                <h3>${t('Test Information')}</h3>
                 <table>
-                  <tr><td class="label">Test Name:</td><td>${testName}</td></tr>
-                  <tr><td class="label">Test Code:</td><td>${report.testCode}</td></tr>
-                  <tr><td class="label">Category:</td><td>${report.category}</td></tr>
-                  <tr><td class="label">External Vendor:</td><td>${report.externalVendor}</td></tr>
-                  <tr><td class="label">Test Date:</td><td>${new Date(report.testDate).toLocaleDateString()}</td></tr>
-                  <tr><td class="label">Recorded By:</td><td>${report.recordedBy}</td></tr>
+                  <tr><td class="label">${t('Test Name:')}:</td><td>${testName}</td></tr>
+                  <tr><td class="label">${t('Test Code:')}:</td><td>${report.testCode}</td></tr>
+                  <tr><td class="label">${t('Category:')}:</td><td>${report.category}</td></tr>
+                  <tr><td class="label">${t('External Vendor:')}:</td><td>${report.externalVendor}</td></tr>
+                  <tr><td class="label">${t('Test Date:')}:</td><td>${new Date(report.testDate).toLocaleDateString()}</td></tr>
+                  <tr><td class="label">${t('Recorded By:')}:</td><td>${report.recordedBy}</td></tr>
                 </table>
               </div>
 
               ${report.results ? `
                 <div class="section">
-                  <h3>Test Results</h3>
+                  <h3>${t('Test Results')}</h3>
                   <div class="results">${
                     typeof report.results === 'object' 
                       ? (report.results.value !== undefined && report.results.unit !== undefined 
@@ -323,20 +325,20 @@ const TestReports = () => {
 
               ${report.interpretation ? `
                 <div class="section">
-                  <h3>Clinical Interpretation</h3>
+                  <h3>${t('Clinical Interpretation')}</h3>
                   <div class="results">${report.interpretation}</div>
                 </div>
               ` : ''}
 
               ${report.notes ? `
                 <div class="section">
-                  <h3>Additional Notes</h3>
+                  <h3>${t('Additional Notes')}</h3>
                   <div class="results">${report.notes}</div>
                 </div>
               ` : ''}
 
               <div class="section" style="margin-top: 40px; text-align: center; font-size: 12px;">
-                <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+                <p>${t('Generated on')} ${new Date().toLocaleDateString()} ${t('at')} ${new Date().toLocaleTimeString()}</p>
               </div>
             </body>
           </html>
@@ -346,14 +348,14 @@ const TestReports = () => {
       }
 
       toast({
-        title: "Print Initiated",
-        description: "Report has been sent to printer.",
+        title: t("Print Initiated"),
+        description: t("Report has been sent to printer."),
       });
     } catch (error: any) {
       console.error('Error printing report:', error);
       toast({
-        title: "Error",
-        description: "Failed to print report. Please try again.",
+        title: t("Error"),
+        description: t("Failed to print report. Please try again."),
         variant: "destructive",
       });
     }
@@ -369,8 +371,8 @@ const TestReports = () => {
       await navigator.clipboard.writeText(reportUrl);
       
       toast({
-        title: "Report Link Copied",
-        description: "Report link has been copied to clipboard. You can share this with the patient.",
+        title: t("Report Link Copied"),
+        description: t("Report link has been copied to clipboard. You can share this with the patient."),
       });
 
       // TODO: In a real implementation, you would:
@@ -382,8 +384,8 @@ const TestReports = () => {
     } catch (error: any) {
       console.error('Error sending report:', error);
       toast({
-        title: "Error",
-        description: "Failed to send report. Please try again.",
+        title: t("Error"),
+        description: t("Failed to send report. Please try again."),
         variant: "destructive",
       });
     }
@@ -393,14 +395,14 @@ const TestReports = () => {
     try {
       await verifyMutation.mutateAsync(reportId);
       toast({
-        title: "Success",
-        description: "Test report verified successfully.",
+        title: t("Success"),
+        description: t("Test report verified successfully."),
       });
     } catch (err: any) {
       console.error('Error verifying test report:', err);
       toast({
-        title: "Error",
-        description: err.response?.data?.message || "Failed to verify test report.",
+        title: t("Error"),
+        description: err.response?.data?.message || t("Failed to verify test report."),
         variant: "destructive",
       });
     }
@@ -410,33 +412,33 @@ const TestReports = () => {
     try {
       await deliverMutation.mutateAsync(reportId);
       toast({
-        title: "Success",
-        description: "Test report delivered successfully.",
+        title: t("Success"),
+        description: t("Test report delivered successfully."),
       });
     } catch (err: any) {
       console.error('Error delivering test report:', err);
       toast({
-        title: "Error",
-        description: err.response?.data?.message || "Failed to deliver test report.",
+        title: t("Error"),
+        description: err.response?.data?.message || t("Failed to deliver test report."),
         variant: "destructive",
       });
     }
   };
 
   const handleDeleteReport = async (reportId: string) => {
-    if (!confirm("Are you sure you want to delete this test report?")) return;
+    if (!confirm(t("Are you sure you want to delete this test report?"))) return;
 
     try {
       await deleteMutation.mutateAsync(reportId);
       toast({
-        title: "Success",
-        description: "Test report deleted successfully.",
+        title: t("Success"),
+        description: t("Test report deleted successfully."),
       });
     } catch (err: any) {
       console.error('Error deleting test report:', err);
       toast({
-        title: "Error",
-        description: err.response?.data?.message || "Failed to delete test report.",
+        title: t("Error"),
+        description: err.response?.data?.message || t("Failed to delete test report."),
         variant: "destructive",
       });
     }
@@ -461,53 +463,53 @@ const TestReports = () => {
   const columns = [
     {
       key: "reportNumber",
-      label: "Report Details",
+      label: t("Report Details"),
       render: (report: TestReport) => (
         <div>
           <div className="font-medium">{report.reportNumber}</div>
           <div className="text-sm text-muted-foreground">
-            Recorded: {report.recordedDate ? formatDate(report.recordedDate) : 'Not recorded'}
+            {t('Recorded:')}: {report.recordedDate ? formatDate(report.recordedDate) : t('Not recorded')}
           </div>
         </div>
       ),
     },
     {
       key: "patientId",
-      label: "Patient",
+      label: t("Patient"),
       render: (report: TestReport) => (
         <div>
           <div className="font-medium">{getPatientName(report.patientId)}</div>
           <div className="text-sm text-muted-foreground flex items-center space-x-1">
             <User className="h-3 w-3" />
-            <span>Patient</span>
+            <span>{t('Patient')}</span>
           </div>
         </div>
       ),
     },
     {
       key: "testId",
-      label: "Test",
+      label: t("Test"),
       render: (report: TestReport) => (
         <div>
           <div className="font-medium">{getTestName(report.testId)}</div>
           <div className="text-sm text-muted-foreground">
-            Code: {getTestCode(report.testId)}
+            {t('Code:')}: {getTestCode(report.testId)}
           </div>
         </div>
       ),
     },
     {
       key: "externalVendor",
-      label: "Vendor",
+      label: t("Vendor"),
       render: (report: TestReport) => (
         <span className="text-sm">
-          {report.externalVendor || 'Internal'}
+          {report.externalVendor || t('Internal')}
         </span>
       ),
     },
     {
       key: "testDate",
-      label: "Test Date",
+      label: t("Test Date"),
       render: (report: TestReport) => (
         <div className="flex items-center space-x-1">
           <Calendar className="h-3 w-3 text-muted-foreground" />
@@ -517,7 +519,7 @@ const TestReports = () => {
     },
     {
       key: "status",
-      label: "Status",
+      label: t("Status"),
       render: (report: TestReport) => (
         <div className="flex items-center space-x-2">
           {getStatusIcon(report.status)}
@@ -529,7 +531,7 @@ const TestReports = () => {
     },
     {
       key: "attachments",
-      label: "Attachments",
+      label: t("Attachments"),
       render: (report: TestReport) => (
         report.attachments && report.attachments.length > 0 ? (
           <div className="flex items-center space-x-1">
@@ -537,7 +539,7 @@ const TestReports = () => {
             <span className="text-sm">{report.attachments.length}</span>
           </div>
         ) : (
-          <span className="text-sm text-muted-foreground">None</span>
+          <span className="text-sm text-muted-foreground">{t('None')}</span>
         )
       ),
     },
@@ -572,27 +574,27 @@ const TestReports = () => {
           
           <div className="flex items-center space-x-2 text-sm">
             <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-            <span>Test Date: {formatDate(report.testDate)}</span>
+            <span>{t('Test Date:')}: {formatDate(report.testDate)}</span>
           </div>
 
           {report.externalVendor && (
             <div className="flex items-center space-x-2 text-sm">
               <Microscope className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <span>Vendor: {report.externalVendor}</span>
+              <span>{t('Vendor:')}: {report.externalVendor}</span>
             </div>
           )}
 
           {report.attachments && report.attachments.length > 0 && (
             <div className="flex items-center space-x-2 text-sm">
               <FileImage className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-              <span>{report.attachments.length} attachment(s)</span>
+              <span>{report.attachments.length} {t('attachment(s)')}</span>
             </div>
           )}
 
           {report.recordedDate && (
             <div className="flex items-center space-x-2 text-sm text-muted-foreground">
               <Clock className="h-4 w-4 flex-shrink-0" />
-              <span>Recorded: {formatDate(report.recordedDate)}</span>
+              <span>{t('Recorded:')}: {formatDate(report.recordedDate)}</span>
             </div>
           )}
         </div>
@@ -601,22 +603,22 @@ const TestReports = () => {
     actions: (report: TestReport) => {
       const actions = [
         {
-          label: "View Report",
+          label: t("View Report"),
           onClick: () => handleViewReport(report._id),
           icon: Eye,
         },
         {
-          label: "Edit Report",
+          label: t("Edit Report"),
           onClick: () => handleEditReport(report),
           icon: Edit2,
         },
         {
-          label: "Print Report",
+          label: t("Print Report"),
           onClick: () => handlePrintReport(report._id),
           icon: Printer,
         },
         {
-          label: "Send to Patient",
+          label: t("Send to Patient"),
           onClick: () => handleSendReport(report._id),
           icon: Send,
         },
@@ -624,7 +626,7 @@ const TestReports = () => {
 
       if (report.status === 'recorded') {
         actions.push({
-          label: "Verify Report",
+          label: t("Verify Report"),
           onClick: () => handleVerifyReport(report._id),
           icon: CheckCircle,
         });
@@ -632,14 +634,14 @@ const TestReports = () => {
 
       if (report.status === 'verified') {
         actions.push({
-          label: "Mark as Delivered",
+          label: t("Mark as Delivered"),
           onClick: () => handleDeliverReport(report._id),
           icon: Send,
         });
       }
 
       actions.push({
-        label: "Delete Report",
+                  label: t("Delete Report"),
         onClick: () => handleDeleteReport(report._id),
         icon: XCircle,
       });
@@ -658,7 +660,7 @@ const TestReports = () => {
         <div className="flex items-center justify-center h-96">
           <div className="flex items-center space-x-2">
             <Loader2 className="h-6 w-6 animate-spin" />
-            <span>Loading test reports...</span>
+            <span>{t('Loading test reports...')}</span>
           </div>
         </div>
       </ResponsiveContainer>
@@ -671,11 +673,11 @@ const TestReports = () => {
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
             <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold mb-2">Error Loading Test Reports</h3>
-            <p className="text-gray-600 mb-4">{error?.message || 'An error occurred'}</p>
+            <h3 className="text-lg font-semibold mb-2">{t('Error Loading Test Reports')}</h3>
+            <p className="text-gray-600 mb-4">{error?.message || t('An error occurred')}</p>
             <Button onClick={() => refetchReports()} variant="outline">
               <RefreshCw className="h-4 w-4 mr-2" />
-              Try Again
+              {t('Try Again')}
             </Button>
           </div>
         </div>
@@ -687,8 +689,8 @@ const TestReports = () => {
     <ResponsiveContainer className="space-y-6">
       {/* Header */}
       <ResponsiveHeader
-        title="Test Reports"
-        subtitle="Manage laboratory test reports and results"
+        title={t("Test Reports")}
+        subtitle={t("Manage laboratory test reports and results")}
         actions={
           <div className="flex items-center space-x-2">
             <Button 
@@ -698,13 +700,13 @@ const TestReports = () => {
               disabled={isLoading}
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-              Refresh
+              {t('Refresh')}
             </Button>
             <RecordTestReportModal 
               trigger={
                 <Button>
                   <Plus className="h-4 w-4 mr-2" />
-                  Record Report
+                  {t('Record Report')}
                 </Button>
               }
               onReportRecorded={handleReportRecorded}
@@ -716,28 +718,28 @@ const TestReports = () => {
       {/* Stats Cards */}
       <ResponsiveGrid columns={4} className="gap-4">
         <ResponsiveStatsCard
-          title="Total Reports"
+          title={t("Total Reports")}
           value={stats.totalReports}
           icon={FileText}
-          subtitle={`${stats.verifiedReports} verified`}
+          subtitle={`${stats.verifiedReports} ${t('verified')}`}
         />
         <ResponsiveStatsCard
-          title="Pending"
+          title={t("Pending")}
           value={stats.pendingReports}
           icon={Clock}
-          subtitle="Awaiting processing"
+          subtitle={t("Awaiting processing")}
         />
         <ResponsiveStatsCard
-          title="Recorded"
+          title={t("Recorded")}
           value={stats.recordedReports}
           icon={AlertTriangle}
-          subtitle="Being processed"
+          subtitle={t("Being processed")}
         />
         <ResponsiveStatsCard
-          title="Delivered"
+          title={t("Delivered")}
           value={stats.deliveredReports}
           icon={CheckCircle}
-          subtitle="Completed reports"
+          subtitle={t("Completed reports")}
         />
       </ResponsiveGrid>
 
@@ -749,7 +751,7 @@ const TestReports = () => {
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search reports..."
+                  placeholder={t("Search reports...")}
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-8"
@@ -759,14 +761,14 @@ const TestReports = () => {
             <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-2">
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger className="w-full sm:w-[150px]">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t("Status")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="recorded">Recorded</SelectItem>
-                  <SelectItem value="verified">Verified</SelectItem>
-                  <SelectItem value="delivered">Delivered</SelectItem>
+                  <SelectItem value="all">{t("All Status")}</SelectItem>
+                  <SelectItem value="pending">{t("Pending")}</SelectItem>
+                  <SelectItem value="recorded">{t("Recorded")}</SelectItem>
+                  <SelectItem value="verified">{t("Verified")}</SelectItem>
+                  <SelectItem value="delivered">{t("Delivered")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -777,9 +779,9 @@ const TestReports = () => {
       {/* Test Reports Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Test Reports ({totalItems})</CardTitle>
+          <CardTitle>{t("Test Reports")} ({totalItems})</CardTitle>
           <CardDescription>
-            A list of all laboratory test reports and their status.
+            {t("A list of all laboratory test reports and their status.")}
           </CardDescription>
         </CardHeader>
         <CardContent className="p-0">
@@ -790,8 +792,8 @@ const TestReports = () => {
             loading={isLoading}
             emptyMessage={
               searchTerm || selectedStatus !== "all" || selectedVendor !== "all" 
-                ? "No test reports found. Try adjusting your filters." 
-                : "No test reports found. Record your first test report to get started."
+                ? t("No test reports found. Try adjusting your filters.") 
+                : t("No test reports found. Record your first test report to get started.")
             }
           />
         </CardContent>
@@ -801,7 +803,7 @@ const TestReports = () => {
       {totalPages > 1 && (
         <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <div className="text-sm text-muted-foreground text-center sm:text-left">
-            Showing {((currentPage - 1) * pageSize) + 1} to {Math.min(currentPage * pageSize, totalItems)} of {totalItems} reports
+            {t('Showing')} {((currentPage - 1) * pageSize) + 1} {t('to')} {Math.min(currentPage * pageSize, totalItems)} {t('of')} {totalItems} {t('reports')}
           </div>
           <div className="flex items-center justify-center space-x-2">
             <Button
@@ -810,10 +812,10 @@ const TestReports = () => {
               onClick={() => setCurrentPage(currentPage - 1)}
               disabled={currentPage === 1}
             >
-              Previous
+              {t('Previous')}
             </Button>
             <div className="text-sm px-2">
-              Page {currentPage} of {totalPages}
+              {t('Page')} {currentPage} {t('of')} {totalPages}
             </div>
             <Button
               variant="outline"
@@ -821,7 +823,7 @@ const TestReports = () => {
               onClick={() => setCurrentPage(currentPage + 1)}
               disabled={currentPage === totalPages}
             >
-              Next
+              {t('Next')}
             </Button>
           </div>
         </div>

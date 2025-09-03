@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -67,6 +68,7 @@ import { LabVendor, LabVendorStats } from "@/types";
 import { labVendorApi } from "@/services/api/labVendorApi";
 
 const LabVendors = () => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
@@ -260,13 +262,13 @@ const LabVendors = () => {
     } catch (error) {
       console.error("Error fetching lab vendors:", error);
       const errorMessage = error instanceof Error && error.message.includes('401') 
-        ? "Access denied. Please check your clinic permissions." 
+        ? t("Access denied. Please check your clinic permissions.") 
         : error instanceof Error && error.message.includes('403')
-        ? "Insufficient permissions to view lab vendors for this clinic."
-        : "Failed to load lab vendors. Please try again.";
+        ? t("Insufficient permissions to view lab vendors for this clinic.")
+        : t("Failed to load lab vendors. Please try again.");
       
       toast({
-        title: "Error",
+        title: t("Error"),
         description: errorMessage,
         variant: "destructive",
       });
@@ -406,15 +408,15 @@ const LabVendors = () => {
   const getTypeLabel = (type: string) => {
     switch (type) {
       case "diagnostic_lab":
-        return "Diagnostic Lab";
+        return t("Diagnostic Lab");
       case "pathology_lab":
-        return "Pathology Lab";
+        return t("Pathology Lab");
       case "imaging_center":
-        return "Imaging Center";
+        return t("Imaging Center");
       case "reference_lab":
-        return "Reference Lab";
+        return t("Reference Lab");
       case "specialty_lab":
-        return "Specialty Lab";
+        return t("Specialty Lab");
       default:
         return type;
     }
@@ -488,15 +490,15 @@ const LabVendors = () => {
     try {
       await labVendorApi.deleteLabVendor(vendorId);
       toast({
-        title: "Vendor Deleted",
-        description: `Vendor has been deleted successfully`,
+        title: t("Vendor Deleted"),
+        description: t("Vendor has been deleted successfully"),
       });
       fetchLabVendors(); // Refresh the list
       fetchStats(); // Refresh stats
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to delete vendor. Please try again.",
+        title: t("Error"),
+        description: t("Failed to delete vendor. Please try again."),
         variant: "destructive",
       });
     }
@@ -506,15 +508,15 @@ const LabVendors = () => {
     try {
       await labVendorApi.updateLabVendorStatus(vendor.id, "active");
       toast({
-        title: "Vendor Activated",
-        description: `${vendor.name} has been activated.`,
+        title: t("Vendor Activated"),
+        description: `${vendor.name} ${t("has been activated.")}`,
       });
       fetchLabVendors(); // Refresh the list
       fetchStats(); // Refresh stats
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to activate vendor. Please try again.",
+        title: t("Error"),
+        description: t("Failed to activate vendor. Please try again."),
         variant: "destructive",
       });
     }
@@ -524,15 +526,15 @@ const LabVendors = () => {
     try {
       await labVendorApi.updateLabVendorStatus(vendor.id, "inactive");
       toast({
-        title: "Vendor Deactivated",
-        description: `${vendor.name} has been deactivated.`,
+        title: t("Vendor Deactivated"),
+        description: `${vendor.name} ${t("has been deactivated.")}`,
       });
       fetchLabVendors(); // Refresh the list
       fetchStats(); // Refresh stats
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to deactivate vendor. Please try again.",
+        title: t("Error"),
+        description: t("Failed to deactivate vendor. Please try again."),
         variant: "destructive",
       });
     }
@@ -549,7 +551,7 @@ const LabVendors = () => {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2 text-muted-foreground">Loading clinic context...</span>
+        <span className="ml-2 text-muted-foreground">{t('Loading clinic context...')}</span>
       </div>
     );
   }
@@ -560,13 +562,13 @@ const LabVendors = () => {
       <div className="space-y-6">
         <div className="text-center py-12">
           <Building className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-foreground mb-2">No Clinic Selected</h2>
+          <h2 className="text-xl font-semibold text-foreground mb-2">{t('No Clinic Selected')}</h2>
           <p className="text-muted-foreground mb-4">
-            Please select a clinic to view and manage lab vendors.
+            {t('Please select a clinic to view and manage lab vendors.')}
           </p>
           {clinicError && (
             <p className="text-red-600 text-sm">
-              Error: {clinicError}
+              {t('Error:')} {clinicError}
             </p>
           )}
         </div>
@@ -580,13 +582,13 @@ const LabVendors = () => {
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between sm:flex-wrap">
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            Lab Vendors
+            {t('Lab Vendors')}
           </h1>
           <p className="text-muted-foreground mt-1">
             {currentClinic ? (
-              <>Manage external laboratory partners and vendors for <span className="font-semibold text-primary">{currentClinic.name}</span></>
+              <>{t('Manage external laboratory partners and vendors for')} <span className="font-semibold text-primary">{currentClinic.name}</span></>
             ) : (
-              "Manage external laboratory partners and vendors"
+              t('Manage external laboratory partners and vendors')
             )}
           </p>
         </div>
@@ -598,7 +600,7 @@ const LabVendors = () => {
             disabled={isRefreshing}
           >
             <FileText className="h-4 w-4 mr-2" />
-            {isRefreshing ? "Refreshing..." : "Refresh"}
+            {isRefreshing ? t("Refreshing...") : t("Refresh")}
           </Button>
           <AddLabVendorModal onVendorAdded={handleRefresh} />
         </div>
@@ -616,7 +618,7 @@ const LabVendors = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Vendors
+                    {t('Total Vendors')}
                   </p>
                   <p className="text-3xl font-bold text-foreground">
                     {totalVendors}
@@ -638,7 +640,7 @@ const LabVendors = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Active Vendors
+                    {t('Active Vendors')}
                   </p>
                   <p className="text-3xl font-bold text-green-600">
                     {activeVendors}
@@ -659,7 +661,7 @@ const LabVendors = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Pending</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('Pending')}</p>
                   <p className="text-3xl font-bold text-orange-600">
                     {pendingVendors}
                   </p>
@@ -680,7 +682,7 @@ const LabVendors = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Tests
+                    {t('Total Tests')}
                   </p>
                   <p className="text-3xl font-bold text-purple-600">
                     {totalTests.toLocaleString()}
@@ -701,7 +703,7 @@ const LabVendors = () => {
             <div className="relative flex-1 min-w-0 sm:min-w-[250px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by vendor name, code, contact person, or specialty..."
+                placeholder={t('Search by vendor name, code, contact person, or specialty...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-full"
@@ -712,12 +714,12 @@ const LabVendors = () => {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
               <Select value={selectedType} onValueChange={setSelectedType}>
                 <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Vendor Type" />
+                  <SelectValue placeholder={t('Vendor Type')} />
                 </SelectTrigger>
                 <SelectContent>
                   {types.map((type) => (
                     <SelectItem key={type} value={type}>
-                      {type === "all" ? "All Types" : getTypeLabel(type)}
+                      {type === "all" ? t("All Types") : getTypeLabel(type)}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -725,14 +727,14 @@ const LabVendors = () => {
 
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t('Status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="suspended">Suspended</SelectItem>
+                  <SelectItem value="all">{t('All Status')}</SelectItem>
+                  <SelectItem value="active">{t('Active')}</SelectItem>
+                  <SelectItem value="inactive">{t('Inactive')}</SelectItem>
+                  <SelectItem value="pending">{t('Pending')}</SelectItem>
+                  <SelectItem value="suspended">{t('Suspended')}</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -741,12 +743,12 @@ const LabVendors = () => {
                 onValueChange={setSelectedSpecialty}
               >
                 <SelectTrigger className="w-full sm:w-48">
-                  <SelectValue placeholder="Specialty" />
+                  <SelectValue placeholder={t('Specialty')} />
                 </SelectTrigger>
                 <SelectContent>
                   {specialties.map((specialty) => (
                     <SelectItem key={specialty} value={specialty}>
-                      {specialty === "all" ? "All Specialties" : specialty}
+                      {specialty === "all" ? t("All Specialties") : specialty}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -764,9 +766,9 @@ const LabVendors = () => {
       >
         <Card>
           <CardHeader>
-            <CardTitle>Laboratory Vendors & Partners</CardTitle>
+            <CardTitle>{t('Laboratory Vendors & Partners')}</CardTitle>
             <CardDescription>
-              Manage relationships with external laboratory service providers
+              {t('Manage relationships with external laboratory service providers')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -774,7 +776,7 @@ const LabVendors = () => {
               <div className="flex items-center justify-center py-8">
                 <div className="text-center">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                  <p className="text-muted-foreground">Loading lab vendors...</p>
+                  <p className="text-muted-foreground">{t('Loading lab vendors...')}</p>
                 </div>
               </div>
             ) : (
@@ -785,17 +787,17 @@ const LabVendors = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="min-w-[200px]">
-                      Vendor Details
+                      {t('Vendor Details')}
                     </TableHead>
                     <TableHead className="min-w-[180px]">
-                      Contact Info
+                      {t('Contact Info')}
                     </TableHead>
-                    <TableHead className="min-w-[160px]">Specialties</TableHead>
-                    <TableHead className="min-w-[140px]">Performance</TableHead>
-                    <TableHead className="min-w-[140px]">Contract</TableHead>
-                    <TableHead className="min-w-[100px]">Status</TableHead>
+                    <TableHead className="min-w-[160px]">{t('Specialties')}</TableHead>
+                    <TableHead className="min-w-[140px]">{t('Performance')}</TableHead>
+                    <TableHead className="min-w-[140px]">{t('Contract')}</TableHead>
+                    <TableHead className="min-w-[100px]">{t('Status')}</TableHead>
                     <TableHead className="text-right min-w-[120px]">
-                      Actions
+                      {t('Actions')}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -806,7 +808,7 @@ const LabVendors = () => {
                         <div className="space-y-1">
                           <div className="font-medium">{vendor.name}</div>
                           <div className="text-sm text-muted-foreground">
-                            Code: {vendor.code} • {getTypeLabel(vendor.type)}
+                            {t('Code:')} {vendor.code} • {getTypeLabel(vendor.type)}
                           </div>
                           <div className="flex items-center space-x-2">
                             {renderStars(vendor.rating)}
@@ -842,7 +844,7 @@ const LabVendors = () => {
                           ))}
                           {vendor.specialties.length > 2 && (
                             <Badge variant="outline" className="text-xs">
-                              +{vendor.specialties.length - 2} more
+                              +{vendor.specialties.length - 2} {t('more')}
                             </Badge>
                           )}
                         </div>
@@ -853,7 +855,7 @@ const LabVendors = () => {
                             <span className="font-medium">
                               {vendor.totalTests}
                             </span>{" "}
-                            tests
+                            {t('tests')}
                           </div>
                           <div className="text-sm text-muted-foreground">
                             <Clock className="h-3 w-3 inline mr-1" />
@@ -871,11 +873,11 @@ const LabVendors = () => {
                         <div className="text-sm">
                           <div>{formatDate(vendor.contractStart)}</div>
                           <div className="text-muted-foreground">
-                            to {formatDate(vendor.contractEnd)}
+                            {t('to')} {formatDate(vendor.contractEnd)}
                           </div>
                           {vendor.lastTestDate && (
                             <div className="text-xs text-muted-foreground mt-1">
-                              Last test: {formatDate(vendor.lastTestDate)}
+                              {t('Last test:')} {formatDate(vendor.lastTestDate)}
                             </div>
                           )}
                         </div>
@@ -896,7 +898,7 @@ const LabVendors = () => {
                           <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm" className="h-8">
                               <MoreVertical className="h-4 w-4 mr-1" />
-                              Actions
+                              {t('Actions')}
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
@@ -904,38 +906,38 @@ const LabVendors = () => {
                               onClick={() => handleViewVendor(vendor)}
                             >
                               <Eye className="mr-2 h-4 w-4" />
-                              View Details
+                              {t('View Details')}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleEditVendor(vendor)}
                             >
                               <Edit className="mr-2 h-4 w-4" />
-                              Edit Vendor
+                              {t('Edit Vendor')}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleViewTestHistory(vendor)}
                             >
                               <TestTube2 className="mr-2 h-4 w-4" />
-                              View Test History
+                              {t('View Test History')}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleViewContractDetails(vendor)}
                             >
                               <FileText className="mr-2 h-4 w-4" />
-                              Contract Details
+                              {t('Contract Details')}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleViewBillingPayments(vendor)}
                             >
                               <DollarSign className="mr-2 h-4 w-4" />
-                              Billing & Payments
+                              {t('Billing & Payments')}
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleDeleteVendor(vendor.id)}
                               className="text-red-600"
                             >
                               <Trash2 className="mr-2 h-4 w-4" />
-                              Remove Vendor
+                              {t('Remove Vendor')}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -990,7 +992,7 @@ const LabVendors = () => {
                   {/* Specialties */}
                   <div className="space-y-2">
                     <div className="text-xs text-muted-foreground uppercase tracking-wide">
-                      Specialties ({vendor.specialties.length})
+                      {t('Specialties')} ({vendor.specialties.length})
                     </div>
                     <div className="flex flex-wrap gap-1">
                       {vendor.specialties
@@ -1006,7 +1008,7 @@ const LabVendors = () => {
                         ))}
                       {vendor.specialties.length > 3 && (
                         <Badge variant="outline" className="text-xs">
-                          +{vendor.specialties.length - 3} more
+                          +{vendor.specialties.length - 3} {t('more')}
                         </Badge>
                       )}
                     </div>
@@ -1016,7 +1018,7 @@ const LabVendors = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <div className="text-xs text-muted-foreground uppercase tracking-wide">
-                        Rating
+                        {t('Rating')}
                       </div>
                       <div className="flex items-center space-x-1">
                         <span className="text-sm font-medium">
@@ -1027,7 +1029,7 @@ const LabVendors = () => {
                     </div>
                     <div className="space-y-1">
                       <div className="text-xs text-muted-foreground uppercase tracking-wide">
-                        Tests Processed
+                        {t('Tests Processed')}
                       </div>
                       <div className="text-sm font-medium">
                         {vendor.totalTests}
@@ -1039,7 +1041,7 @@ const LabVendors = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <div className="text-xs text-muted-foreground uppercase tracking-wide">
-                        Contract Start
+                        {t('Contract Start')}
                       </div>
                       <div className="text-sm">
                         {vendor.contractStart.toLocaleDateString()}
@@ -1047,7 +1049,7 @@ const LabVendors = () => {
                     </div>
                     <div className="space-y-1">
                       <div className="text-xs text-muted-foreground uppercase tracking-wide">
-                        Contract End
+                        {t('Contract End')}
                       </div>
                       <div className="text-sm">
                         {vendor.contractEnd.toLocaleDateString()}
@@ -1058,46 +1060,46 @@ const LabVendors = () => {
                   {/* Actions */}
                   <div className="flex items-center justify-between pt-2 border-t">
                     <div className="text-xs text-muted-foreground">
-                      Vendor ID: #{vendor.id}
+                      {t('Vendor ID:')} #{vendor.id}
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="sm">
                           <MoreVertical className="h-4 w-4 mr-1" />
-                          Actions
+                          {t('Actions')}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
                           onClick={() => handleViewVendor(vendor)}
                         >
-                          View Details
+                          {t('View Details')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleEditVendor(vendor)}
                         >
-                          Edit Vendor
+                          {t('Edit Vendor')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleViewTestHistory(vendor)}
                         >
-                          View Test History
+                          {t('View Test History')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleViewContractDetails(vendor)}
                         >
-                          Contract Details
+                          {t('Contract Details')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleViewBillingPayments(vendor)}
                         >
-                          Billing & Payments
+                          {t('Billing & Payments')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDeleteVendor(vendor.id)}
                           className="text-red-600"
                         >
-                          Remove Vendor
+                          {t('Remove Vendor')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

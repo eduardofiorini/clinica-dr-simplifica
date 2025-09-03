@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -60,6 +61,7 @@ import { CurrencyDisplay } from "@/components/ui/CurrencyDisplay";
 import { serviceApi, ServiceStats } from "@/services/api/serviceApi";
 
 const Services = () => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
@@ -122,13 +124,13 @@ const Services = () => {
     } catch (error) {
       console.error("Error fetching services:", error);
       const errorMessage = error instanceof Error && error.message.includes('401') 
-        ? "Access denied. Please check your clinic permissions." 
+        ? t("Access denied. Please check your clinic permissions.") 
         : error instanceof Error && error.message.includes('403')
-        ? "Insufficient permissions to view services for this clinic."
-        : "Failed to load services. Please try again.";
+        ? t("Insufficient permissions to view services for this clinic.")
+        : t("Failed to load services. Please try again.");
       
       toast({
-        title: "Error",
+        title: t("Error"),
         description: errorMessage,
         variant: "destructive",
       });
@@ -192,14 +194,14 @@ const Services = () => {
     try {
       await serviceApi.toggleServiceStatus(service.id);
       toast({
-        title: "Service Activated",
-        description: `${service.name} has been activated.`,
+        title: t("Service Activated"),
+        description: `${service.name} ${t('has been activated.')}`,
       });
       fetchServices(); // Refresh the list
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to activate service. Please try again.",
+        title: t("Error"),
+        description: t("Failed to activate service. Please try again."),
         variant: "destructive",
       });
     }
@@ -209,14 +211,14 @@ const Services = () => {
     try {
       await serviceApi.toggleServiceStatus(service.id);
       toast({
-        title: "Service Deactivated",
-        description: `${service.name} has been deactivated.`,
+        title: t("Service Deactivated"),
+        description: `${service.name} ${t('has been deactivated.')}`,
       });
       fetchServices(); // Refresh the list
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to deactivate service. Please try again.",
+        title: t("Error"),
+        description: t("Failed to deactivate service. Please try again."),
         variant: "destructive",
       });
     }
@@ -235,45 +237,45 @@ const Services = () => {
   const filterFields = [
     {
       key: "department",
-      label: "Department",
+      label: t("Department"),
       type: "select" as const,
       options: Array.from(new Set(services.map((s) => s.department))),
     },
     {
       key: "minPrice",
-      label: "Minimum Price",
+      label: t("Minimum Price"),
       type: "number" as const,
-      placeholder: "Enter minimum price",
+      placeholder: t("Enter minimum price"),
     },
     {
       key: "maxPrice",
-      label: "Maximum Price",
+      label: t("Maximum Price"),
       type: "number" as const,
-      placeholder: "Enter maximum price",
+      placeholder: t("Enter maximum price"),
     },
     {
       key: "minDuration",
-      label: "Minimum Duration (minutes)",
+      label: t("Minimum Duration (minutes)"),
       type: "number" as const,
-      placeholder: "Enter minimum duration",
+      placeholder: t("Enter minimum duration"),
     },
     {
       key: "maxDuration",
-      label: "Maximum Duration (minutes)",
+      label: t("Maximum Duration (minutes)"),
       type: "number" as const,
-      placeholder: "Enter maximum duration",
+      placeholder: t("Enter maximum duration"),
     },
     {
       key: "status",
-      label: "Service Status",
+      label: t("Service Status"),
       type: "checkbox" as const,
-      options: ["Active", "Inactive"],
+      options: [t("Active"), t("Inactive")],
     },
     {
       key: "followUpRequired",
-      label: "Follow-up Requirements",
+      label: t("Follow-up Requirements"),
       type: "checkbox" as const,
-      options: ["Follow-up Required", "No Follow-up Required"],
+      options: [t("Follow-up Required"), t("No Follow-up Required")],
     },
   ];
 
@@ -322,8 +324,8 @@ const Services = () => {
 
   const getStatusBadge = (isActive: boolean) => {
     return isActive
-      ? { label: "Active", color: "bg-green-100 text-green-800" }
-      : { label: "Inactive", color: "bg-muted text-muted-foreground" };
+      ? { label: t("Active"), color: "bg-green-100 text-green-800" }
+      : { label: t("Inactive"), color: "bg-muted text-muted-foreground" };
   };
 
   // Show loading state while clinic context is loading
@@ -331,7 +333,7 @@ const Services = () => {
     return (
       <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin" />
-        <span className="ml-2 text-muted-foreground">Loading clinic context...</span>
+        <span className="ml-2 text-muted-foreground">{t('Loading clinic context...')}</span>
       </div>
     );
   }
@@ -342,13 +344,13 @@ const Services = () => {
       <div className="space-y-6">
         <div className="text-center py-12">
           <Stethoscope className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-foreground mb-2">No Clinic Selected</h2>
+          <h2 className="text-xl font-semibold text-foreground mb-2">{t('No Clinic Selected')}</h2>
           <p className="text-muted-foreground mb-4">
-            Please select a clinic to view and manage services.
+            {t('Please select a clinic to view and manage services.')}
           </p>
           {clinicError && (
             <p className="text-red-600 text-sm">
-              Error: {clinicError}
+              {t('Error:')}: {clinicError}
             </p>
           )}
         </div>
@@ -362,18 +364,18 @@ const Services = () => {
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex-1">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            Services
+            {t('Services')}
           </h1>
           <p className="text-muted-foreground mt-1">
             {currentClinic ? (
-              <>Manage medical services and pricing for <span className="font-semibold text-primary">{currentClinic.name}</span></>
+              <>{t('Manage medical services and pricing for')} <span className="font-semibold text-primary">{currentClinic.name}</span></>
             ) : (
-              "Manage medical services and pricing"
+              t('Manage medical services and pricing')
             )}
           </p>
           {clinicError && (
             <p className="text-red-600 text-sm mt-1">
-              Error loading clinic: {clinicError}
+              {t('Error loading clinic:')}: {clinicError}
             </p>
           )}
         </div>
@@ -385,7 +387,7 @@ const Services = () => {
             size="sm"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+            {isRefreshing ? t('Refreshing...') : t('Refresh')}
           </Button>
           {currentClinic ? (
             <AddServiceModal 
@@ -394,7 +396,7 @@ const Services = () => {
           ) : (
             <Button disabled size="sm">
               <Plus className="h-4 w-4 mr-2" />
-              Add Service
+              {t('Add Service')}
             </Button>
           )}
         </div>
@@ -412,7 +414,7 @@ const Services = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Services
+                    {t('Total Services')}
                   </p>
                   <p className="text-3xl font-bold text-foreground">
                     {totalServices}
@@ -436,7 +438,7 @@ const Services = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Active Services
+                    {t('Active Services')}
                   </p>
                   <p className="text-3xl font-bold text-green-600">
                     {activeServices}
@@ -460,7 +462,7 @@ const Services = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Revenue Potential
+                    {t('Total Revenue Potential')}
                   </p>
                   <p className="text-3xl font-bold text-primary">
                     <CurrencyDisplay amount={totalRevenue} variant="large" />
@@ -484,7 +486,7 @@ const Services = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Avg Duration
+                    {t('Avg Duration')}
                   </p>
                   <p className="text-3xl font-bold text-purple-600">
                     {formatDuration(avgDuration)}
@@ -506,7 +508,7 @@ const Services = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search services by name, description, or department..."
+                placeholder={t('Search services by name, description, or department...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -517,12 +519,12 @@ const Services = () => {
               onValueChange={setSelectedCategory}
             >
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Category" />
+                <SelectValue placeholder={t('Category')} />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (
                   <SelectItem key={category} value={category}>
-                    {category === "all" ? "All Categories" : category}
+                    {category === "all" ? t("All Categories") : category}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -532,12 +534,12 @@ const Services = () => {
               onValueChange={setSelectedDepartment}
             >
               <SelectTrigger className="w-48">
-                <SelectValue placeholder="Department" />
+                <SelectValue placeholder={t('Department')} />
               </SelectTrigger>
               <SelectContent>
                 {departments.map((department) => (
                   <SelectItem key={department} value={department}>
-                    {department === "all" ? "All Departments" : department}
+                    {department === "all" ? t("All Departments") : department}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -560,16 +562,16 @@ const Services = () => {
       >
         <Card>
           <CardHeader>
-            <CardTitle>Services Directory</CardTitle>
+            <CardTitle>{t('Services Directory')}</CardTitle>
             <CardDescription>
-              Manage and configure available medical services
+              {t('Manage and configure available medical services')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin" />
-                <span className="ml-2 text-gray-600">Loading services...</span>
+                <span className="ml-2 text-gray-600">{t('Loading services...')}</span>
               </div>
             ) : (
               <>
@@ -578,15 +580,15 @@ const Services = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="min-w-[200px]">Service</TableHead>
-                        <TableHead className="min-w-[120px]">Category</TableHead>
-                        <TableHead className="min-w-[140px]">Department</TableHead>
-                        <TableHead className="min-w-[100px]">Duration</TableHead>
-                        <TableHead className="min-w-[100px]">Price</TableHead>
-                        <TableHead className="min-w-[100px]">Max/Day</TableHead>
-                        <TableHead className="min-w-[100px]">Status</TableHead>
+                        <TableHead className="min-w-[200px]">{t('Service')}</TableHead>
+                        <TableHead className="min-w-[120px]">{t('Category')}</TableHead>
+                        <TableHead className="min-w-[140px]">{t('Department')}</TableHead>
+                        <TableHead className="min-w-[100px]">{t('Duration')}</TableHead>
+                        <TableHead className="min-w-[100px]">{t('Price')}</TableHead>
+                        <TableHead className="min-w-[100px]">{t('Max/Day')}</TableHead>
+                        <TableHead className="min-w-[100px]">{t('Status')}</TableHead>
                         <TableHead className="text-right min-w-[120px]">
-                          Actions
+                          {t('Actions')}
                         </TableHead>
                       </TableRow>
                     </TableHeader>
@@ -630,7 +632,7 @@ const Services = () => {
                             <DropdownMenuTrigger asChild>
                               <Button variant="outline" size="sm" className="h-8">
                                 <MoreVertical className="h-4 w-4 mr-1" />
-                                Actions
+                                {t('Actions')}
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
@@ -638,13 +640,13 @@ const Services = () => {
                                 onClick={() => handleViewDetails(service)}
                               >
                                 <Eye className="mr-2 h-4 w-4" />
-                                View Details
+                                {t('View Details')}
                               </DropdownMenuItem>
                               <DropdownMenuItem
                                 onClick={() => handleEdit(service)}
                               >
                                 <Edit className="mr-2 h-4 w-4" />
-                                Edit Service
+                                {t('Edit Service')}
                               </DropdownMenuItem>
                               {service.isActive ? (
                                 <DropdownMenuItem
@@ -653,14 +655,14 @@ const Services = () => {
                                   }
                                 >
                                   <Activity className="mr-2 h-4 w-4" />
-                                  Deactivate
+                                  {t('Deactivate')}
                                 </DropdownMenuItem>
                               ) : (
                                 <DropdownMenuItem
                                   onClick={() => handleActivateService(service)}
                                 >
                                   <Activity className="mr-2 h-4 w-4" />
-                                  Activate
+                                  {t('Activate')}
                                 </DropdownMenuItem>
                               )}
                               <DropdownMenuItem
@@ -668,7 +670,7 @@ const Services = () => {
                                 className="text-red-600"
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Delete Service
+                                {t('Delete Service')}
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -709,7 +711,7 @@ const Services = () => {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <div className="text-xs text-gray-500 uppercase tracking-wide">
-                          Category
+                          {t('Category')}
                         </div>
                         <Badge variant="outline" className="text-xs">
                           {service.category}
@@ -717,7 +719,7 @@ const Services = () => {
                       </div>
                       <div className="space-y-1">
                         <div className="text-xs text-gray-500 uppercase tracking-wide">
-                          Department
+                          {t('Department')}
                         </div>
                         <div className="text-sm">{service.department}</div>
                       </div>
@@ -726,7 +728,7 @@ const Services = () => {
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-1">
                         <div className="text-xs text-gray-500 uppercase tracking-wide">
-                          Duration
+                          {t('Duration')}
                         </div>
                         <div className="text-sm font-medium">
                           {formatDuration(service.duration)}
@@ -734,7 +736,7 @@ const Services = () => {
                       </div>
                       <div className="space-y-1">
                         <div className="text-xs text-gray-500 uppercase tracking-wide">
-                          Price
+                          {t('Price')}
                         </div>
                         <div className="text-sm font-medium">
                           {formatCurrency(service.price)}
@@ -747,7 +749,7 @@ const Services = () => {
                       <div className="flex items-center justify-between">
                         <div className="text-sm">
                           <span className="text-gray-500">
-                            Max bookings per day:
+                            {t('Max bookings per day:')}
                           </span>
                           <span className="ml-2 font-medium">
                             {service.maxBookingsPerDay}
@@ -760,7 +762,7 @@ const Services = () => {
                     {/* Actions */}
                     <div className="flex items-center justify-between pt-2 border-t">
                       <div className="text-xs text-gray-500">
-                        Service ID: #{service.id}
+                        {t('Service ID:')}: #{service.id}
                       </div>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -823,110 +825,110 @@ const Services = () => {
         onOpenChange={(open) =>
           setViewDetailsModal({ open, item: viewDetailsModal.item })
         }
-        title="Service Details"
+        title={t("Service Details")}
         data={viewDetailsModal.item}
         fields={[
-          { key: "id", label: "Service ID", type: "text" },
-          { key: "name", label: "Service Name", type: "text" },
-          { key: "category", label: "Category", type: "badge" },
-          { key: "department", label: "Department", type: "text" },
-          { key: "description", label: "Description", type: "text" },
+          { key: "id", label: t("Service ID"), type: "text" },
+          { key: "name", label: t("Service Name"), type: "text" },
+          { key: "category", label: t("Category"), type: "badge" },
+          { key: "department", label: t("Department"), type: "text" },
+          { key: "description", label: t("Description"), type: "text" },
           {
             key: "duration",
-            label: "Duration",
+            label: t("Duration"),
             type: "text",
             render: (value: number) => formatDuration(value),
           },
-          { key: "price", label: "Price", type: "currency" },
-          { key: "maxBookingsPerDay", label: "Max Bookings/Day", type: "text" },
-          { key: "prerequisites", label: "Prerequisites", type: "text" },
+          { key: "price", label: t("Price"), type: "currency" },
+          { key: "maxBookingsPerDay", label: t("Max Bookings/Day"), type: "text" },
+          { key: "prerequisites", label: t("Prerequisites"), type: "text" },
           {
             key: "followUpRequired",
-            label: "Follow-up Required",
+            label: t("Follow-up Required"),
             type: "boolean",
           },
           {
             key: "specialInstructions",
-            label: "Special Instructions",
+            label: t("Special Instructions"),
             type: "text",
           },
           {
             key: "isActive",
             label: "Status",
             type: "boolean",
-            render: (value: boolean) => (value ? "Active" : "Inactive"),
+            render: (value: boolean) => (value ? t("Active") : t("Inactive")),
           },
-          { key: "createdAt", label: "Created", type: "date" },
-          { key: "updatedAt", label: "Last Updated", type: "date" },
+          { key: "createdAt", label: t("Created"), type: "date" },
+          { key: "updatedAt", label: t("Last Updated"), type: "date" },
         ]}
       />
 
       <EditItemModal
         open={editModal.open}
         onOpenChange={(open) => setEditModal({ open, item: editModal.item })}
-        title="Edit Service"
+        title={t("Edit Service")}
         data={editModal.item}
         fields={[
-          { key: "name", label: "Service Name", type: "text", required: true },
+          { key: "name", label: t("Service Name"), type: "text", required: true },
           {
             key: "category",
-            label: "Category",
+            label: t("Category"),
             type: "select",
             options: Array.from(new Set(services.map((s) => s.category))),
             required: true,
           },
           {
             key: "department",
-            label: "Department",
+            label: t("Department"),
             type: "select",
             options: Array.from(new Set(services.map((s) => s.department))),
             required: true,
           },
           {
             key: "description",
-            label: "Description",
+            label: t("Description"),
             type: "textarea",
             required: true,
           },
           {
             key: "duration",
-            label: "Duration (minutes)",
+            label: t("Duration (minutes)"),
             type: "number",
             required: true,
           },
           { key: "price", label: "Price", type: "number", required: true },
           {
             key: "maxBookingsPerDay",
-            label: "Max Bookings/Day",
+            label: t("Max Bookings/Day"),
             type: "number",
             required: true,
           },
-          { key: "prerequisites", label: "Prerequisites", type: "text" },
+          { key: "prerequisites", label: t("Prerequisites"), type: "text" },
           {
             key: "specialInstructions",
-            label: "Special Instructions",
+            label: t("Special Instructions"),
             type: "textarea",
           },
           {
             key: "followUpRequired",
-            label: "Follow-up Required",
+            label: t("Follow-up Required"),
             type: "switch",
           },
-          { key: "isActive", label: "Active", type: "switch" },
+          { key: "isActive", label: t("Active"), type: "switch" },
         ]}
         onSave={async (data) => {
           try {
             await serviceApi.updateService(editModal.item!.id, data);
             toast({
-              title: "Service Updated",
-              description: `${data.name} has been updated successfully.`,
+              title: t("Service Updated"),
+              description: `${data.name} ${t('has been updated successfully.')}`,
             });
             setEditModal({ open: false, item: null });
             fetchServices(); // Refresh the list
           } catch (error) {
             toast({
-              title: "Error",
-              description: "Failed to update service. Please try again.",
+              title: t("Error"),
+              description: t("Failed to update service. Please try again."),
               variant: "destructive",
             });
           }
@@ -938,22 +940,22 @@ const Services = () => {
         onOpenChange={(open) =>
           setDeleteModal({ open, item: deleteModal.item })
         }
-        title="Delete Service"
-        description={`Are you sure you want to delete "${deleteModal.item?.name}"? This action cannot be undone.`}
+        title={t("Delete Service")}
+        description={`${t('Are you sure you want to delete')} "${deleteModal.item?.name}"? ${t('This action cannot be undone.')}`}
         itemName={deleteModal.item?.name || ""}
         onConfirm={async () => {
           try {
             await serviceApi.deleteService(deleteModal.item!.id);
             toast({
-              title: "Service Deleted",
-              description: `${deleteModal.item?.name} has been deleted successfully.`,
+              title: t("Service Deleted"),
+              description: `${deleteModal.item?.name} ${t('has been deleted successfully.')}`,
             });
             setDeleteModal({ open: false, item: null });
             fetchServices(); // Refresh the list
           } catch (error) {
             toast({
-              title: "Error",
-              description: "Failed to delete service. Please try again.",
+              title: t("Error"),
+              description: t("Failed to delete service. Please try again."),
               variant: "destructive",
             });
           }

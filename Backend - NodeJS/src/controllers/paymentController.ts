@@ -3,6 +3,8 @@ import { validationResult } from 'express-validator';
 import { Payment, Invoice, Patient } from '../models';
 import { AuthRequest } from '../types/express';
 import mongoose from 'mongoose';
+import StripeService from '../utils/stripe';
+import Stripe from 'stripe';
 
 export class PaymentController {
   // Create a new payment
@@ -436,6 +438,498 @@ export class PaymentController {
       res.status(500).json({
         success: false,
         message: 'Failed to initiate refund',
+        error: error.message
+      });
+    }
+  }
+
+  // ===== STRIPE PAYMENT METHODS =====
+
+  /**
+   * Create a Stripe payment link
+   */
+  static async createStripePaymentLink(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const errors = validationResult(req);
+      if (!errors.isEmpty()) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: errors.array()
+        });
+        return;
+      }
+
+      const { amount, currency = 'USD', description, customer_email, patient_id, success_url, cancel_url, metadata } = req.body;
+
+      // Validate required fields
+      if (!amount || !description || !customer_email || !patient_id) {
+        res.status(400).json({
+          success: false,
+          message: 'Missing required fields: amount, description, customer_email, patient_id'
+        });
+        return;
+      }
+
+      // Validate patient exists and belongs to the clinic
+      const patient = await Patient.findOne({
+        _id: patient_id,
+        clinic_id: req.clinic_id
+      });
+
+      if (!patient) {
+        res.status(404).json({
+          success: false,
+          message: 'Patient not found or does not belong to your clinic'
+        });
+        return;
+      }
+
+      // Create payment link using Stripe service
+      const result = await StripeService.createPaymentLink({
+        amount: parseFloat(amount),
+        currency: currency.toUpperCase(),
+        description,
+        customer_email,
+        patient_id,
+        clinic_id: req.clinic_id!,
+        success_url,
+        cancel_url,
+        metadata
+      });
+
+      res.status(201).json({
+        success: true,
+        message: 'Payment link created successfully',
+        data: {
+          payment_id: result.payment_record._id,
+          payment_link: result.payment_link,
+          checkout_session_id: result.checkout_session.id,
+          expires_at: result.checkout_session.expires_at,
+          amount,
+          currency: currency.toUpperCase(),
+          customer_email,
+          patient: {
+            id: patient._id,
+            name: `${patient.first_name} ${patient.last_name}`,
+            email: patient.email
+          }
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Error creating Stripe payment link:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create payment link',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Get payment link details
+   */
+  static async getPaymentLinkDetails(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { payment_id } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(payment_id)) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid payment ID'
+        });
+        return;
+      }
+
+      const payment = await Payment.findOne({
+        _id: payment_id,
+        clinic_id: req.clinic_id,
+        method: 'stripe'
+      })
+        .populate('patient_id', 'first_name last_name email phone')
+        .populate('invoice_id', 'invoice_number total_amount');
+
+      if (!payment) {
+        res.status(404).json({
+          success: false,
+          message: 'Payment not found'
+        });
+        return;
+      }
+
+      // Get additional details from Stripe if available
+      let stripeDetails: Stripe.Checkout.Session | null = null;
+      if (payment.stripe_checkout_session_id) {
+        try {
+          stripeDetails = await StripeService.getCheckoutSession(payment.stripe_checkout_session_id);
+        } catch (stripeError) {
+          console.warn('Could not fetch Stripe details:', stripeError);
+        }
+      }
+
+      res.json({
+        success: true,
+        data: {
+          ...payment.toObject(),
+          stripe_details: stripeDetails ? {
+            status: stripeDetails.status,
+            expires_at: stripeDetails.expires_at,
+            url: stripeDetails.url
+          } : null
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Error getting payment link details:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get payment link details',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Stripe webhook handler
+   */
+  static async handleStripeWebhook(req: any, res: Response): Promise<void> {
+    let event: Stripe.Event;
+
+    try {
+      const signature = req.headers['stripe-signature'];
+      
+      if (!signature) {
+        res.status(400).json({
+          success: false,
+          message: 'Missing Stripe signature'
+        });
+        return;
+      }
+
+      // Verify webhook signature
+      event = StripeService.verifyWebhookSignature(req.body, signature);
+
+    } catch (error: any) {
+      console.error('Webhook signature verification failed:', error);
+      res.status(400).json({
+        success: false,
+        message: 'Webhook signature verification failed',
+        error: error.message
+      });
+      return;
+    }
+
+    try {
+      // Handle the event
+      switch (event.type) {
+        case 'checkout.session.completed':
+          const session = event.data.object as Stripe.Checkout.Session;
+          console.log('Checkout session completed:', session.id);
+          
+          if (session.metadata?.payment_id) {
+            await StripeService.handleSuccessfulPayment(session.id);
+            console.log('Payment marked as successful:', session.metadata.payment_id);
+          }
+          break;
+
+        case 'payment_intent.payment_failed':
+          const paymentIntent = event.data.object as Stripe.PaymentIntent;
+          console.log('Payment intent failed:', paymentIntent.id);
+          
+          const failureReason = paymentIntent.last_payment_error?.message || 'Payment failed';
+          await StripeService.handleFailedPayment(paymentIntent.id, failureReason);
+          console.log('Payment marked as failed:', paymentIntent.id);
+          break;
+
+        case 'payment_intent.succeeded':
+          const succeededIntent = event.data.object as Stripe.PaymentIntent;
+          console.log('Payment intent succeeded:', succeededIntent.id);
+          // This is handled by checkout.session.completed, but we can add additional logic here if needed
+          break;
+
+        case 'charge.dispute.created':
+          const dispute = event.data.object as Stripe.Dispute;
+          console.log('Charge dispute created:', dispute.id);
+          // Handle dispute creation - maybe notify admin
+          break;
+
+        default:
+          console.log(`Unhandled event type: ${event.type}`);
+      }
+
+      res.json({
+        success: true,
+        message: 'Webhook handled successfully'
+      });
+
+    } catch (error: any) {
+      console.error('Error handling webhook:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error handling webhook',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Create Stripe refund
+   */
+  static async createStripeRefund(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const { amount, reason } = req.body;
+
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid payment ID'
+        });
+        return;
+      }
+
+      const payment = await Payment.findOne({
+        _id: id,
+        clinic_id: req.clinic_id,
+        method: 'stripe'
+      });
+
+      if (!payment) {
+        res.status(404).json({
+          success: false,
+          message: 'Stripe payment not found'
+        });
+        return;
+      }
+
+      if (payment.status !== 'completed') {
+        res.status(400).json({
+          success: false,
+          message: 'Can only refund completed payments'
+        });
+        return;
+      }
+
+      // Create refund through Stripe
+      const refund = await StripeService.createRefund(id, amount, reason);
+
+      // Get updated payment details
+      const updatedPayment = await Payment.findById(id)
+        .populate('patient_id', 'first_name last_name email')
+        .populate('invoice_id', 'invoice_number total_amount');
+
+      res.json({
+        success: true,
+        message: 'Stripe refund created successfully',
+        data: {
+          payment: updatedPayment,
+          refund: {
+            id: refund.id,
+            amount: refund.amount / 100, // Convert from cents
+            status: refund.status,
+            reason: refund.reason,
+            created: refund.created
+          }
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Error creating Stripe refund:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to create refund',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Get Stripe payment statistics
+   */
+  static async getStripeStats(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { start_date, end_date } = req.query;
+
+      const startDate = start_date ? new Date(start_date as string) : undefined;
+      const endDate = end_date ? new Date(end_date as string) : undefined;
+
+      const stats = await StripeService.getPaymentStats(req.clinic_id!, startDate, endDate);
+
+      res.json({
+        success: true,
+        message: 'Stripe statistics retrieved successfully',
+        data: stats
+      });
+
+    } catch (error: any) {
+      console.error('Error getting Stripe stats:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get Stripe statistics',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Verify payment by Stripe session ID (public endpoint for success page)
+   */
+  static async verifyPaymentBySessionId(req: any, res: Response): Promise<void> {
+    try {
+      const { session_id } = req.params;
+
+      if (!session_id) {
+        res.status(400).json({
+          success: false,
+          message: 'Session ID is required'
+        });
+        return;
+      }
+
+      // Find payment by Stripe checkout session ID
+      let payment = await Payment.findOne({
+        stripe_checkout_session_id: session_id
+      })
+        .populate('patient_id', 'first_name last_name email')
+        .populate('invoice_id', 'invoice_number total_amount');
+
+      if (!payment) {
+        res.status(404).json({
+          success: false,
+          message: 'Payment not found for this session'
+        });
+        return;
+      }
+
+      // Get additional details from Stripe
+      let stripeDetails: Stripe.Checkout.Session | null = null;
+      try {
+        stripeDetails = await StripeService.getCheckoutSession(session_id);
+        
+        // If the Stripe session is completed but our payment is still pending, update it
+        if (stripeDetails && 
+            stripeDetails.status === 'complete' && 
+            stripeDetails.payment_status === 'paid' && 
+            payment.status === 'pending') {
+          
+          console.log(`Updating payment status from pending to completed for session: ${session_id}`);
+          
+          // Update payment using the existing service method
+          await StripeService.handleSuccessfulPayment(session_id);
+          
+          // Reload the updated payment
+          payment = await Payment.findOne({
+            stripe_checkout_session_id: session_id
+          })
+            .populate('patient_id', 'first_name last_name email')
+            .populate('invoice_id', 'invoice_number total_amount');
+        }
+      } catch (stripeError) {
+        console.warn('Could not fetch Stripe session details:', stripeError);
+      }
+
+      // Double check that payment still exists after potential update
+      if (!payment) {
+        res.status(404).json({
+          success: false,
+          message: 'Payment not found after verification'
+        });
+        return;
+      }
+
+      res.json({
+        success: true,
+        message: 'Payment details retrieved successfully',
+        data: {
+          payment_id: payment._id,
+          session_id: session_id,
+          status: payment.status,
+          amount: payment.amount,
+          currency: payment.currency,
+          description: payment.description,
+          customer_email: payment.customer_email,
+          payment_date: payment.payment_date,
+          patient: payment.patient_id,
+          invoice: payment.invoice_id,
+          stripe_details: stripeDetails ? {
+            status: stripeDetails.status,
+            payment_status: stripeDetails.payment_status
+          } : null
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Error verifying payment by session ID:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to verify payment',
+        error: error.message
+      });
+    }
+  }
+
+  /**
+   * Resend payment link
+   */
+  static async resendPaymentLink(req: AuthRequest, res: Response): Promise<void> {
+    try {
+      const { payment_id } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(payment_id)) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid payment ID'
+        });
+        return;
+      }
+
+      const payment = await Payment.findOne({
+        _id: payment_id,
+        clinic_id: req.clinic_id,
+        method: 'stripe',
+        status: 'pending'
+      })
+        .populate('patient_id', 'first_name last_name email');
+
+      if (!payment) {
+        res.status(404).json({
+          success: false,
+          message: 'Pending Stripe payment not found'
+        });
+        return;
+      }
+
+      if (!payment.payment_link) {
+        res.status(400).json({
+          success: false,
+          message: 'Payment link not available'
+        });
+        return;
+      }
+
+      // Here you could integrate with your email service to send the link
+      // For now, we'll just return the payment link
+
+      res.json({
+        success: true,
+        message: 'Payment link retrieved successfully',
+        data: {
+          payment_id: payment._id,
+          payment_link: payment.payment_link,
+          customer_email: payment.customer_email,
+          amount: payment.amount,
+          currency: payment.currency,
+          description: payment.description,
+          patient: payment.patient_id
+        }
+      });
+
+    } catch (error: any) {
+      console.error('Error resending payment link:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to resend payment link',
         error: error.message
       });
     }

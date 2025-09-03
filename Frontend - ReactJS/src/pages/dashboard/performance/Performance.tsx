@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -81,6 +82,7 @@ import {
 } from "@/services/api/performanceApi";
 
 const Performance = () => {
+  const { t } = useTranslation();
   const { formatAmount } = useCurrency();
   
   // State for data
@@ -135,7 +137,7 @@ const Performance = () => {
     } catch (err: any) {
       console.error("Error loading performance data:", err);
       setError(err);
-      toast.error("Failed to load performance data");
+      toast.error(t("Failed to load performance data"));
     } finally {
       setLoading(false);
     }
@@ -181,7 +183,7 @@ const Performance = () => {
       }
     } catch (err: any) {
       console.error("Error loading doctor payouts:", err);
-      toast.error("Failed to load doctor payouts");
+      toast.error(t("Failed to load doctor payouts"));
     } finally {
       setLoadingDoctors(false);
     }
@@ -295,15 +297,15 @@ const Performance = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Performance Analytics</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('Performance Analytics')}</h1>
           <p className="text-muted-foreground">
-            Comprehensive financial performance across all clinic modules
+            {t('Comprehensive financial performance across all clinic modules')}
           </p>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" onClick={() => {/* TODO: Export functionality */}}>
             <Download className="mr-2 h-4 w-4" />
-            Export Report
+            {t('Export Report')}
           </Button>
         </div>
       </div>
@@ -313,30 +315,30 @@ const Performance = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Filter className="h-5 w-5" />
-            Filters & Date Range
+            {t('Filters & Date Range')}
           </CardTitle>
           <CardDescription>
-            Customize the performance data view with date ranges and comparison options
+            {t('Customize the performance data view with date ranges and comparison options')}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <div>
-              <Label htmlFor="period">Period</Label>
+              <Label htmlFor="period">{t('Period')}</Label>
               <Select value={period} onValueChange={(value: any) => setPeriod(value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select period" />
+                  <SelectValue placeholder={t('Select period')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="monthly">Monthly</SelectItem>
-                  <SelectItem value="quarterly">Quarterly</SelectItem>
-                  <SelectItem value="yearly">Yearly</SelectItem>
+                  <SelectItem value="monthly">{t('Monthly')}</SelectItem>
+                  <SelectItem value="quarterly">{t('Quarterly')}</SelectItem>
+                  <SelectItem value="yearly">{t('Yearly')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div>
-              <Label>Start Date</Label>
+              <Label>{t('Start Date')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -347,7 +349,7 @@ const Performance = () => {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {startDate ? format(startDate, "PPP") : "Pick a date"}
+                    {startDate ? format(startDate, "PPP") : t('Pick a date')}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -362,7 +364,7 @@ const Performance = () => {
             </div>
 
             <div>
-              <Label>End Date</Label>
+              <Label>{t('End Date')}</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
@@ -373,7 +375,7 @@ const Performance = () => {
                     )}
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
-                    {endDate ? format(endDate, "PPP") : "Pick a date"}
+                    {endDate ? format(endDate, "PPP") : t('Pick a date')}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="start">
@@ -394,7 +396,7 @@ const Performance = () => {
                 className="w-full"
               >
                 <Activity className="mr-2 h-4 w-4" />
-                {compareWithPrevious ? "Comparing" : "Compare Period"}
+                {compareWithPrevious ? t('Comparing') : t('Compare Period')}
               </Button>
             </div>
           </div>
@@ -406,7 +408,7 @@ const Performance = () => {
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('Total Revenue')}</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -420,7 +422,7 @@ const Performance = () => {
                   ) : (
                     <ArrowDownIcon className="mr-1 h-3 w-3 text-red-600" />
                   )}
-                  {Math.abs(parseFloat(comparisonData.changes.revenue))}% from previous period
+                  {Math.abs(parseFloat(comparisonData.changes.revenue))}% {t('from previous period')}
                 </div>
               )}
             </CardContent>
@@ -428,7 +430,7 @@ const Performance = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Costs</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('Total Costs')}</CardTitle>
               <Receipt className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -442,7 +444,7 @@ const Performance = () => {
                   ) : (
                     <ArrowDownIcon className="mr-1 h-3 w-3 text-green-600" />
                   )}
-                  {Math.abs((parseFloat(comparisonData.changes.expenses) + parseFloat(comparisonData.changes.payroll)) / 2)}% from previous period
+                  {Math.abs((parseFloat(comparisonData.changes.expenses) + parseFloat(comparisonData.changes.payroll)) / 2)}% {t('from previous period')}
                 </div>
               )}
             </CardContent>
@@ -450,7 +452,7 @@ const Performance = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Net Profit</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('Net Profit')}</CardTitle>
               {summaryStats.isProfit ? (
                 <TrendingUp className="h-4 w-4 text-green-600" />
               ) : (
@@ -471,7 +473,7 @@ const Performance = () => {
                   ) : (
                     <ArrowDownIcon className="mr-1 h-3 w-3 text-red-600" />
                   )}
-                  {Math.abs(parseFloat(comparisonData.changes.profit))}% from previous period
+                  {Math.abs(parseFloat(comparisonData.changes.profit))}% {t('from previous period')}
                 </div>
               )}
             </CardContent>
@@ -479,7 +481,7 @@ const Performance = () => {
 
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Profit Margin</CardTitle>
+              <CardTitle className="text-sm font-medium">{t('Profit Margin')}</CardTitle>
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -490,9 +492,9 @@ const Performance = () => {
                 {summaryStats.profitMargin.toFixed(2)}%
               </div>
               <p className="text-xs text-muted-foreground">
-                {summaryStats.profitMargin >= 20 ? "Excellent" : 
-                 summaryStats.profitMargin >= 10 ? "Good" : 
-                 summaryStats.profitMargin >= 0 ? "Fair" : "Loss"}
+                {summaryStats.profitMargin >= 20 ? t('Excellent') : 
+                 summaryStats.profitMargin >= 10 ? t('Good') : 
+                 summaryStats.profitMargin >= 0 ? t('Fair') : t('Loss')}
               </p>
             </CardContent>
           </Card>
@@ -502,9 +504,9 @@ const Performance = () => {
       {/* Charts and Detailed Analysis */}
       <Card>
         <CardHeader>
-          <CardTitle>Financial Performance Trends</CardTitle>
+          <CardTitle>{t('Financial Performance Trends')}</CardTitle>
           <CardDescription>
-            Track revenue, costs, and profitability trends across all modules
+            {t('Track revenue, costs, and profitability trends across all modules')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -515,19 +517,19 @@ const Performance = () => {
           ) : chartData.length === 0 ? (
             <div className="text-center py-8">
               <BarChart3 className="mx-auto h-12 w-12 text-muted-foreground" />
-              <h3 className="mt-2 text-sm font-semibold text-gray-900">No data available</h3>
+              <h3 className="mt-2 text-sm font-semibold text-gray-900">{t('No data available')}</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                No performance data found for the selected period.
+                {t('No performance data found for the selected period.')}
               </p>
             </div>
           ) : (
             <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
               <TabsList>
-                <TabsTrigger value="overview">Overview</TabsTrigger>
-                <TabsTrigger value="revenue">Revenue Trends</TabsTrigger>
-                <TabsTrigger value="costs">Cost Analysis</TabsTrigger>
-                <TabsTrigger value="comparison">Module Comparison</TabsTrigger>
-                <TabsTrigger value="doctors">Doctor Payouts</TabsTrigger>
+                <TabsTrigger value="overview">{t('Overview')}</TabsTrigger>
+                <TabsTrigger value="revenue">{t('Revenue Trends')}</TabsTrigger>
+                <TabsTrigger value="costs">{t('Cost Analysis')}</TabsTrigger>
+                <TabsTrigger value="comparison">{t('Module Comparison')}</TabsTrigger>
+                <TabsTrigger value="doctors">{t('Doctor Payouts')}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="overview" className="space-y-4">
@@ -544,7 +546,7 @@ const Performance = () => {
                       stackId="1" 
                       stroke="#8884d8" 
                       fill="#8884d8" 
-                      name="Invoices"
+                      name={t('Invoices')}
                     />
                     <Area 
                       type="monotone" 
@@ -552,7 +554,7 @@ const Performance = () => {
                       stackId="1" 
                       stroke="#82ca9d" 
                       fill="#82ca9d" 
-                      name="Payments"
+                      name={t('Payments')}
                     />
                     <Area 
                       type="monotone" 
@@ -560,7 +562,7 @@ const Performance = () => {
                       stackId="2" 
                       stroke="#ffc658" 
                       fill="#ffc658" 
-                      name="Expenses"
+                      name={t('Expenses')}
                     />
                     <Area 
                       type="monotone" 
@@ -568,7 +570,7 @@ const Performance = () => {
                       stackId="2" 
                       stroke="#ff7300" 
                       fill="#ff7300" 
-                      name="Payroll"
+                      name={t('Payroll')}
                     />
                   </AreaChart>
                 </ResponsiveContainer>
@@ -587,14 +589,14 @@ const Performance = () => {
                       dataKey="invoices" 
                       stroke="#8884d8" 
                       strokeWidth={3}
-                      name="Invoices Revenue"
+                      name={t('Invoices Revenue')}
                     />
                     <Line 
                       type="monotone" 
                       dataKey="payments" 
                       stroke="#82ca9d" 
                       strokeWidth={3}
-                      name="Payments Revenue"
+                      name={t('Payments Revenue')}
                     />
                   </LineChart>
                 </ResponsiveContainer>
@@ -608,8 +610,8 @@ const Performance = () => {
                     <YAxis />
                     <Tooltip formatter={(value: any) => formatAmount(value)} />
                     <Legend />
-                    <Bar dataKey="expenses" fill="#ffc658" name="Expenses" />
-                    <Bar dataKey="payroll" fill="#ff7300" name="Payroll" />
+                    <Bar dataKey="expenses" fill="#ffc658" name={t('Expenses')} />
+                    <Bar dataKey="payroll" fill="#ff7300" name={t('Payroll')} />
                   </BarChart>
                 </ResponsiveContainer>
               </TabsContent>
@@ -622,10 +624,10 @@ const Performance = () => {
                     <YAxis />
                     <Tooltip formatter={(value: any) => formatAmount(value)} />
                     <Legend />
-                    <Bar dataKey="invoices" fill="#8884d8" name="Invoices" />
-                    <Bar dataKey="payments" fill="#82ca9d" name="Payments" />
-                    <Bar dataKey="expenses" fill="#ffc658" name="Expenses" />
-                    <Bar dataKey="payroll" fill="#ff7300" name="Payroll" />
+                    <Bar dataKey="invoices" fill="#8884d8" name={t('Invoices')} />
+                    <Bar dataKey="payments" fill="#82ca9d" name={t('Payments')} />
+                    <Bar dataKey="expenses" fill="#ffc658" name={t('Expenses')} />
+                    <Bar dataKey="payroll" fill="#ff7300" name={t('Payroll')} />
                   </BarChart>
                 </ResponsiveContainer>
               </TabsContent>
@@ -636,19 +638,19 @@ const Performance = () => {
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
                       <Users className="h-5 w-5" />
-                      Doctor Payouts & Sales Incentives
+                      {t('Doctor Payouts & Sales Incentives')}
                     </CardTitle>
                     <CardDescription>
-                      Monthly breakdown of doctor base salaries and sales incentives based on revenue generated
+                      {t('Monthly breakdown of doctor base salaries and sales incentives based on revenue generated')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
                     <div className="flex gap-4 mb-6">
                       <div>
-                        <Label htmlFor="year">Year</Label>
+                        <Label htmlFor="year">{t('Year')}</Label>
                         <Select value={selectedYear.toString()} onValueChange={(value) => setSelectedYear(parseInt(value))}>
                           <SelectTrigger className="w-32">
-                            <SelectValue placeholder="Year" />
+                            <SelectValue placeholder={t('Year')} />
                           </SelectTrigger>
                           <SelectContent>
                             {Array.from({ length: 5 }, (_, i) => new Date().getFullYear() - i).map((year) => (
@@ -661,10 +663,10 @@ const Performance = () => {
                       </div>
                       
                       <div>
-                        <Label htmlFor="month">Month</Label>
+                        <Label htmlFor="month">{t('Month')}</Label>
                         <Select value={selectedMonth.toString()} onValueChange={(value) => setSelectedMonth(parseInt(value))}>
                           <SelectTrigger className="w-40">
-                            <SelectValue placeholder="Month" />
+                            <SelectValue placeholder={t('Month')} />
                           </SelectTrigger>
                           <SelectContent>
                             {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
@@ -684,7 +686,7 @@ const Performance = () => {
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-muted-foreground">Total Doctors</p>
+                                <p className="text-sm font-medium text-muted-foreground">{t('Total Doctors')}</p>
                                 <p className="text-2xl font-bold">{doctorPayouts.totals.total_doctors}</p>
                               </div>
                               <Users className="h-8 w-8 text-primary" />
@@ -710,7 +712,7 @@ const Performance = () => {
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-muted-foreground">Sales Incentives</p>
+                                <p className="text-sm font-medium text-muted-foreground">{t('Sales Incentives')}</p>
                                 <p className="text-2xl font-bold text-blue-600">
                                   {formatAmount(doctorPayouts.totals.total_sales_incentive)}
                                 </p>
@@ -724,7 +726,7 @@ const Performance = () => {
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="text-sm font-medium text-muted-foreground">Total Payouts</p>
+                                <p className="text-sm font-medium text-muted-foreground">{t('Total Payouts')}</p>
                                 <p className="text-2xl font-bold text-purple-600">
                                   {formatAmount(doctorPayouts.totals.total_payout)}
                                 </p>
@@ -746,12 +748,12 @@ const Performance = () => {
                         <Table>
                           <TableHeader>
                             <TableRow>
-                              <TableHead>Doctor</TableHead>
-                              <TableHead>Sales %</TableHead>
-                              <TableHead>Revenue Generated</TableHead>
-                              <TableHead>Base Salary</TableHead>
-                              <TableHead>Sales Incentive</TableHead>
-                              <TableHead className="text-right">Total Payout</TableHead>
+                              <TableHead>{t('Doctor')}</TableHead>
+                              <TableHead>{t('Sales %')}</TableHead>
+                              <TableHead>{t('Revenue Generated')}</TableHead>
+                              <TableHead>{t('Base Salary')}</TableHead>
+                              <TableHead>{t('Sales Incentive')}</TableHead>
+                              <TableHead className="text-right">{t('Total Payout')}</TableHead>
                             </TableRow>
                           </TableHeader>
                           <TableBody>
@@ -762,7 +764,7 @@ const Performance = () => {
                                     <div className="font-medium">{doctor.doctor_name}</div>
                                     <div className="text-sm text-muted-foreground">
                                       {doctor.specialization && `${doctor.specialization} • `}
-                                      {doctor.appointment_count} appointments • {doctor.invoice_count} invoices
+                                      {doctor.appointment_count} {t('appointments')} • {doctor.invoice_count} {t('invoices')}
                                     </div>
                                   </div>
                                 </TableCell>
@@ -802,9 +804,9 @@ const Performance = () => {
                     ) : (
                       <div className="text-center py-8">
                         <Users className="mx-auto h-12 w-12 text-muted-foreground" />
-                        <h3 className="mt-2 text-sm font-semibold text-gray-900">No doctors found</h3>
+                        <h3 className="mt-2 text-sm font-semibold text-gray-900">{t('No doctors found')}</h3>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          No doctor data available for {format(new Date(selectedYear, selectedMonth - 1, 1), 'MMMM yyyy')}.
+                          {t('No doctor data available for')} {format(new Date(selectedYear, selectedMonth - 1, 1), 'MMMM yyyy')}.
                         </p>
                       </div>
                     )}

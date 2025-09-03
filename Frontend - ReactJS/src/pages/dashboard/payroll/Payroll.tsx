@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -72,6 +73,7 @@ import { CurrencyDisplay } from "@/components/ui/CurrencyDisplay";
 import { apiService, type Payroll, type PayrollStats } from "@/services/api";
 
 const Payroll = () => {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedMonth, setSelectedMonth] = useState("current");
@@ -161,8 +163,8 @@ const Payroll = () => {
     } catch (error) {
       console.error('Error loading payrolls:', error);
       toast({
-        title: "Error",
-        description: "Failed to load payroll data. Please try again.",
+        title: t("Error"),
+        description: t("Failed to load payroll data. Please try again."),
         variant: "destructive",
       });
     } finally {
@@ -299,9 +301,9 @@ const Payroll = () => {
 
   const getEmployeeRole = (employee: string | { _id: string; email: string; first_name: string; last_name: string; role: string; phone?: string }) => {
     if (typeof employee === 'string') {
-      return 'Staff Member';
+      return t('Staff Member');
     }
-    return employee.role || 'Staff Member';
+    return employee.role || t('Staff Member');
   };
 
   const filteredPayroll = payrollEntries.filter((entry) => {
@@ -374,8 +376,8 @@ const Payroll = () => {
     } catch (error: any) {
       console.error('Error loading payroll details:', error);
       toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to load payroll details. Please try again.",
+        title: t("Error"),
+        description: error.response?.data?.message || t("Failed to load payroll details. Please try again."),
         variant: "destructive",
       });
     } finally {
@@ -401,8 +403,8 @@ const Payroll = () => {
     } catch (error: any) {
       console.error('Error loading payroll details for editing:', error);
       toast({
-        title: "Error",
-        description: error.response?.data?.message || "Failed to load payroll details for editing. Please try again.",
+        title: t("Error"),
+        description: error.response?.data?.message || t("Failed to load payroll details for editing. Please try again."),
         variant: "destructive",
       });
     } finally {
@@ -439,8 +441,8 @@ const Payroll = () => {
       );
 
       toast({
-        title: "Success",
-        description: "Payroll details updated successfully.",
+        title: t("Success"),
+        description: t("Payroll details updated successfully."),
       });
 
       setIsModalOpen(false);
@@ -456,20 +458,20 @@ const Payroll = () => {
         ).join(', ');
         
         toast({
-          title: "Validation Error",
-          description: `Please check the following fields: ${errorMessages}`,
+          title: t("Validation Error"),
+          description: `${t('Please check the following fields:')}: ${errorMessages}`,
           variant: "destructive",
         });
       } else if (error.response?.data?.message) {
         toast({
-          title: "Error",
+          title: t("Error"),
           description: error.response.data.message,
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Error",
-          description: "Failed to update payroll details. Please try again.",
+          title: t("Error"),
+          description: t("Failed to update payroll details. Please try again."),
           variant: "destructive",
         });
       }
@@ -492,8 +494,8 @@ const Payroll = () => {
       );
 
       toast({
-        title: "Payment Processed",
-        description: "Payment has been processed successfully.",
+        title: t("Payment Processed"),
+        description: t("Payment has been processed successfully."),
       });
     } catch (error: any) {
       console.error('Error processing payment:', error);
@@ -505,14 +507,14 @@ const Payroll = () => {
         ).join(', ');
         
         toast({
-          title: "Validation Error",
-          description: `Cannot process payment: ${errorMessages}`,
+          title: t("Validation Error"),
+          description: `${t('Cannot process payment:')}: ${errorMessages}`,
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Error",
-          description: error.response?.data?.message || "Failed to process payment. Please try again.",
+          title: t("Error"),
+          description: error.response?.data?.message || t("Failed to process payment. Please try again."),
           variant: "destructive",
         });
       }
@@ -543,8 +545,8 @@ const Payroll = () => {
       );
 
       toast({
-        title: "Status Updated",
-        description: `Payroll status has been updated to ${newStatus}.`,
+        title: t("Status Updated"),
+        description: `${t('Payroll status has been updated to')} ${newStatus}.`,
       });
     } catch (error: any) {
       console.error('Error updating status:', error);
@@ -556,14 +558,14 @@ const Payroll = () => {
         ).join(', ');
         
         toast({
-          title: "Validation Error",
-          description: `Cannot update status: ${errorMessages}`,
+          title: t("Validation Error"),
+          description: `${t('Cannot update status:')}: ${errorMessages}`,
           variant: "destructive",
         });
       } else {
         toast({
-          title: "Error",
-          description: error.response?.data?.message || "Failed to update status. Please try again.",
+          title: t("Error"),
+          description: error.response?.data?.message || t("Failed to update status. Please try again."),
           variant: "destructive",
         });
       }
@@ -572,10 +574,10 @@ const Payroll = () => {
 
   const getAvailableStatuses = (currentStatus: string) => {
     const allStatuses = [
-      { value: 'draft', label: 'Draft', description: 'Initial draft state' },
-      { value: 'pending', label: 'Pending', description: 'Ready for processing' },
-      { value: 'processed', label: 'Processed', description: 'Calculated and verified' },
-      { value: 'paid', label: 'Paid', description: 'Payment completed' }
+      { value: 'draft', label: t('Draft'), description: t('Initial draft state') },
+      { value: 'pending', label: t('Pending'), description: t('Ready for processing') },
+      { value: 'processed', label: t('Processed'), description: t('Calculated and verified') },
+      { value: 'paid', label: t('Paid'), description: t('Payment completed') }
     ];
     
     // Return all statuses except the current one
@@ -610,10 +612,10 @@ const Payroll = () => {
       <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between sm:flex-wrap">
         <div className="flex-1 min-w-0">
           <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-            Payroll Management
+            {t('Payroll Management')}
           </h1>
           <p className="text-muted-foreground mt-1">
-            Manage staff salaries, payslips, and payroll processing
+            {t('Manage staff salaries, payslips, and payroll processing')}
           </p>
         </div>
       </div>
@@ -630,7 +632,7 @@ const Payroll = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Employees
+                    {t('Total Employees')}
                   </p>
                   <p className="text-3xl font-bold text-foreground">
                     {totalEmployees}
@@ -652,7 +654,7 @@ const Payroll = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">
-                    Total Payroll
+                    {t('Total Payroll')}
                   </p>
                   <p className="text-3xl font-bold text-green-600">
                     <CurrencyDisplay amount={totalPayroll} variant="large" />
@@ -673,7 +675,7 @@ const Payroll = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Paid</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('Paid')}</p>
                   <p className="text-3xl font-bold text-green-600">
                     {paidEntries}
                   </p>
@@ -693,7 +695,7 @@ const Payroll = () => {
             <CardContent className="p-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">Pending</p>
+                  <p className="text-sm font-medium text-muted-foreground">{t('Pending')}</p>
                   <p className="text-3xl font-bold text-orange-600">
                     {pendingEntries}
                   </p>
@@ -713,7 +715,7 @@ const Payroll = () => {
             <div className="relative flex-1 min-w-0 sm:min-w-[250px]">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search by employee name, ID, or department..."
+                placeholder={t('Search by employee name, ID, or department...')}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 w-full"
@@ -724,14 +726,14 @@ const Payroll = () => {
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
               <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                 <SelectTrigger className="w-full sm:w-40">
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t('Status')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="pending">Pending</SelectItem>
-                  <SelectItem value="processed">Processed</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
+                  <SelectItem value="all">{t('All Status')}</SelectItem>
+                  <SelectItem value="draft">{t('Draft')}</SelectItem>
+                  <SelectItem value="pending">{t('Pending')}</SelectItem>
+                  <SelectItem value="processed">{t('Processed')}</SelectItem>
+                  <SelectItem value="paid">{t('Paid')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -747,10 +749,9 @@ const Payroll = () => {
       >
         <Card>
           <CardHeader>
-            <CardTitle>Payroll Records</CardTitle>
+            <CardTitle>{t('Payroll Records')}</CardTitle>
             <CardDescription>
-              Monthly payroll processing and salary management for all staff
-              members
+              {t('Monthly payroll processing and salary management for all staff members')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -759,16 +760,16 @@ const Payroll = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-[160px]">Employee</TableHead>
-                    <TableHead className="min-w-[140px]">Department</TableHead>
-                    <TableHead className="min-w-[120px]">Base Salary</TableHead>
-                    <TableHead className="min-w-[120px]">Additions</TableHead>
-                    <TableHead className="min-w-[120px]">Deductions</TableHead>
-                    <TableHead className="min-w-[120px]">Net Salary</TableHead>
-                    <TableHead className="min-w-[100px]">Status</TableHead>
-                    <TableHead className="min-w-[120px]">Pay Date</TableHead>
+                    <TableHead className="min-w-[160px]">{t('Employee')}</TableHead>
+                    <TableHead className="min-w-[140px]">{t('Department')}</TableHead>
+                    <TableHead className="min-w-[120px]">{t('Base Salary')}</TableHead>
+                    <TableHead className="min-w-[120px]">{t('Additions')}</TableHead>
+                    <TableHead className="min-w-[120px]">{t('Deductions')}</TableHead>
+                    <TableHead className="min-w-[120px]">{t('Net Salary')}</TableHead>
+                    <TableHead className="min-w-[100px]">{t('Status')}</TableHead>
+                    <TableHead className="min-w-[120px]">{t('Pay Date')}</TableHead>
                     <TableHead className="text-right min-w-[120px]">
-                      Actions
+                      {t('Actions')}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -788,28 +789,28 @@ const Payroll = () => {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>Department N/A</TableCell>
+                      <TableCell>{t('Department N/A')}</TableCell>
                       <TableCell>
                         <div className="font-medium">
                           {formatCurrency(entry.base_salary)}
                         </div>
                         <div className="text-sm text-gray-500">
-                          {entry.working_days}/{entry.total_days} days
+                          {entry.working_days}/{entry.total_days} {t('days')}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          <div>Overtime: {formatCurrency(entry.overtime)}</div>
-                          <div>Bonus: {formatCurrency(entry.bonus)}</div>
+                          <div>{t('Overtime')}: {formatCurrency(entry.overtime)}</div>
+                          <div>{t('Bonus')}: {formatCurrency(entry.bonus)}</div>
                           <div>
-                            Allowances: {formatCurrency(entry.allowances)}
+                            {t('Allowances')}: {formatCurrency(entry.allowances)}
                           </div>
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
-                          <div>Tax: {formatCurrency(entry.tax)}</div>
-                          <div>Other: {formatCurrency(entry.deductions)}</div>
+                          <div>{t('Tax')}: {formatCurrency(entry.tax)}</div>
+                          <div>{t('Other')}: {formatCurrency(entry.deductions)}</div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -833,7 +834,7 @@ const Payroll = () => {
                           <DropdownMenuTrigger asChild>
                             <Button variant="outline" size="sm" className="h-8">
                               <MoreVertical className="h-4 w-4 mr-1" />
-                              Actions
+                              {t('Actions')}
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
@@ -841,14 +842,14 @@ const Payroll = () => {
                               onClick={() => handleViewPayslip(entry._id)}
                             >
                               <Eye className="mr-2 h-4 w-4" />
-                              View Details
+                              {t('View Details')}
                             </DropdownMenuItem>
                             {entry.status !== "paid" && (
                               <DropdownMenuItem
                                 onClick={() => handleEditPayroll(entry._id)}
                               >
                                 <Edit className="mr-2 h-4 w-4" />
-                                Edit Details
+                                {t('Edit Details')}
                               </DropdownMenuItem>
                             )}
                             {entry.status === "pending" && (
@@ -856,13 +857,13 @@ const Payroll = () => {
                                 onClick={() => handleProcessPayment(entry._id)}
                               >
                                 <CheckCircle className="mr-2 h-4 w-4" />
-                                Process Payment
+                                {t('Process Payment')}
                               </DropdownMenuItem>
                             )}
                             <DropdownMenuSeparator />
                             <DropdownMenuSub>
                               <DropdownMenuSubTrigger>
-                                Update Status
+                                {t('Update Status')}
                               </DropdownMenuSubTrigger>
                               <DropdownMenuSubContent>
                                 {getAvailableStatuses(entry.status).map((status) => (
@@ -923,21 +924,21 @@ const Payroll = () => {
                   {/* Department and Period */}
                   <div className="space-y-2 p-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Department:</span>
+                      <span className="text-gray-600">{t('Department:')}:</span>
                       <span className="font-medium text-gray-900">
-                        N/A
+                        {t('N/A')}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Pay Period:</span>
+                      <span className="text-gray-600">{t('Pay Period:')}:</span>
                       <span className="font-medium text-gray-900">
                         {entry.month} {entry.year}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">Working Days:</span>
+                      <span className="text-gray-600">{t('Working Days:')}:</span>
                       <span className="font-medium text-gray-900">
-                        {entry.working_days}/{entry.total_days} days
+                        {entry.working_days}/{entry.total_days} {t('days')}
                       </span>
                     </div>
                   </div>
@@ -946,7 +947,7 @@ const Payroll = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
-                        Base Salary
+                        {t('Base Salary')}
                       </div>
                       <div className="text-sm font-medium">
                         {formatCurrency(entry.base_salary)}
@@ -954,7 +955,7 @@ const Payroll = () => {
                     </div>
                     <div className="space-y-1">
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
-                        Net Salary
+                        {t('Net Salary')}
                       </div>
                       <div className="text-lg font-bold text-green-600">
                         <CurrencyDisplay amount={entry.net_salary} variant="large" />
@@ -966,30 +967,30 @@ const Payroll = () => {
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
-                        Additions
+                        {t('Additions')}
                       </div>
                       <div className="text-sm">
                         <div className="text-green-600">
-                          Overtime: {formatCurrency(entry.overtime)}
+                          {t('Overtime')}: {formatCurrency(entry.overtime)}
                         </div>
                         <div className="text-green-600">
-                          Bonus: {formatCurrency(entry.bonus)}
+                          {t('Bonus')}: {formatCurrency(entry.bonus)}
                         </div>
                         <div className="text-green-600">
-                          Allowances: {formatCurrency(entry.allowances)}
+                          {t('Allowances')}: {formatCurrency(entry.allowances)}
                         </div>
                       </div>
                     </div>
                     <div className="space-y-1">
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
-                        Deductions
+                        {t('Deductions')}
                       </div>
                       <div className="text-sm">
                         <div className="text-red-600">
-                          Tax: {formatCurrency(entry.tax)}
+                          {t('Tax')}: {formatCurrency(entry.tax)}
                         </div>
                         <div className="text-red-600">
-                          Other: {formatCurrency(entry.deductions)}
+                          {t('Other')}: {formatCurrency(entry.deductions)}
                         </div>
                       </div>
                     </div>
@@ -999,7 +1000,7 @@ const Payroll = () => {
                   {entry.pay_date && (
                     <div className="space-y-1">
                       <div className="text-xs text-gray-500 uppercase tracking-wide">
-                        Pay Date
+                        {t('Pay Date')}
                       </div>
                       <div className="text-sm font-medium">
                         {formatDate(entry.pay_date)}
@@ -1010,7 +1011,7 @@ const Payroll = () => {
                   {/* Actions */}
                   <div className="flex items-center justify-between pt-2 border-t">
                     <div className="text-xs text-gray-500">
-                      Employee ID: {typeof entry.employee_id === 'string' ? entry.employee_id : entry.employee_id._id}
+                      {t('Employee ID:')}: {typeof entry.employee_id === 'string' ? entry.employee_id : entry.employee_id._id}
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -1074,12 +1075,12 @@ const Payroll = () => {
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {modalMode === 'view' ? 'Payroll Details' : 'Edit Payroll Details'}
+              {modalMode === 'view' ? t('Payroll Details') : t('Edit Payroll Details')}
             </DialogTitle>
             <DialogDescription>
               {modalMode === 'view'
-                ? 'View complete payroll information and salary breakdown.'
-                : 'Edit payroll information. Only non-paid entries can be modified.'}
+                ? t('View complete payroll information and salary breakdown.')
+                : t('Edit payroll information. Only non-paid entries can be modified.')}
             </DialogDescription>
           </DialogHeader>
 
@@ -1089,29 +1090,29 @@ const Payroll = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center">
                   <Briefcase className="h-5 w-5 mr-2 text-blue-600" />
-                  Employee Information
+                  {t('Employee Information')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gray-50 rounded-lg">
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Name</Label>
+                    <Label className="text-sm font-medium text-gray-600">{t('Name')}</Label>
                     <p className="text-sm font-semibold">
                       {getEmployeeDisplay(selectedPayroll.employee_id)}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Email</Label>
+                    <Label className="text-sm font-medium text-gray-600">{t('Email')}</Label>
                     <p className="text-sm">
                       {getEmployeeEmail(selectedPayroll.employee_id)}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Role</Label>
+                    <Label className="text-sm font-medium text-gray-600">{t('Role')}</Label>
                     <p className="text-sm">
                       {getEmployeeRole(selectedPayroll.employee_id)}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Employee ID</Label>
+                    <Label className="text-sm font-medium text-gray-600">{t('Employee ID')}</Label>
                     <p className="text-sm">
                       {typeof selectedPayroll.employee_id === 'string' 
                         ? selectedPayroll.employee_id 
@@ -1125,17 +1126,17 @@ const Payroll = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center">
                   <Calendar className="h-5 w-5 mr-2 text-blue-600" />
-                  Pay Period Information
+                  {t('Pay Period Information')}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg">
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Month & Year</Label>
+                    <Label className="text-sm font-medium text-gray-600">{t('Month & Year')}</Label>
                     <p className="text-sm font-semibold">
                       {selectedPayroll.month} {selectedPayroll.year}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Working Days</Label>
+                    <Label className="text-sm font-medium text-gray-600">{t('Working Days')}</Label>
                     {modalMode === 'edit' ? (
                       <Input
                         type="number"
@@ -1149,12 +1150,12 @@ const Payroll = () => {
                       />
                     ) : (
                       <p className="text-sm font-semibold">
-                        {selectedPayroll.working_days}/{selectedPayroll.total_days} days
+                        {selectedPayroll.working_days}/{selectedPayroll.total_days} {t('days')}
                       </p>
                     )}
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Leaves Taken</Label>
+                    <Label className="text-sm font-medium text-gray-600">{t('Leaves Taken')}</Label>
                     {modalMode === 'edit' ? (
                       <Input
                         type="number"
@@ -1166,7 +1167,7 @@ const Payroll = () => {
                         min="0"
                       />
                     ) : (
-                      <p className="text-sm font-semibold">{selectedPayroll.leaves} days</p>
+                      <p className="text-sm font-semibold">{selectedPayroll.leaves} {t('days')}</p>
                     )}
                   </div>
                 </div>
@@ -1176,7 +1177,7 @@ const Payroll = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold flex items-center">
                   <DollarSign className="h-5 w-5 mr-2 text-green-600" />
-                  Salary Breakdown
+                  {t('Salary Breakdown')}
                 </h3>
                 
                 {/* Base Salary */}
@@ -1202,7 +1203,7 @@ const Payroll = () => {
                       )}
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-600">Status</Label>
+                      <Label className="text-sm font-medium text-gray-600">{t('Status')}</Label>
                       <div className="flex items-center space-x-2 mt-1">
                         {getStatusIcon(selectedPayroll.status)}
                         <Badge className={getStatusColor(selectedPayroll.status)}>
@@ -1215,10 +1216,10 @@ const Payroll = () => {
 
                 {/* Additions */}
                 <div className="p-4 bg-green-50 rounded-lg">
-                  <h4 className="font-semibold text-green-800 mb-3">Additions</h4>
+                  <h4 className="font-semibold text-green-800 mb-3">{t('Additions')}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <Label className="text-sm font-medium text-gray-600">Overtime</Label>
+                      <Label className="text-sm font-medium text-gray-600">{t('Overtime')}</Label>
                       {modalMode === 'edit' ? (
                         <Input
                           type="number"
@@ -1237,7 +1238,7 @@ const Payroll = () => {
                       )}
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-600">Bonus</Label>
+                      <Label className="text-sm font-medium text-gray-600">{t('Bonus')}</Label>
                       {modalMode === 'edit' ? (
                         <Input
                           type="number"
@@ -1256,7 +1257,7 @@ const Payroll = () => {
                       )}
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-600">Allowances</Label>
+                      <Label className="text-sm font-medium text-gray-600">{t('Allowances')}</Label>
                       {modalMode === 'edit' ? (
                         <Input
                           type="number"
@@ -1279,10 +1280,10 @@ const Payroll = () => {
 
                 {/* Deductions */}
                 <div className="p-4 bg-red-50 rounded-lg">
-                  <h4 className="font-semibold text-red-800 mb-3">Deductions</h4>
+                  <h4 className="font-semibold text-red-800 mb-3">{t('Deductions')}</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label className="text-sm font-medium text-gray-600">Tax</Label>
+                      <Label className="text-sm font-medium text-gray-600">{t('Tax')}</Label>
                       {modalMode === 'edit' ? (
                         <Input
                           type="number"
@@ -1301,7 +1302,7 @@ const Payroll = () => {
                       )}
                     </div>
                     <div>
-                      <Label className="text-sm font-medium text-gray-600">Other Deductions</Label>
+                      <Label className="text-sm font-medium text-gray-600">{t('Other Deductions')}</Label>
                       {modalMode === 'edit' ? (
                         <Input
                           type="number"
@@ -1327,11 +1328,11 @@ const Payroll = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <Label className="text-sm font-medium text-gray-600">
-                        Net Salary
+                        {t('Net Salary')}
                         {modalMode === 'edit' && (
                           <span className="ml-2 text-xs text-blue-600 font-normal">
                             <Calculator className="inline h-3 w-3 mr-1" />
-                            Auto-calculated
+                            {t('Auto-calculated')}
                           </span>
                         )}
                       </Label>
@@ -1347,7 +1348,7 @@ const Payroll = () => {
                     </div>
                     {selectedPayroll.pay_date && (
                       <div className="text-right">
-                        <Label className="text-sm font-medium text-gray-600">Pay Date</Label>
+                        <Label className="text-sm font-medium text-gray-600">{t('Pay Date')}</Label>
                         <p className="text-sm font-semibold">{formatDate(selectedPayroll.pay_date)}</p>
                       </div>
                     )}
@@ -1357,16 +1358,16 @@ const Payroll = () => {
 
               {/* Timestamps */}
               <div className="p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-semibold text-gray-800 mb-3">Record Information</h4>
+                <h4 className="font-semibold text-gray-800 mb-3">{t('Record Information')}</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Created At</Label>
+                    <Label className="text-sm font-medium text-gray-600">{t('Created At')}</Label>
                     <p className="text-sm">
                       {new Date(selectedPayroll.created_at).toLocaleString()}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-sm font-medium text-gray-600">Last Updated</Label>
+                    <Label className="text-sm font-medium text-gray-600">{t('Last Updated')}</Label>
                     <p className="text-sm">
                       {new Date(selectedPayroll.updated_at).toLocaleString()}
                     </p>
@@ -1379,12 +1380,12 @@ const Payroll = () => {
           <DialogFooter className="space-x-2">
             <Button variant="outline" onClick={closeModal} disabled={isLoading}>
               <X className="h-4 w-4 mr-2" />
-              {modalMode === 'edit' ? 'Cancel' : 'Close'}
+              {modalMode === 'edit' ? t('Cancel') : t('Close')}
             </Button>
             {modalMode === 'edit' && (
               <Button onClick={handleSavePayroll} disabled={isLoading}>
                 <Save className="h-4 w-4 mr-2" />
-                {isLoading ? 'Saving...' : 'Save Changes'}
+                {isLoading ? t('Saving...') : t('Save Changes')}
               </Button>
             )}
           </DialogFooter>

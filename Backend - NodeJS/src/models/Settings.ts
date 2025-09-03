@@ -156,7 +156,7 @@ const settingsSchema = new Schema<ISettings>({
     currency: {
       type: String,
       required: true,
-      enum: ['USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD'],
+      enum: ['USD', 'EUR', 'GBP', 'INR', 'CAD', 'AUD', 'NGN', 'VND'],
       default: 'USD'
     },
     taxRate: {

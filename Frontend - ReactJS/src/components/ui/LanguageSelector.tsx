@@ -11,6 +11,7 @@ import {
 
 const languages: Array<{ code: string; label: string }> = [
   { code: "en-us", label: "English (US)" },
+  { code: "ha", label: "Hausa" },
   { code: "hi", label: "हिन्दी" },
   { code: "vi", label: "Tiếng Việt" },
   { code: "ar-om", label: "العربية (عُمان)" },

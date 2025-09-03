@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -47,6 +48,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
   fields,
   onSave,
 }) => {
+  const { t } = useTranslation();
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -67,14 +69,14 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
     try {
       await onSave(formData);
       toast({
-        title: "Success",
-        description: "Item updated successfully",
+        title: t("Success"),
+        description: t("Item updated successfully"),
       });
       onOpenChange(false);
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to update item. Please try again.",
+        title: t("Error"),
+        description: t("Failed to update item. Please try again."),
         variant: "destructive",
       });
     } finally {
@@ -195,7 +197,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
               disabled={isLoading}
             >
               <X className="h-4 w-4 mr-2" />
-              Cancel
+              {t("Cancel")}
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
@@ -203,7 +205,7 @@ const EditItemModal: React.FC<EditItemModalProps> = ({
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              Save Changes
+              {t("Save Changes")}
             </Button>
           </div>
         </form>

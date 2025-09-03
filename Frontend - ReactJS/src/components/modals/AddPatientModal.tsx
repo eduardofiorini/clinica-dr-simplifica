@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,6 +41,7 @@ interface AddPatientModalProps {
 }
 
 const AddPatientModal: React.FC<AddPatientModalProps> = ({ trigger }) => {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const createPatientMutation = useCreatePatient();
   const [formData, setFormData] = useState({
@@ -98,8 +100,8 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ trigger }) => {
       await createPatientMutation.mutateAsync(patientData);
 
       toast({
-        title: "Patient added successfully",
-        description: `${formData.firstName} ${formData.lastName} has been added to the system.`,
+        title: t("Patient added successfully"),
+        description: `${formData.firstName} ${formData.lastName} ${t("has been added to the system.")}`,
       });
 
       // Reset form
@@ -127,7 +129,7 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ trigger }) => {
     } catch (error) {
       console.error('Error creating patient:', error);
       toast({
-        title: "Error",
+        title: t("Error"),
         description: parseApiError(error),
         variant: "destructive",
       });
@@ -140,7 +142,7 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ trigger }) => {
         {trigger || (
           <Button>
             <Plus className="h-4 w-4 mr-2" />
-            Add Patient
+            {t("Add Patient")}
           </Button>
         )}
       </DialogTrigger>
@@ -149,10 +151,10 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ trigger }) => {
           <DialogHeader className="px-4 sm:px-6 pt-4 sm:pt-6 pb-4 border-b flex-shrink-0">
             <DialogTitle className="flex items-center text-lg sm:text-xl">
               <User className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-blue-600" />
-              Add New Patient
+              {t("Add New Patient")}
             </DialogTitle>
             <DialogDescription className="text-sm text-muted-foreground">
-              Enter patient information to create a new medical record in the system.
+              {t("Enter patient information to create a new medical record in the system.")}
             </DialogDescription>
           </DialogHeader>
 
@@ -163,29 +165,29 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ trigger }) => {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base sm:text-lg flex items-center">
                     <User className="h-4 w-4 mr-2" />
-                    Personal Information
+                    {t("Personal Information")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 sm:space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="firstName" className="text-sm font-medium">First Name *</Label>
+                      <Label htmlFor="firstName" className="text-sm font-medium">{t("First Name")} *</Label>
                       <Input
                         id="firstName"
                         value={formData.firstName}
                         onChange={(e) => handleChange("firstName", e.target.value)}
-                        placeholder="John"
+                        placeholder={t("John")}
                         required
                         className="h-9 sm:h-10"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="lastName" className="text-sm font-medium">Last Name *</Label>
+                      <Label htmlFor="lastName" className="text-sm font-medium">{t("Last Name")} *</Label>
                       <Input
                         id="lastName"
                         value={formData.lastName}
                         onChange={(e) => handleChange("lastName", e.target.value)}
-                        placeholder="Doe"
+                        placeholder={t("Doe")}
                         required
                         className="h-9 sm:h-10"
                       />
@@ -194,23 +196,23 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ trigger }) => {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+                      <Label htmlFor="email" className="text-sm font-medium">{t("Email")}</Label>
                       <Input
                         id="email"
                         type="email"
                         value={formData.email}
                         onChange={(e) => handleChange("email", e.target.value)}
-                        placeholder="john.doe@email.com"
+                        placeholder={t("john.doe@email.com")}
                         className="h-9 sm:h-10"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="phone" className="text-sm font-medium">Phone Number *</Label>
+                      <Label htmlFor="phone" className="text-sm font-medium">{t("Phone Number")} *</Label>
                       <Input
                         id="phone"
                         value={formData.phone}
                         onChange={(e) => handleChange("phone", e.target.value)}
-                        placeholder="+1 (555) 123-4567"
+                        placeholder={t("+1 (555) 123-4567")}
                         required
                         className="h-9 sm:h-10"
                       />
@@ -219,7 +221,7 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ trigger }) => {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="dateOfBirth" className="text-sm font-medium">Date of Birth *</Label>
+                      <Label htmlFor="dateOfBirth" className="text-sm font-medium">{t("Date of Birth")} *</Label>
                       <Input
                         id="dateOfBirth"
                         type="date"
@@ -230,27 +232,27 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ trigger }) => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="gender" className="text-sm font-medium">Gender *</Label>
+                      <Label htmlFor="gender" className="text-sm font-medium">{t("Gender")} *</Label>
                       <Select value={formData.gender} onValueChange={(value) => handleChange("gender", value)}>
                         <SelectTrigger className="h-9 sm:h-10">
-                          <SelectValue placeholder="Select gender" />
+                          <SelectValue placeholder={t("Select gender")} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="male">Male</SelectItem>
-                          <SelectItem value="female">Female</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="male">{t("Male")}</SelectItem>
+                          <SelectItem value="female">{t("Female")}</SelectItem>
+                          <SelectItem value="other">{t("Other")}</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="address" className="text-sm font-medium">Address</Label>
+                    <Label htmlFor="address" className="text-sm font-medium">{t("Address")}</Label>
                     <Textarea
                       id="address"
                       value={formData.address}
                       onChange={(e) => handleChange("address", e.target.value)}
-                      placeholder="Street address, city, state, ZIP code"
+                      placeholder={t("Street address, city, state, ZIP code")}
                       className="min-h-[80px] resize-none"
                     />
                   </div>
@@ -262,39 +264,39 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ trigger }) => {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base sm:text-lg flex items-center">
                     <Phone className="h-4 w-4 mr-2" />
-                    Emergency Contact
+                    {t("Emergency Contact")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 sm:space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="emergencyContactName" className="text-sm font-medium">Contact Name</Label>
+                      <Label htmlFor="emergencyContactName" className="text-sm font-medium">{t("Contact Name")}</Label>
                       <Input
                         id="emergencyContactName"
                         value={formData.emergencyContactName}
                         onChange={(e) => handleChange("emergencyContactName", e.target.value)}
-                        placeholder="Jane Doe"
+                        placeholder={t("Jane Doe")}
                         className="h-9 sm:h-10"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="emergencyContactRelationship" className="text-sm font-medium">Relationship</Label>
+                      <Label htmlFor="emergencyContactRelationship" className="text-sm font-medium">{t("Relationship")}</Label>
                       <Input
                         id="emergencyContactRelationship"
                         value={formData.emergencyContactRelationship}
                         onChange={(e) => handleChange("emergencyContactRelationship", e.target.value)}
-                        placeholder="Spouse, Parent, Sibling..."
+                        placeholder={t("Spouse, Parent, Sibling...")}
                         className="h-9 sm:h-10"
                       />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="emergencyContactPhone" className="text-sm font-medium">Contact Phone</Label>
+                    <Label htmlFor="emergencyContactPhone" className="text-sm font-medium">{t("Contact Phone")}</Label>
                     <Input
                       id="emergencyContactPhone"
                       value={formData.emergencyContactPhone}
                       onChange={(e) => handleChange("emergencyContactPhone", e.target.value)}
-                      placeholder="+1 (555) 987-6543"
+                      placeholder={t("+1 (555) 987-6543")}
                       className="h-9 sm:h-10"
                     />
                   </div>
@@ -306,16 +308,16 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ trigger }) => {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base sm:text-lg flex items-center">
                     <Heart className="h-4 w-4 mr-2" />
-                    Medical Information
+                    {t("Medical Information")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 sm:space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="bloodGroup" className="text-sm font-medium">Blood Group</Label>
+                      <Label htmlFor="bloodGroup" className="text-sm font-medium">{t("Blood Group")}</Label>
                       <Select value={formData.bloodGroup} onValueChange={(value) => handleChange("bloodGroup", value)}>
                         <SelectTrigger className="h-9 sm:h-10">
-                          <SelectValue placeholder="Select blood group" />
+                          <SelectValue placeholder={t("Select blood group")} />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="A+">A+</SelectItem>
@@ -330,47 +332,47 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ trigger }) => {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="height" className="text-sm font-medium">Height (cm)</Label>
+                      <Label htmlFor="height" className="text-sm font-medium">{t("Height (cm)")}</Label>
                       <Input
                         id="height"
                         type="number"
                         value={formData.height}
                         onChange={(e) => handleChange("height", e.target.value)}
-                        placeholder="170"
+                        placeholder={t("170")}
                         className="h-9 sm:h-10"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="weight" className="text-sm font-medium">Weight (kg)</Label>
+                      <Label htmlFor="weight" className="text-sm font-medium">{t("Weight (kg)")}</Label>
                       <Input
                         id="weight"
                         type="number"
                         value={formData.weight}
                         onChange={(e) => handleChange("weight", e.target.value)}
-                        placeholder="70"
+                        placeholder={t("70")}
                         className="h-9 sm:h-10"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="allergies" className="text-sm font-medium">Allergies</Label>
+                    <Label htmlFor="allergies" className="text-sm font-medium">{t("Allergies")}</Label>
                     <Textarea
                       id="allergies"
                       value={formData.allergies}
                       onChange={(e) => handleChange("allergies", e.target.value)}
-                      placeholder="List any known allergies (medications, food, environmental)"
+                      placeholder={t("List any known allergies (medications, food, environmental)")}
                       className="min-h-[80px] resize-none"
                     />
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="medicalHistory" className="text-sm font-medium">Medical History</Label>
+                    <Label htmlFor="medicalHistory" className="text-sm font-medium">{t("Medical History")}</Label>
                     <Textarea
                       id="medicalHistory"
                       value={formData.medicalHistory}
                       onChange={(e) => handleChange("medicalHistory", e.target.value)}
-                      placeholder="Previous medical conditions, surgeries, medications"
+                      placeholder={t("Previous medical conditions, surgeries, medications")}
                       className="min-h-[80px] resize-none"
                     />
                   </div>
@@ -382,28 +384,28 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ trigger }) => {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base sm:text-lg flex items-center">
                     <Shield className="h-4 w-4 mr-2" />
-                    Insurance Information
+                    {t("Insurance Information")}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 sm:space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="insuranceProvider" className="text-sm font-medium">Insurance Provider</Label>
+                      <Label htmlFor="insuranceProvider" className="text-sm font-medium">{t("Insurance Provider")}</Label>
                       <Input
                         id="insuranceProvider"
                         value={formData.insuranceProvider}
                         onChange={(e) => handleChange("insuranceProvider", e.target.value)}
-                        placeholder="Blue Cross Blue Shield"
+                        placeholder={t("Blue Cross Blue Shield")}
                         className="h-9 sm:h-10"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="insurancePolicyNumber" className="text-sm font-medium">Policy Number</Label>
+                      <Label htmlFor="insurancePolicyNumber" className="text-sm font-medium">{t("Policy Number")}</Label>
                       <Input
                         id="insurancePolicyNumber"
                         value={formData.insurancePolicyNumber}
                         onChange={(e) => handleChange("insurancePolicyNumber", e.target.value)}
-                        placeholder="ABC123456789"
+                        placeholder={t("ABC123456789")}
                         className="h-9 sm:h-10"
                       />
                     </div>
@@ -422,7 +424,7 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ trigger }) => {
                 onClick={() => setOpen(false)}
                 className="w-full sm:w-auto"
               >
-                Cancel
+                {t("Cancel")}
               </Button>
               <Button 
                 type="submit" 
@@ -433,12 +435,12 @@ const AddPatientModal: React.FC<AddPatientModalProps> = ({ trigger }) => {
                 {createPatientMutation.isPending ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                    Adding Patient...
+                    {t("Adding Patient...")}
                   </>
                 ) : (
                   <>
                     <Plus className="h-4 w-4 mr-2" />
-                    Add Patient
+                    {t("Add Patient")}
                   </>
                 )}
               </Button>
