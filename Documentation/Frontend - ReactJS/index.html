@@ -1,0 +1,478 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<head lang="en">
+	<meta http-equiv="content-type" content="text/html;charset=utf-8">
+	<title>ClinicPro Frontend Documentation</title>
+	<!-- Framework CSS -->
+	<link rel="stylesheet" href="assets/blueprint-css/screen.css" type="text/css" media="screen, projection">
+	<link rel="stylesheet" href="assets/blueprint-css/print.css" type="text/css" media="print">
+	<!--[if lt IE 8]><link rel="stylesheet" href="assets/blueprint-css/ie.css" type="text/css" media="screen, projection"><![endif]-->
+	<link rel="stylesheet" href="assets/blueprint-css/plugins/fancy-type/screen.css" type="text/css" media="screen, projection">
+	<style type="text/css" media="screen">
+		p, table, hr, .box { margin-bottom:25px; }
+		.box p { margin-bottom:10px; }
+		.feature-list { margin-left: 20px; }
+		.tech-stack { background: #f5f5f5; padding: 15px; border-radius: 5px; }
+		.component-section { background: #fafafa; padding: 10px; margin: 10px 0; border-left: 4px solid #0066cc; }
+	</style>
+</head>
+
+<body>
+	<div class="container">
+	
+		<h3 class="center alt">&ldquo;ClinicPro Frontend&rdquo; Documentation v1.0</h3>
+		
+		<hr>
+		
+		<h1 class="center">&ldquo;ClinicPro Frontend&rdquo;</h1>
+		
+		<div class="borderTop">
+			<div class="span-6 colborder info prepend-1">
+				<p class="prepend-top">
+					<strong>
+					Created: 2024<br>
+					Project: ClinicPro<br>
+					Type: Modern Clinic Management System<br>
+					Framework: React 18 + TypeScript + Vite
+					</strong>
+				</p>
+			</div><!-- end div .span-6 -->		
+	
+			<div class="span-12 last">
+				<p class="prepend-top append-0">ClinicPro is a comprehensive, modern clinic management system frontend built with cutting-edge technologies. This documentation provides detailed information about the project structure, features, components, and implementation details. The system is designed to handle all aspects of clinic operations including patient management, appointments, billing, inventory, staff management, and much more.</p>
+			</div>
+		</div><!-- end div .borderTop -->
+		
+		<hr>
+		
+		<h2 id="toc" class="alt">Table of Contents</h2>
+		<ol class="alpha">
+			<li><a href="#overview">Project Overview</a></li>
+			<li><a href="#techStack">Tech Stack & Dependencies</a></li>
+			<li><a href="#architecture">Application Architecture</a></li>
+			<li><a href="#features">Core Features & Modules</a></li>
+			<li><a href="#components">Component Structure</a></li>
+			<li><a href="#routing">Routing & Navigation</a></li>
+			<li><a href="#authentication">Authentication & Authorization</a></li>
+			<li><a href="#ui">UI Components & Design System</a></li>
+			<li><a href="#dataManagement">Data Management & API Integration</a></li>
+			<li><a href="#deployment">Deployment & Build Process</a></li>
+			<li><a href="#development">Development Guidelines</a></li>
+			<li><a href="#troubleshooting">Troubleshooting & Support</a></li>
+		</ol>
+		
+		<hr>
+		
+		<h3 id="overview"><strong>A) Project Overview</strong> - <a href="#toc">top</a></h3>
+		
+		<p><strong>ClinicPro</strong> is a comprehensive clinic management system designed to streamline healthcare operations. This frontend application provides an intuitive interface for managing all aspects of clinic operations.</p>
+		
+		<div class="box tech-stack">
+			<h4>Key Highlights:</h4>
+			<ul>
+				<li><strong>Modern Architecture:</strong> Built with React 18, TypeScript, and Vite for optimal performance</li>
+				<li><strong>Responsive Design:</strong> Mobile-first approach with Tailwind CSS</li>
+				<li><strong>Role-Based Access:</strong> Multi-role support (Admin, Doctor, Receptionist, Nurse, Accountant)</li>
+				<li><strong>Comprehensive Modules:</strong> 20+ integrated modules for complete clinic management</li>
+				<li><strong>Real-time Updates:</strong> React Query for efficient data synchronization</li>
+				<li><strong>Accessibility:</strong> WCAG compliant with Radix UI components</li>
+			</ul>
+		</div>
+
+		<hr>
+
+		<h3 id="techStack"><strong>B) Tech Stack & Dependencies</strong> - <a href="#toc">top</a></h3>
+
+		<div class="component-section">
+			<h4>Core Technologies:</h4>
+			<ul>
+				<li><strong>React 18:</strong> Latest React with concurrent features and improved performance</li>
+				<li><strong>TypeScript:</strong> Full type safety and enhanced developer experience</li>
+				<li><strong>Vite:</strong> Lightning-fast build tool with HMR support</li>
+				<li><strong>React Router v6:</strong> Client-side routing with nested route support</li>
+			</ul>
+		</div>
+
+		<div class="component-section">
+			<h4>UI & Styling:</h4>
+			<ul>
+				<li><strong>Tailwind CSS:</strong> Utility-first CSS framework for rapid UI development</li>
+				<li><strong>Radix UI:</strong> Unstyled, accessible UI primitives (@radix-ui/react-*)</li>
+				<li><strong>Lucide React:</strong> Beautiful, customizable SVG icons</li>
+				<li><strong>Framer Motion:</strong> Production-ready motion library for React</li>
+				<li><strong>Embla Carousel:</strong> Lightweight carousel library</li>
+			</ul>
+		</div>
+
+		<div class="component-section">
+			<h4>Data Management:</h4>
+			<ul>
+				<li><strong>TanStack React Query:</strong> Powerful data synchronization for React</li>
+				<li><strong>Axios:</strong> Promise-based HTTP client for API requests</li>
+				<li><strong>React Hook Form:</strong> Performant, flexible forms with easy validation</li>
+				<li><strong>Zod:</strong> TypeScript-first schema declaration and validation library</li>
+			</ul>
+		</div>
+
+		<div class="component-section">
+			<h4>Additional Libraries:</h4>
+			<ul>
+				<li><strong>React Big Calendar:</strong> Event calendar component</li>
+				<li><strong>Recharts:</strong> Composable charting library built on React components</li>
+				<li><strong>jsPDF:</strong> Client-side PDF generation</li>
+				<li><strong>React to Print:</strong> Print React components in the browser</li>
+				<li><strong>Date-fns & Moment:</strong> Date manipulation libraries</li>
+				<li><strong>Three.js & React Three Fiber:</strong> 3D graphics library</li>
+			</ul>
+		</div>
+
+		<hr>
+		
+		<h3 id="architecture"><strong>C) Application Architecture</strong> - <a href="#toc">top</a></h3>
+		
+		<p>The application follows a modern React architecture with clear separation of concerns:</p>
+
+		<div class="component-section">
+			<h4>Directory Structure:</h4>
+<pre>src/
+├── components/          # Reusable UI components
+│   ├── ui/             # Base UI components (Radix + Tailwind)
+│   ├── layout/         # Layout components (Sidebar, TopBar)
+│   ├── modals/         # Modal components for various operations
+│   └── features/       # Feature-specific components
+├── pages/              # Page components and route handlers
+│   ├── auth/           # Authentication pages
+│   └── dashboard/      # Dashboard pages by module
+├── contexts/           # React Context providers
+├── hooks/              # Custom React hooks
+├── services/           # API service functions
+├── types/              # TypeScript type definitions
+├── utils/              # Utility functions
+└── lib/                # Third-party library configurations</pre>
+		</div>
+
+		<div class="component-section">
+			<h4>State Management Pattern:</h4>
+			<ul>
+				<li><strong>React Context:</strong> Authentication and global app state</li>
+				<li><strong>React Query:</strong> Server state management and caching</li>
+				<li><strong>React Hook Form:</strong> Form state management</li>
+				<li><strong>Local State:</strong> Component-specific state with useState/useReducer</li>
+			</ul>
+		</div>
+
+		<hr>
+		
+		<h3 id="features"><strong>D) Core Features & Modules</strong> - <a href="#toc">top</a></h3>
+		
+		<div class="component-section">
+			<h4>Patient Management:</h4>
+			<ul class="feature-list">
+				<li>Patient registration and profile management</li>
+				<li>Medical history tracking</li>
+				<li>Patient search and filtering</li>
+				<li>Patient demographic information</li>
+			</ul>
+		</div>
+
+		<div class="component-section">
+			<h4>Appointment System:</h4>
+			<ul class="feature-list">
+				<li>Appointment scheduling and management</li>
+				<li>Calendar view with drag-and-drop</li>
+				<li>Appointment status tracking</li>
+				<li>Recurring appointment support</li>
+				<li>Appointment reminders</li>
+			</ul>
+		</div>
+
+		<div class="component-section">
+			<h4>Billing & Financial Management:</h4>
+			<ul class="feature-list">
+				<li>Invoice generation and management</li>
+				<li>Payment processing and tracking</li>
+				<li>Billing history and reports</li>
+				<li>Insurance claim management</li>
+				<li>Financial analytics and reporting</li>
+			</ul>
+		</div>
+
+		<div class="component-section">
+			<h4>Laboratory Management:</h4>
+			<ul class="feature-list">
+				<li>Test ordering and management</li>
+				<li>Lab vendor integration</li>
+				<li>Test result recording</li>
+				<li>Test methodologies configuration</li>
+				<li>Sample type management</li>
+				<li>Turnaround time tracking</li>
+			</ul>
+		</div>
+
+		<div class="component-section">
+			<h4>Staff & Department Management:</h4>
+			<ul class="feature-list">
+				<li>Staff profile and role management</li>
+				<li>Department organization</li>
+				<li>Payroll management</li>
+				<li>Schedule management</li>
+				<li>Training module integration</li>
+			</ul>
+		</div>
+
+		<div class="component-section">
+			<h4>Inventory & Services:</h4>
+			<ul class="feature-list">
+				<li>Inventory tracking and management</li>
+				<li>Service catalog management</li>
+				<li>Stock level monitoring</li>
+				<li>Vendor management</li>
+			</ul>
+		</div>
+
+		<div class="component-section">
+			<h4>Analytics & Reporting:</h4>
+			<ul class="feature-list">
+				<li>Real-time dashboard analytics</li>
+				<li>Financial reports and insights</li>
+				<li>Patient flow analytics</li>
+				<li>Performance metrics</li>
+				<li>Custom report generation</li>
+			</ul>
+		</div>
+
+		<hr>
+		
+		<h3 id="components"><strong>E) Component Structure</strong> - <a href="#toc">top</a></h3>
+		
+		<div class="component-section">
+			<h4>UI Components (src/components/ui/):</h4>
+			<p>Built on Radix UI primitives with custom styling:</p>
+			<ul>
+				<li><strong>Form Components:</strong> Input, Select, Checkbox, Radio, Switch, Textarea</li>
+				<li><strong>Navigation:</strong> Accordion, Breadcrumb, Menu, Navigation Menu, Tabs</li>
+				<li><strong>Feedback:</strong> Alert, Toast, Progress, Skeleton</li>
+				<li><strong>Layout:</strong> Card, Separator, Sheet, Dialog, Drawer</li>
+				<li><strong>Data Display:</strong> Table, Avatar, Badge, Chart, Calendar</li>
+				<li><strong>Interactive:</strong> Button, Hover Card, Popover, Tooltip, Command</li>
+			</ul>
+		</div>
+
+		<div class="component-section">
+			<h4>Layout Components:</h4>
+			<ul>
+				<li><strong>DashboardLayout:</strong> Main layout wrapper with sidebar and header</li>
+				<li><strong>Sidebar:</strong> Navigation sidebar with role-based menu items</li>
+				<li><strong>TopBar:</strong> Header with user profile, notifications, and settings</li>
+			</ul>
+		</div>
+
+		<div class="component-section">
+			<h4>Modal Components (40+ specialized modals):</h4>
+			<ul>
+				<li><strong>Patient Modals:</strong> AddPatientModal, EditPatientModal</li>
+				<li><strong>Appointment Modals:</strong> NewAppointmentModal, ManageScheduleModal</li>
+				<li><strong>Billing Modals:</strong> CreateInvoiceModal, BillingPaymentsModal</li>
+				<li><strong>Test Management:</strong> AddTestModal, RecordTestReportModal</li>
+				<li><strong>Staff Management:</strong> AddStaffModal, UpdateSalaryModal</li>
+				<li><strong>Configuration:</strong> SettingsModal, AdvancedFiltersModal</li>
+			</ul>
+		</div>
+
+		<hr>
+		
+		<h3 id="routing"><strong>F) Routing & Navigation</strong> - <a href="#toc">top</a></h3>
+		
+		<p>The application uses React Router v6 with nested routing for organized navigation:</p>
+
+		<div class="component-section">
+			<h4>Route Structure:</h4>
+<pre>/ (Public)
+├── /features
+├── /login
+├── /register
+└── /forgot-password
+
+/dashboard (Protected)
+├── / (Dashboard Home)
+├── /patients
+├── /appointments
+├── /billing
+├── /invoices
+├── /payments
+├── /staff
+├── /tests
+├── /test-reports
+├── /lab-vendors
+├── /inventory
+├── /analytics
+├── /settings
+└── /profile</pre>
+		</div>
+
+		<div class="component-section">
+			<h4>Protection Mechanisms:</h4>
+			<ul>
+				<li><strong>ProtectedRoute:</strong> Ensures user authentication</li>
+				<li><strong>RequireRole:</strong> Role-based access control for specific routes</li>
+				<li><strong>Route Guards:</strong> Automatic redirection based on user permissions</li>
+			</ul>
+		</div>
+
+		<hr>
+		
+		<h3 id="authentication"><strong>G) Authentication & Authorization</strong> - <a href="#toc">top</a></h3>
+		
+		<div class="component-section">
+			<h4>Authentication Flow:</h4>
+			<ul>
+				<li><strong>JWT Token Management:</strong> Secure token storage and refresh</li>
+				<li><strong>Role-Based Access Control:</strong> Admin, Doctor, Receptionist, Nurse, Accountant</li>
+				<li><strong>Protected Routes:</strong> Automatic redirection for unauthorized access</li>
+				<li><strong>Session Management:</strong> Automatic logout on token expiration</li>
+			</ul>
+		</div>
+
+		<div class="component-section">
+			<h4>User Roles & Permissions:</h4>
+			<ul>
+				<li><strong>Admin:</strong> Full system access, user management, system configuration</li>
+				<li><strong>Doctor:</strong> Patient care, prescriptions, test orders, medical records</li>
+				<li><strong>Receptionist:</strong> Appointments, patient registration, basic billing</li>
+				<li><strong>Nurse:</strong> Patient care support, test assistance, basic records</li>
+				<li><strong>Accountant:</strong> Financial management, billing, payroll, reports</li>
+			</ul>
+		</div>
+
+		<hr>
+		
+		<h3 id="ui"><strong>H) UI Components & Design System</strong> - <a href="#toc">top</a></h3>
+		
+		<div class="component-section">
+			<h4>Design Principles:</h4>
+			<ul>
+				<li><strong>Accessibility First:</strong> WCAG 2.1 AA compliance</li>
+				<li><strong>Mobile Responsive:</strong> Mobile-first design approach</li>
+				<li><strong>Consistent Theming:</strong> Unified color palette and typography</li>
+				<li><strong>Performance Optimized:</strong> Lazy loading and code splitting</li>
+			</ul>
+		</div>
+
+		<div class="component-section">
+			<h4>Component Features:</h4>
+			<ul>
+				<li><strong>Dark/Light Theme:</strong> System-wide theme switching</li>
+				<li><strong>Internationalization:</strong> Multi-language support with Google Translate</li>
+				<li><strong>Currency Support:</strong> Multi-currency display and conversion</li>
+				<li><strong>Print Support:</strong> Optimized printing for reports and invoices</li>
+			</ul>
+		</div>
+
+		<hr>
+		
+		<h3 id="dataManagement"><strong>I) Data Management & API Integration</strong> - <a href="#toc">top</a></h3>
+		
+		<div class="component-section">
+			<h4>Data Layer Architecture:</h4>
+			<ul>
+				<li><strong>React Query:</strong> Server state management with automatic caching</li>
+				<li><strong>Axios Integration:</strong> HTTP client with interceptors for auth and error handling</li>
+				<li><strong>Type Safety:</strong> Full TypeScript integration for API responses</li>
+				<li><strong>Error Boundaries:</strong> Graceful error handling and recovery</li>
+			</ul>
+		</div>
+
+		<div class="component-section">
+			<h4>API Integration:</h4>
+			<ul>
+				<li><strong>RESTful APIs:</strong> Standard HTTP methods for CRUD operations</li>
+				<li><strong>Real-time Updates:</strong> Automatic data synchronization</li>
+				<li><strong>Optimistic Updates:</strong> Immediate UI feedback for better UX</li>
+				<li><strong>Offline Support:</strong> Basic offline functionality with cache</li>
+			</ul>
+		</div>
+
+		<hr>
+		
+		<h3 id="deployment"><strong>J) Deployment & Build Process</strong> - <a href="#toc">top</a></h3>
+		
+		<div class="component-section">
+			<h4>Build Configuration:</h4>
+<pre>Scripts:
+- npm run dev      # Development server with HMR
+- npm run build    # Production build optimization
+- npm run test     # Unit and integration tests
+- npm run typecheck # TypeScript type checking
+- npm run format.fix # Code formatting with Prettier</pre>
+		</div>
+
+		<div class="component-section">
+			<h4>Deployment Features:</h4>
+			<ul>
+				<li><strong>Vite Build:</strong> Optimized production builds with tree shaking</li>
+				<li><strong>Code Splitting:</strong> Automatic route-based code splitting</li>
+				<li><strong>Asset Optimization:</strong> Image and asset optimization</li>
+				<li><strong>Vercel Integration:</strong> Configured for Vercel deployment</li>
+			</ul>
+		</div>
+
+		<hr>
+		
+		<h3 id="development"><strong>K) Development Guidelines</strong> - <a href="#toc">top</a></h3>
+		
+		<div class="component-section">
+			<h4>Code Standards:</h4>
+			<ul>
+				<li><strong>TypeScript:</strong> Strict type checking enabled</li>
+				<li><strong>ESLint:</strong> Code quality and consistency enforcement</li>
+				<li><strong>Prettier:</strong> Automatic code formatting</li>
+				<li><strong>Component Naming:</strong> PascalCase for components, camelCase for functions</li>
+			</ul>
+		</div>
+
+		<div class="component-section">
+			<h4>Development Workflow:</h4>
+			<ol>
+				<li>Clone repository and install dependencies</li>
+				<li>Start development server with <code>npm run dev</code></li>
+				<li>Follow component structure and naming conventions</li>
+				<li>Run type checking with <code>npm run typecheck</code></li>
+				<li>Format code with <code>npm run format.fix</code></li>
+				<li>Test functionality before committing</li>
+			</ol>
+		</div>
+
+		<hr>
+		
+		<h3 id="troubleshooting"><strong>L) Troubleshooting & Support</strong> - <a href="#toc">top</a></h3>
+		
+		<div class="component-section">
+			<h4>Common Issues:</h4>
+			<ul>
+				<li><strong>Build Errors:</strong> Check TypeScript types and dependencies</li>
+				<li><strong>Google Translate Conflicts:</strong> Global error handlers implemented</li>
+				<li><strong>Route Access Issues:</strong> Verify user roles and permissions</li>
+				<li><strong>API Connection:</strong> Check network connectivity and API endpoints</li>
+			</ul>
+		</div>
+
+		<div class="component-section">
+			<h4>Performance Optimization:</h4>
+			<ul>
+				<li><strong>Code Splitting:</strong> Routes automatically split for optimal loading</li>
+				<li><strong>React Query Cache:</strong> Intelligent data caching reduces API calls</li>
+				<li><strong>Image Optimization:</strong> Proper image formats and lazy loading</li>
+				<li><strong>Bundle Analysis:</strong> Regular bundle size monitoring</li>
+			</ul>
+		</div>
+
+		<hr>
+		
+		<p>This documentation covers the comprehensive structure and implementation of ClinicPro Frontend. The system is designed to be scalable, maintainable, and user-friendly, providing healthcare professionals with a powerful tool for clinic management.</p>
+		
+		<p class="append-bottom alt large"><strong>ClinicPro Development Team</strong></p>
+		<p><a href="#toc">Go To Table of Contents</a></p>
+		
+		<hr class="space">
+	</div><!-- end div .container -->
+</body>
+</html> 

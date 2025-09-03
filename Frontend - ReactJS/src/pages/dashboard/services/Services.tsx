@@ -1,0 +1,894 @@
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Search,
+  Plus,
+  Filter,
+  MoreVertical,
+  Activity,
+  Clock,
+  DollarSign,
+  Users,
+  Eye,
+  Edit,
+  Trash2,
+  Stethoscope,
+  Loader2,
+  RefreshCw,
+} from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { Service } from "@/types";
+import AddServiceModal from "@/components/modals/AddServiceModal";
+import ViewDetailsModal from "@/components/modals/ViewDetailsModal";
+import EditItemModal from "@/components/modals/EditItemModal";
+import DeleteConfirmModal from "@/components/modals/DeleteConfirmModal";
+import AdvancedFiltersModal from "@/components/modals/AdvancedFiltersModal";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { CurrencyDisplay } from "@/components/ui/CurrencyDisplay";
+import { serviceApi, ServiceStats } from "@/services/api/serviceApi";
+
+const Services = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedDepartment, setSelectedDepartment] = useState("all");
+  const [advancedFilters, setAdvancedFilters] = useState<Record<string, any>>(
+    {},
+  );
+  const { formatAmount } = useCurrency();
+
+  // API state
+  const [services, setServices] = useState<Service[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [stats, setStats] = useState<ServiceStats | null>(null);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 50,
+    total: 0,
+    pages: 0,
+  });
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Modal states
+  const [viewDetailsModal, setViewDetailsModal] = useState<{
+    open: boolean;
+    item: Service | null;
+  }>({ open: false, item: null });
+
+  const [editModal, setEditModal] = useState<{
+    open: boolean;
+    item: Service | null;
+  }>({ open: false, item: null });
+
+  const [deleteModal, setDeleteModal] = useState<{
+    open: boolean;
+    item: Service | null;
+  }>({ open: false, item: null });
+
+  // Load services from API
+  const fetchServices = async () => {
+    try {
+      setIsLoading(true);
+      const filters = {
+        search: searchTerm || undefined,
+        category: selectedCategory !== "all" ? selectedCategory : undefined,
+        department: selectedDepartment !== "all" ? selectedDepartment : undefined,
+        page: pagination.page,
+        limit: pagination.limit,
+        ...advancedFilters,
+      };
+
+      const response = await serviceApi.getServices(filters);
+      setServices(response.data);
+      setPagination(response.pagination);
+    } catch (error) {
+      console.error("Error fetching services:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load services. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchStats = async () => {
+    try {
+      const serviceStats = await serviceApi.getServiceStats();
+      setStats(serviceStats);
+    } catch (error) {
+      console.error("Error fetching service stats:", error);
+    }
+  };
+
+  // Initial load
+  useEffect(() => {
+    fetchServices();
+    fetchStats();
+  }, []);
+
+  // Refresh when filters change
+  useEffect(() => {
+    if (!isLoading) {
+      fetchServices();
+    }
+  }, [searchTerm, selectedCategory, selectedDepartment, advancedFilters, pagination.page]);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await Promise.all([fetchServices(), fetchStats()]);
+    setIsRefreshing(false);
+  };
+
+  // Action handlers
+  const handleViewDetails = (service: Service) => {
+    setViewDetailsModal({ open: true, item: service });
+  };
+
+  const handleEdit = (service: Service) => {
+    setEditModal({ open: true, item: service });
+  };
+
+  const handleDelete = (service: Service) => {
+    setDeleteModal({ open: true, item: service });
+  };
+
+  const handleActivateService = async (service: Service) => {
+    try {
+      await serviceApi.toggleServiceStatus(service.id);
+      toast({
+        title: "Service Activated",
+        description: `${service.name} has been activated.`,
+      });
+      fetchServices(); // Refresh the list
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to activate service. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeactivateService = async (service: Service) => {
+    try {
+      await serviceApi.toggleServiceStatus(service.id);
+      toast({
+        title: "Service Deactivated",
+        description: `${service.name} has been deactivated.`,
+      });
+      fetchServices(); // Refresh the list
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to deactivate service. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Filter handlers
+  const handleApplyAdvancedFilters = (filters: Record<string, any>) => {
+    setAdvancedFilters(filters);
+  };
+
+  const handleClearAdvancedFilters = () => {
+    setAdvancedFilters({});
+  };
+
+  // Filter configuration
+  const filterFields = [
+    {
+      key: "department",
+      label: "Department",
+      type: "select" as const,
+      options: Array.from(new Set(services.map((s) => s.department))),
+    },
+    {
+      key: "minPrice",
+      label: "Minimum Price",
+      type: "number" as const,
+      placeholder: "Enter minimum price",
+    },
+    {
+      key: "maxPrice",
+      label: "Maximum Price",
+      type: "number" as const,
+      placeholder: "Enter maximum price",
+    },
+    {
+      key: "minDuration",
+      label: "Minimum Duration (minutes)",
+      type: "number" as const,
+      placeholder: "Enter minimum duration",
+    },
+    {
+      key: "maxDuration",
+      label: "Maximum Duration (minutes)",
+      type: "number" as const,
+      placeholder: "Enter maximum duration",
+    },
+    {
+      key: "status",
+      label: "Service Status",
+      type: "checkbox" as const,
+      options: ["Active", "Inactive"],
+    },
+    {
+      key: "followUpRequired",
+      label: "Follow-up Requirements",
+      type: "checkbox" as const,
+      options: ["Follow-up Required", "No Follow-up Required"],
+    },
+  ];
+
+  // Filter data - now using dynamic data from API
+  const categories = [
+    "all",
+    ...Array.from(new Set(
+      stats?.categoryStats?.map((cat) => cat._id) || 
+      services.map((s) => s.category)
+    )),
+  ];
+
+  const departments = [
+    "all",
+    ...Array.from(new Set(
+      stats?.departmentStats?.map((dept) => dept._id) || 
+      services.map((s) => s.department)
+    )),
+  ];
+
+  // Since filtering is now handled by the API, we use the services directly
+  const filteredServices = services;
+
+  // Calculate stats from API data
+  const totalServices = stats?.totalServices || services.length;
+  const activeServices = stats?.activeServices || services.filter((s) => s.isActive).length;
+  const totalRevenue = stats?.categoryStats?.reduce((sum, cat) => sum + cat.totalRevenue, 0) || 
+    services.filter((s) => s.isActive).reduce((sum, s) => sum + s.price, 0);
+  const avgDuration = services.length > 0 ? Math.round(
+    services.reduce((sum, s) => sum + s.duration, 0) / services.length,
+  ) : 0;
+
+  // Using the currency context for dynamic currency formatting
+  const formatCurrency = (amount: number) => {
+    return formatAmount(amount);
+  };
+
+  const formatDuration = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours > 0) {
+      return `${hours}h ${mins}m`;
+    }
+    return `${mins}m`;
+  };
+
+  const getStatusBadge = (isActive: boolean) => {
+    return isActive
+      ? { label: "Active", color: "bg-green-100 text-green-800" }
+      : { label: "Inactive", color: "bg-gray-100 text-gray-800" };
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Services
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Manage medical services and pricing
+          </p>
+        </div>
+        <div className="flex-shrink-0 flex items-center space-x-2">
+          <Button
+            variant="outline"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            size="sm"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh'}
+          </Button>
+          <AddServiceModal onServiceCreated={fetchServices} />
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Total Services
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {totalServices}
+                  </p>
+                </div>
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <Stethoscope className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Active Services
+                  </p>
+                  <p className="text-3xl font-bold text-green-600">
+                    {activeServices}
+                  </p>
+                </div>
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Activity className="h-6 w-6 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Total Revenue Potential
+                  </p>
+                  <p className="text-3xl font-bold text-blue-600">
+                    <CurrencyDisplay amount={totalRevenue} variant="large" />
+                  </p>
+                </div>
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                  <DollarSign className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Avg Duration
+                  </p>
+                  <p className="text-3xl font-bold text-purple-600">
+                    {formatDuration(avgDuration)}
+                  </p>
+                </div>
+                <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                  <Clock className="h-6 w-6 text-purple-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <CardContent className="p-6">
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search services by name, description, or department..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select
+              value={selectedCategory}
+              onValueChange={setSelectedCategory}
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category} value={category}>
+                    {category === "all" ? "All Categories" : category}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={selectedDepartment}
+              onValueChange={setSelectedDepartment}
+            >
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Department" />
+              </SelectTrigger>
+              <SelectContent>
+                {departments.map((department) => (
+                  <SelectItem key={department} value={department}>
+                    {department === "all" ? "All Departments" : department}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <AdvancedFiltersModal
+              filterFields={filterFields}
+              onApplyFilters={handleApplyAdvancedFilters}
+              onClearFilters={handleClearAdvancedFilters}
+              initialFilters={advancedFilters}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Services Table */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Services Directory</CardTitle>
+            <CardDescription>
+              Manage and configure available medical services
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <span className="ml-2 text-gray-600">Loading services...</span>
+              </div>
+            ) : (
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="min-w-[200px]">Service</TableHead>
+                        <TableHead className="min-w-[120px]">Category</TableHead>
+                        <TableHead className="min-w-[140px]">Department</TableHead>
+                        <TableHead className="min-w-[100px]">Duration</TableHead>
+                        <TableHead className="min-w-[100px]">Price</TableHead>
+                        <TableHead className="min-w-[100px]">Max/Day</TableHead>
+                        <TableHead className="min-w-[100px]">Status</TableHead>
+                        <TableHead className="text-right min-w-[120px]">
+                          Actions
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                  {filteredServices.map((service) => {
+                    const statusBadge = getStatusBadge(service.isActive);
+
+                    return (
+                      <TableRow key={service.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{service.name}</div>
+                            <div className="text-sm text-gray-500">
+                              {service.description}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{service.category}</Badge>
+                        </TableCell>
+                        <TableCell>{service.department}</TableCell>
+                        <TableCell>
+                          {formatDuration(service.duration)}
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          {formatCurrency(service.price)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Users className="h-4 w-4 text-gray-400" />
+                            <span>{service.maxBookingsPerDay}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={`text-xs ${statusBadge.color}`}>
+                            {statusBadge.label}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="sm" className="h-8">
+                                <MoreVertical className="h-4 w-4 mr-1" />
+                                Actions
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() => handleViewDetails(service)}
+                              >
+                                <Eye className="mr-2 h-4 w-4" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleEdit(service)}
+                              >
+                                <Edit className="mr-2 h-4 w-4" />
+                                Edit Service
+                              </DropdownMenuItem>
+                              {service.isActive ? (
+                                <DropdownMenuItem
+                                  onClick={() =>
+                                    handleDeactivateService(service)
+                                  }
+                                >
+                                  <Activity className="mr-2 h-4 w-4" />
+                                  Deactivate
+                                </DropdownMenuItem>
+                              ) : (
+                                <DropdownMenuItem
+                                  onClick={() => handleActivateService(service)}
+                                >
+                                  <Activity className="mr-2 h-4 w-4" />
+                                  Activate
+                                </DropdownMenuItem>
+                              )}
+                              <DropdownMenuItem
+                                onClick={() => handleDelete(service)}
+                                className="text-red-600"
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete Service
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4">
+              {filteredServices.map((service) => {
+                const statusBadge = getStatusBadge(service.isActive);
+
+                return (
+                  <div
+                    key={service.id}
+                    className="border rounded-lg p-4 space-y-3 bg-white shadow-sm"
+                  >
+                    {/* Header with Service and Status */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="font-semibold text-lg">
+                          {service.name}
+                        </div>
+                        <div className="text-sm text-gray-500 mt-1">
+                          {service.description}
+                        </div>
+                      </div>
+                      <Badge className={`text-xs ${statusBadge.color} ml-3`}>
+                        {statusBadge.label}
+                      </Badge>
+                    </div>
+
+                    {/* Service Details Grid */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">
+                          Category
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {service.category}
+                        </Badge>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">
+                          Department
+                        </div>
+                        <div className="text-sm">{service.department}</div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">
+                          Duration
+                        </div>
+                        <div className="text-sm font-medium">
+                          {formatDuration(service.duration)}
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">
+                          Price
+                        </div>
+                        <div className="text-sm font-medium">
+                          {formatCurrency(service.price)}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Capacity Info */}
+                    <div className="p-3 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm">
+                          <span className="text-gray-500">
+                            Max bookings per day:
+                          </span>
+                          <span className="ml-2 font-medium">
+                            {service.maxBookingsPerDay}
+                          </span>
+                        </div>
+                        <Users className="h-4 w-4 text-gray-400" />
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex items-center justify-between pt-2 border-t">
+                      <div className="text-xs text-gray-500">
+                        Service ID: #{service.id}
+                      </div>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm">
+                            <MoreVertical className="h-4 w-4 mr-1" />
+                            Actions
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => handleViewDetails(service)}
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleEdit(service)}
+                          >
+                            <Edit className="mr-2 h-4 w-4" />
+                            Edit Service
+                          </DropdownMenuItem>
+                          {service.isActive ? (
+                            <DropdownMenuItem
+                              onClick={() => handleDeactivateService(service)}
+                            >
+                              <Activity className="mr-2 h-4 w-4" />
+                              Deactivate
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem
+                              onClick={() => handleActivateService(service)}
+                            >
+                              <Activity className="mr-2 h-4 w-4" />
+                              Activate
+                            </DropdownMenuItem>
+                          )}
+                          <DropdownMenuItem
+                            onClick={() => handleDelete(service)}
+                            className="text-red-600"
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete Service
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Modals */}
+      <ViewDetailsModal
+        open={viewDetailsModal.open}
+        onOpenChange={(open) =>
+          setViewDetailsModal({ open, item: viewDetailsModal.item })
+        }
+        title="Service Details"
+        data={viewDetailsModal.item}
+        fields={[
+          { key: "id", label: "Service ID", type: "text" },
+          { key: "name", label: "Service Name", type: "text" },
+          { key: "category", label: "Category", type: "badge" },
+          { key: "department", label: "Department", type: "text" },
+          { key: "description", label: "Description", type: "text" },
+          {
+            key: "duration",
+            label: "Duration",
+            type: "text",
+            render: (value: number) => formatDuration(value),
+          },
+          { key: "price", label: "Price", type: "currency" },
+          { key: "maxBookingsPerDay", label: "Max Bookings/Day", type: "text" },
+          { key: "prerequisites", label: "Prerequisites", type: "text" },
+          {
+            key: "followUpRequired",
+            label: "Follow-up Required",
+            type: "boolean",
+          },
+          {
+            key: "specialInstructions",
+            label: "Special Instructions",
+            type: "text",
+          },
+          {
+            key: "isActive",
+            label: "Status",
+            type: "boolean",
+            render: (value: boolean) => (value ? "Active" : "Inactive"),
+          },
+          { key: "createdAt", label: "Created", type: "date" },
+          { key: "updatedAt", label: "Last Updated", type: "date" },
+        ]}
+      />
+
+      <EditItemModal
+        open={editModal.open}
+        onOpenChange={(open) => setEditModal({ open, item: editModal.item })}
+        title="Edit Service"
+        data={editModal.item}
+        fields={[
+          { key: "name", label: "Service Name", type: "text", required: true },
+          {
+            key: "category",
+            label: "Category",
+            type: "select",
+            options: Array.from(new Set(services.map((s) => s.category))),
+            required: true,
+          },
+          {
+            key: "department",
+            label: "Department",
+            type: "select",
+            options: Array.from(new Set(services.map((s) => s.department))),
+            required: true,
+          },
+          {
+            key: "description",
+            label: "Description",
+            type: "textarea",
+            required: true,
+          },
+          {
+            key: "duration",
+            label: "Duration (minutes)",
+            type: "number",
+            required: true,
+          },
+          { key: "price", label: "Price", type: "number", required: true },
+          {
+            key: "maxBookingsPerDay",
+            label: "Max Bookings/Day",
+            type: "number",
+            required: true,
+          },
+          { key: "prerequisites", label: "Prerequisites", type: "text" },
+          {
+            key: "specialInstructions",
+            label: "Special Instructions",
+            type: "textarea",
+          },
+          {
+            key: "followUpRequired",
+            label: "Follow-up Required",
+            type: "switch",
+          },
+          { key: "isActive", label: "Active", type: "switch" },
+        ]}
+        onSave={async (data) => {
+          try {
+            await serviceApi.updateService(editModal.item!.id, data);
+            toast({
+              title: "Service Updated",
+              description: `${data.name} has been updated successfully.`,
+            });
+            setEditModal({ open: false, item: null });
+            fetchServices(); // Refresh the list
+          } catch (error) {
+            toast({
+              title: "Error",
+              description: "Failed to update service. Please try again.",
+              variant: "destructive",
+            });
+          }
+        }}
+      />
+
+      <DeleteConfirmModal
+        open={deleteModal.open}
+        onOpenChange={(open) =>
+          setDeleteModal({ open, item: deleteModal.item })
+        }
+        title="Delete Service"
+        description={`Are you sure you want to delete "${deleteModal.item?.name}"? This action cannot be undone.`}
+        itemName={deleteModal.item?.name || ""}
+        onConfirm={async () => {
+          try {
+            await serviceApi.deleteService(deleteModal.item!.id);
+            toast({
+              title: "Service Deleted",
+              description: `${deleteModal.item?.name} has been deleted successfully.`,
+            });
+            setDeleteModal({ open: false, item: null });
+            fetchServices(); // Refresh the list
+          } catch (error) {
+            toast({
+              title: "Error",
+              description: "Failed to delete service. Please try again.",
+              variant: "destructive",
+            });
+          }
+        }}
+      />
+    </div>
+  );
+};
+
+export default Services;

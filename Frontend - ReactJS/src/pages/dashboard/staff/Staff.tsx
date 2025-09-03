@@ -1,0 +1,691 @@
+import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Search,
+  Plus,
+  Filter,
+  MoreVertical,
+  Users,
+  UserCheck,
+  Stethoscope,
+  Shield,
+  Phone,
+  Mail,
+  Calendar,
+  DollarSign,
+  Clock,
+  RefreshCw,
+  Loader2,
+} from "lucide-react";
+import AddStaffModal from "@/components/modals/AddStaffModal";
+import ViewStaffModal from "@/components/modals/ViewStaffModal";
+import EditStaffModal from "@/components/modals/EditStaffModal";
+import ManageScheduleModal from "@/components/modals/ManageScheduleModal";
+import UpdateSalaryModal from "@/components/modals/UpdateSalaryModal";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { CurrencyDisplay } from "@/components/ui/CurrencyDisplay";
+import { useStaff, StaffFilters, transformUserToStaff } from "@/hooks/useStaff";
+import { toast } from "@/hooks/use-toast";
+
+const Staff = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedRole, setSelectedRole] = useState("all");
+  const [selectedDepartment, setSelectedDepartment] = useState("all");
+  const { formatAmount } = useCurrency();
+
+  // Modal states
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [scheduleModalOpen, setScheduleModalOpen] = useState(false);
+  const [salaryModalOpen, setSalaryModalOpen] = useState(false);
+  const [selectedStaff, setSelectedStaff] = useState<ReturnType<typeof transformUserToStaff> | null>(null);
+
+  // Use the staff hook
+  const {
+    staff,
+    loading,
+    error,
+    fetchStaff,
+    updateStaff,
+    activateStaff,
+    deactivateStaff,
+    getStaffStats,
+    refetch
+  } = useStaff();
+
+  // Effect to fetch staff when filters change
+  useEffect(() => {
+    const filters: StaffFilters = {
+      search: searchTerm,
+      role: selectedRole !== "all" ? selectedRole : undefined,
+      department: selectedDepartment !== "all" ? selectedDepartment : undefined,
+    };
+    fetchStaff(filters);
+  }, [searchTerm, selectedRole, selectedDepartment]);
+
+  const departments = [
+    "all",
+    ...Array.from(new Set(staff.map((s) => s.department))),
+  ];
+
+  const filteredStaff = staff;
+
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case "admin":
+        return <Shield className="h-4 w-4 text-purple-600" />;
+      case "doctor":
+        return <Stethoscope className="h-4 w-4 text-blue-600" />;
+      case "nurse":
+        return <UserCheck className="h-4 w-4 text-green-600" />;
+      case "receptionist":
+        return <Users className="h-4 w-4 text-orange-600" />;
+      case "technician":
+        return <Users className="h-4 w-4 text-gray-600" />;
+      default:
+        return <Users className="h-4 w-4 text-gray-600" />;
+    }
+  };
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case "admin":
+        return "bg-purple-100 text-purple-800";
+      case "doctor":
+        return "bg-blue-100 text-blue-800";
+      case "nurse":
+        return "bg-green-100 text-green-800";
+      case "receptionist":
+        return "bg-orange-100 text-orange-800";
+      case "technician":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  // Using the currency context for dynamic currency formatting
+  const formatCurrency = (amount: number) => {
+    return formatAmount(amount);
+  };
+
+  const formatDate = (date: Date) => {
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  };
+
+  const getWorkingDays = (schedule: any) => {
+    return Object.values(schedule).filter((day: any) => day.isWorking).length;
+  };
+
+  // Calculate stats using the hook
+  const stats = getStaffStats();
+
+  // Add handlers for staff actions
+  const handleActivateStaff = async (id: string) => {
+    try {
+      await activateStaff(id);
+    } catch (error) {
+      // Error handling is done in the hook
+    }
+  };
+
+  const handleDeactivateStaff = async (id: string) => {
+    try {
+      await deactivateStaff(id);
+    } catch (error) {
+      // Error handling is done in the hook
+    }
+  };
+
+  const handleRefresh = () => {
+    refetch();
+    toast({
+      title: "Staff list refreshed",
+      description: "Staff data has been updated from the server.",
+    });
+  };
+
+  // Modal handlers
+  const handleViewProfile = (staffMember: ReturnType<typeof transformUserToStaff>) => {
+    setSelectedStaff(staffMember);
+    setViewModalOpen(true);
+  };
+
+  const handleEditDetails = (staffMember: ReturnType<typeof transformUserToStaff>) => {
+    setSelectedStaff(staffMember);
+    setEditModalOpen(true);
+  };
+
+  const handleManageSchedule = (staffMember: ReturnType<typeof transformUserToStaff>) => {
+    setSelectedStaff(staffMember);
+    setScheduleModalOpen(true);
+  };
+
+  const handleUpdateSalary = (staffMember: ReturnType<typeof transformUserToStaff>) => {
+    setSelectedStaff(staffMember);
+    setSalaryModalOpen(true);
+  };
+
+  // Update handlers for modals
+  const handleStaffUpdate = async (id: string, data: any) => {
+    try {
+      await updateStaff(id, data);
+      handleRefresh();
+    } catch (error) {
+      // Error handling is done in the hook
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex-1">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Staff Management
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Manage clinic staff and their information
+          </p>
+        </div>
+        <div className="flex-shrink-0 flex gap-2">
+          <Button variant="outline" onClick={handleRefresh} disabled={loading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          <AddStaffModal onStaffAdded={handleRefresh} />
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Total Staff
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {stats.totalStaff}
+                  </p>
+                </div>
+                <Users className="h-8 w-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Doctors</p>
+                  <p className="text-3xl font-bold text-blue-600">{stats.doctors}</p>
+                </div>
+                <Stethoscope className="h-8 w-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">Nurses</p>
+                  <p className="text-3xl font-bold text-green-600">{stats.nurses}</p>
+                </div>
+                <UserCheck className="h-8 w-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Salary Budget
+                  </p>
+                  <p className="text-3xl font-bold text-purple-600">
+                    <CurrencyDisplay amount={stats.totalSalaryBudget} variant="large" />
+                  </p>
+                </div>
+                <DollarSign className="h-8 w-8 text-purple-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* Search and Filters */}
+      <Card>
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:flex-wrap">
+            {/* Search Bar */}
+            <div className="relative flex-1 min-w-0 sm:min-w-[250px]">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search staff by name, email, or phone..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10 w-full"
+              />
+            </div>
+
+            {/* Filter Controls */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+              <Select value={selectedRole} onValueChange={setSelectedRole}>
+                <SelectTrigger className="w-full sm:w-40">
+                  <SelectValue placeholder="Role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Roles</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="doctor">Doctor</SelectItem>
+                  <SelectItem value="nurse">Nurse</SelectItem>
+                  <SelectItem value="receptionist">Receptionist</SelectItem>
+                  <SelectItem value="technician">Technician</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={selectedDepartment}
+                onValueChange={setSelectedDepartment}
+              >
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  {departments.map((dept) => (
+                    <SelectItem key={dept} value={dept}>
+                      {dept === "all" ? "All Departments" : dept}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Staff Table */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.4 }}
+      >
+        <Card>
+          <CardHeader>
+            <CardTitle>Staff Directory</CardTitle>
+            <CardDescription>
+              Complete list of clinic staff with their details and schedules
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {/* Loading State */}
+            {loading && (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <span className="ml-2 text-gray-600">Loading staff...</span>
+              </div>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <div className="flex items-center justify-center py-8 text-red-600">
+                <span>Error: {error}</span>
+              </div>
+            )}
+
+            {/* Empty State */}
+            {!loading && !error && filteredStaff.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-8 text-gray-500">
+                <Users className="h-12 w-12 mb-4" />
+                <span className="text-lg font-medium">No staff members found</span>
+                <span className="text-sm">Try adjusting your filters or add new staff members</span>
+              </div>
+            )}
+
+            {/* Desktop Table View */}
+            {!loading && !error && filteredStaff.length > 0 && (
+              <div className="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[200px]">
+                      Staff Member
+                    </TableHead>
+                    <TableHead className="min-w-[200px]">Contact</TableHead>
+                    <TableHead className="min-w-[120px]">Role</TableHead>
+                    <TableHead className="min-w-[140px]">Department</TableHead>
+                    <TableHead className="min-w-[100px]">Salary</TableHead>
+                    <TableHead className="min-w-[120px]">
+                      Working Days
+                    </TableHead>
+                    <TableHead className="min-w-[100px]">Joined</TableHead>
+                    <TableHead className="text-right min-w-[120px]">
+                      Actions
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredStaff.map((member) => (
+                    <TableRow key={member.id}>
+                      <TableCell>
+                        <div className="flex items-center space-x-3">
+                          <Avatar>
+                            <AvatarFallback>
+                              {member.firstName.charAt(0)}
+                              {member.lastName.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">
+                              {member.firstName} {member.lastName}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {member.qualifications[0]}
+                            </div>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="space-y-1">
+                          <div className="flex items-center text-sm">
+                            <Mail className="h-3 w-3 mr-1 text-gray-400" />
+                            {member.email}
+                          </div>
+                          <div className="flex items-center text-sm">
+                            <Phone className="h-3 w-3 mr-1 text-gray-400" />
+                            {member.phone}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          {getRoleIcon(member.role)}
+                          <Badge
+                            className={`text-xs ${getRoleColor(member.role)}`}
+                          >
+                            {member.role}
+                          </Badge>
+                        </div>
+                      </TableCell>
+                      <TableCell>{member.department}</TableCell>
+                      <TableCell>
+                        <div className="font-medium">
+                          {formatCurrency(member.salary)}
+                        </div>
+                        <div className="text-sm text-gray-500">Annual</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          <Clock className="h-4 w-4 text-gray-400" />
+                          <span>
+                            {getWorkingDays(member.schedule)} days/week
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell>{formatDate(member.joiningDate)}</TableCell>
+                      <TableCell className="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="sm" className="h-8">
+                              <MoreVertical className="h-4 w-4 mr-1" />
+                              Actions
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleViewProfile(member)}>
+                              View Profile
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditDetails(member)}>
+                              Edit Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleManageSchedule(member)}>
+                              <Calendar className="mr-2 h-4 w-4" />
+                              Manage Schedule
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleUpdateSalary(member)}>
+                              <DollarSign className="mr-2 h-4 w-4" />
+                              Update Salary
+                            </DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-red-600"
+                              onClick={() => member.isActive ? handleDeactivateStaff(member.id) : handleActivateStaff(member.id)}
+                            >
+                              {member.isActive ? 'Deactivate Staff' : 'Activate Staff'}
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+            )}
+
+            {/* Mobile Card View */}
+            {!loading && !error && filteredStaff.length > 0 && (
+              <div className="md:hidden space-y-4">
+              {filteredStaff.map((member) => (
+                <div
+                  key={member.id}
+                  className="border rounded-lg p-4 space-y-3 bg-white shadow-sm"
+                >
+                  {/* Header with Staff and Role */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback>
+                          {member.firstName.charAt(0)}
+                          {member.lastName.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-semibold text-lg">
+                          {member.firstName} {member.lastName}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          {member.qualifications[0]}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      {getRoleIcon(member.role)}
+                      <Badge className={`text-xs ${getRoleColor(member.role)}`}>
+                        {member.role}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Contact Information */}
+                  <div className="space-y-2 p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center text-sm">
+                      <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                      <span className="text-gray-900">{member.email}</span>
+                    </div>
+                    <div className="flex items-center text-sm">
+                      <Phone className="h-4 w-4 mr-2 text-gray-400" />
+                      <span className="text-gray-900">{member.phone}</span>
+                    </div>
+                  </div>
+
+                  {/* Details Grid */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <div className="text-xs text-gray-500 uppercase tracking-wide">
+                        Department
+                      </div>
+                      <div className="text-sm font-medium">
+                        {member.department}
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-xs text-gray-500 uppercase tracking-wide">
+                        Salary
+                      </div>
+                      <div className="text-sm font-medium">
+                        {member.salary > 0 ? formatCurrency(member.salary) : 'Not set'}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <div className="text-xs text-gray-500 uppercase tracking-wide">
+                        Working Days
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Clock className="h-4 w-4 text-gray-400" />
+                        <span className="text-sm font-medium">
+                          {getWorkingDays(member.schedule)} days/week
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-xs text-gray-500 uppercase tracking-wide">
+                        Joined
+                      </div>
+                      <div className="text-sm">
+                        {formatDate(member.joiningDate)}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <div className="text-xs text-gray-500">
+                      Employee ID: #{member.id}
+                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" size="sm">
+                          <MoreVertical className="h-4 w-4 mr-1" />
+                          Actions
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleViewProfile(member)}>
+                          View Profile
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEditDetails(member)}>
+                          Edit Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleManageSchedule(member)}>
+                          <Calendar className="mr-2 h-4 w-4" />
+                          Manage Schedule
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleUpdateSalary(member)}>
+                          <DollarSign className="mr-2 h-4 w-4" />
+                          Update Salary
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="text-red-600"
+                          onClick={() => member.isActive ? handleDeactivateStaff(member.id) : handleActivateStaff(member.id)}
+                        >
+                          {member.isActive ? 'Deactivate Staff' : 'Activate Staff'}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+              ))}
+            </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+
+      {/* Modals */}
+      <ViewStaffModal
+        open={viewModalOpen}
+        onOpenChange={setViewModalOpen}
+        staff={selectedStaff}
+      />
+
+      <EditStaffModal
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        staff={selectedStaff}
+        onUpdate={handleStaffUpdate}
+      />
+
+      <ManageScheduleModal
+        open={scheduleModalOpen}
+        onOpenChange={setScheduleModalOpen}
+        staff={selectedStaff}
+        onUpdate={handleStaffUpdate}
+      />
+
+      <UpdateSalaryModal
+        open={salaryModalOpen}
+        onOpenChange={setSalaryModalOpen}
+        staff={selectedStaff}
+        onUpdate={handleStaffUpdate}
+      />
+    </div>
+  );
+};
+
+export default Staff;

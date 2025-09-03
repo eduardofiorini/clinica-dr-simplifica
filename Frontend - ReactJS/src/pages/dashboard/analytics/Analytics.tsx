@@ -1,0 +1,638 @@
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  BarChart3,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Users,
+  Calendar,
+  Activity,
+  Download,
+  FileText,
+  PieChart as PieChartIcon,
+  Target,
+  Clock,
+  CheckCircle,
+  AlertTriangle,
+  UserCheck,
+  Heart,
+  Stethoscope,
+  Pill,
+  Filter,
+  Loader2,
+} from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { CurrencyDisplay } from "@/components/ui/CurrencyDisplay";
+// Import analytics hooks
+import {
+  useAnalyticsOverview,
+  useAnalyticsStats,
+  useDepartmentAnalytics,
+  useAppointmentAnalytics,
+  usePatientDemographics,
+  useTopServices,
+  usePaymentMethodAnalytics,
+} from "@/hooks/useDashboard";
+
+const Analytics = () => {
+  const [selectedTimeframe, setSelectedTimeframe] = useState("3months");
+  const [selectedDepartment, setSelectedDepartment] = useState("all");
+  const { formatAmount, currencyInfo } = useCurrency();
+
+  // Fetch analytics data using hooks
+  const { data: analyticsOverview, isLoading: overviewLoading, error: overviewError } = useAnalyticsOverview(selectedTimeframe);
+  const { data: analyticsStats, isLoading: statsLoading, error: statsError } = useAnalyticsStats();
+  const { data: departmentData, isLoading: departmentLoading, error: departmentError } = useDepartmentAnalytics();
+  const { data: appointmentStatusData, isLoading: appointmentLoading, error: appointmentError } = useAppointmentAnalytics();
+  const { data: demographicsData, isLoading: demographicsLoading, error: demographicsError } = usePatientDemographics();
+  const { data: topServicesData, isLoading: servicesLoading, error: servicesError } = useTopServices();
+  const { data: paymentMethodsData, isLoading: paymentsLoading, error: paymentsError } = usePaymentMethodAnalytics();
+
+  // Loading and error states
+  const isLoading = overviewLoading || statsLoading || departmentLoading || appointmentLoading || demographicsLoading || servicesLoading || paymentsLoading;
+  const hasError = overviewError || statsError || departmentError || appointmentError || demographicsError || servicesError || paymentsError;
+
+  // Transform API data or use defaults
+  const revenueData = analyticsOverview?.revenueExpenseData || [
+    { month: "Jan", revenue: 0, expenses: 0, patients: 0 },
+    { month: "Feb", revenue: 0, expenses: 0, patients: 0 },
+    { month: "Mar", revenue: 0, expenses: 0, patients: 0 },
+    { month: "Apr", revenue: 0, expenses: 0, patients: 0 },
+    { month: "May", revenue: 0, expenses: 0, patients: 0 },
+    { month: "Jun", revenue: 0, expenses: 0, patients: 0 },
+  ];
+
+  // Current month calculations
+  const currentMonth = revenueData[revenueData.length - 1] || { revenue: 0, expenses: 0, patients: 0 };
+  const previousMonth = revenueData[revenueData.length - 2] || { revenue: 1, expenses: 0, patients: 1 };
+  
+  // Calculate growth from API data or stats
+  const revenueGrowth = analyticsStats?.growth?.revenue || (
+    ((currentMonth.revenue - previousMonth.revenue) / previousMonth.revenue) * 100
+  );
+  const patientGrowth = analyticsStats?.growth?.patients || (
+    ((currentMonth.patients - previousMonth.patients) / previousMonth.patients) * 100
+  );
+
+  // Stats from API or defaults
+  const currentRevenue = analyticsStats?.currentMonth?.revenue || currentMonth.revenue;
+  const currentPatients = analyticsStats?.currentMonth?.patients || currentMonth.patients;
+  const totalAppointments = analyticsStats?.currentMonth?.appointments || 428;
+  const completionRate = analyticsStats?.currentMonth?.completionRate || 68;
+
+  // Using the currency context for dynamic currency formatting
+  const formatCurrency = (amount: number) => {
+    return formatAmount(amount);
+  };
+
+  const formatPercentage = (value: number) => {
+    return `${value.toFixed(2)}%`;
+  };
+
+  const generateReport = (type: string) => {
+    toast({
+      title: "Report Generated",
+      description: `${type} report is being prepared for download.`,
+    });
+  };
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
+          <p className="text-gray-600">Loading analytics data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (hasError) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-4" />
+          <p className="text-red-600 mb-4">Error loading analytics data</p>
+          <Button onClick={() => window.location.reload()}>
+            Try Again
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col space-y-4 sm:space-y-0 sm:flex-row sm:items-center sm:justify-between sm:flex-wrap">
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+            Analytics & Reports
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Comprehensive insights into clinic performance and metrics
+          </p>
+        </div>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:flex-wrap">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 w-full sm:w-auto">
+              <Select
+                value={selectedTimeframe}
+                onValueChange={setSelectedTimeframe}
+              >
+                <SelectTrigger className="w-full sm:w-40">
+                  <SelectValue placeholder="Timeframe" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1month">Last Month</SelectItem>
+                  <SelectItem value="3months">Last 3 Months</SelectItem>
+                  <SelectItem value="6months">Last 6 Months</SelectItem>
+                  <SelectItem value="1year">Last Year</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select
+                value={selectedDepartment}
+                onValueChange={setSelectedDepartment}
+              >
+                <SelectTrigger className="w-full sm:w-48">
+                  <SelectValue placeholder="Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  <SelectItem value="general">General Medicine</SelectItem>
+                  <SelectItem value="cardiology">Cardiology</SelectItem>
+                  <SelectItem value="pediatrics">Pediatrics</SelectItem>
+                  <SelectItem value="orthopedics">Orthopedics</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Key Metrics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Total Revenue
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    <CurrencyDisplay amount={currentRevenue} variant="large" />
+                  </p>
+                  <div className="flex items-center mt-2">
+                    {revenueGrowth >= 0 ? (
+                      <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
+                    ) : (
+                      <TrendingDown className="h-4 w-4 text-red-600 mr-1" />
+                    )}
+                    <span className={`text-sm ${revenueGrowth >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {revenueGrowth >= 0 ? '+' : ''}{formatPercentage(revenueGrowth)}
+                    </span>
+                  </div>
+                </div>
+                <DollarSign className="h-8 w-8 text-green-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Total Patients
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {currentPatients}
+                  </p>
+                  <div className="flex items-center mt-2">
+                    {patientGrowth >= 0 ? (
+                      <TrendingUp className="h-4 w-4 text-blue-600 mr-1" />
+                    ) : (
+                      <TrendingDown className="h-4 w-4 text-red-600 mr-1" />
+                    )}
+                    <span className={`text-sm ${patientGrowth >= 0 ? 'text-blue-600' : 'text-red-600'}`}>
+                      {patientGrowth >= 0 ? '+' : ''}{formatPercentage(patientGrowth)}
+                    </span>
+                  </div>
+                </div>
+                <Users className="h-8 w-8 text-blue-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Appointments
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">{totalAppointments}</p>
+                  <div className="flex items-center mt-2">
+                    <CheckCircle className="h-4 w-4 text-purple-600 mr-1" />
+                    <span className="text-sm text-purple-600">
+                      {Math.round(completionRate)}% completed
+                    </span>
+                  </div>
+                </div>
+                <Calendar className="h-8 w-8 text-purple-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <Card>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-gray-600">
+                    Avg. Wait Time
+                  </p>
+                  <p className="text-3xl font-bold text-gray-900">12 min</p>
+                  <div className="flex items-center mt-2">
+                    <TrendingDown className="h-4 w-4 text-orange-600 mr-1" />
+                    <span className="text-sm text-orange-600">
+                      -15% from last month
+                    </span>
+                  </div>
+                </div>
+                <Clock className="h-8 w-8 text-orange-600" />
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Revenue Chart */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle>Revenue Trend</CardTitle>
+              <CardDescription>Monthly revenue and expenses</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <AreaChart data={revenueData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="month" />
+                  <YAxis />
+                  <Tooltip
+                    formatter={(value) => formatAmount(Number(value))}
+                  />
+                  <Legend />
+                  <Area
+                    type="monotone"
+                    dataKey="revenue"
+                    stackId="1"
+                    stroke="#3B82F6"
+                    fill="#3B82F6"
+                    fillOpacity={0.8}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="expenses"
+                    stackId="2"
+                    stroke="#EF4444"
+                    fill="#EF4444"
+                    fillOpacity={0.8}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Department Performance */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle>Department Performance</CardTitle>
+              <CardDescription>Revenue by department</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={departmentData || []}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis
+                    dataKey="name"
+                    angle={-45}
+                    textAnchor="end"
+                    height={80}
+                  />
+                  <YAxis />
+                  <Tooltip
+                    formatter={(value) => formatAmount(Number(value))}
+                  />
+                  <Bar dataKey="revenue" fill="#8884d8" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* Tables Section */}
+      <Tabs defaultValue="services" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2 lg:grid-cols-4">
+          <TabsTrigger value="services">Top Services</TabsTrigger>
+          <TabsTrigger value="payments">Payment Methods</TabsTrigger>
+          <TabsTrigger value="demographics">Demographics</TabsTrigger>
+          <TabsTrigger value="appointments">Appointments</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="services">
+          <Card>
+            <CardHeader>
+              <CardTitle>Top Performing Services</CardTitle>
+              <CardDescription>
+                Most requested services and their revenue
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Desktop Table View */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Service</TableHead>
+                      <TableHead>Count</TableHead>
+                      <TableHead>Revenue</TableHead>
+                      <TableHead>Avg. Price</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {(topServicesData || []).map((service, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">
+                          {service.service}
+                        </TableCell>
+                        <TableCell>{service.count}</TableCell>
+                        <TableCell>{formatCurrency(service.revenue)}</TableCell>
+                        <TableCell>
+                          {formatCurrency(service.revenue / service.count)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4">
+                {(topServicesData || []).map((service, index) => (
+                  <div
+                    key={index}
+                    className="border rounded-lg p-4 space-y-3 bg-white shadow-sm"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="font-semibold text-lg">
+                        {service.service}
+                      </div>
+                      <Badge variant="outline"># {index + 1}</Badge>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1">
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">
+                          Count
+                        </div>
+                        <div className="text-sm font-medium">
+                          {service.count}
+                        </div>
+                      </div>
+                      <div className="space-y-1">
+                        <div className="text-xs text-gray-500 uppercase tracking-wide">
+                          Revenue
+                        </div>
+                        <div className="text-sm font-medium">
+                          {formatCurrency(service.revenue)}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="pt-2 border-t">
+                      <div className="text-xs text-gray-500 uppercase tracking-wide">
+                        Average Price
+                      </div>
+                      <div className="text-sm font-medium">
+                        {formatCurrency(service.revenue / service.count)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="payments">
+          <Card>
+            <CardHeader>
+              <CardTitle>Payment Methods</CardTitle>
+              <CardDescription>
+                Distribution of payment methods used
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Desktop Table View */}
+              <div className="hidden md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Payment Method</TableHead>
+                      <TableHead>Percentage</TableHead>
+                      <TableHead>Amount</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {(paymentMethodsData || []).map((method, index) => (
+                      <TableRow key={index}>
+                        <TableCell className="font-medium">
+                          {method.method}
+                        </TableCell>
+                        <TableCell>{method.percentage}%</TableCell>
+                        <TableCell>{formatCurrency(method.amount)}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Mobile Card View */}
+              <div className="md:hidden space-y-4">
+                {(paymentMethodsData || []).map((method, index) => (
+                  <div
+                    key={index}
+                    className="border rounded-lg p-4 space-y-3 bg-white shadow-sm"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="font-semibold text-lg">
+                        {method.method}
+                      </div>
+                      <Badge>{method.percentage}%</Badge>
+                    </div>
+
+                    <div className="space-y-1">
+                      <div className="text-xs text-gray-500 uppercase tracking-wide">
+                        Total Amount
+                      </div>
+                      <div className="text-lg font-medium">
+                        {formatCurrency(method.amount)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="demographics">
+          <Card>
+            <CardHeader>
+              <CardTitle>Patient Demographics</CardTitle>
+              <CardDescription>Age and gender distribution</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={demographicsData || []}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="ageGroup" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Bar dataKey="male" fill="#3B82F6" name="Male" />
+                  <Bar dataKey="female" fill="#EC4899" name="Female" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="appointments">
+          <Card>
+            <CardHeader>
+              <CardTitle>Appointment Status</CardTitle>
+              <CardDescription>
+                Current appointment status distribution
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={appointmentStatusData || []}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, value }) =>
+                      `${name} ${value}%`
+                    }
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {(appointmentStatusData || []).map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default Analytics;

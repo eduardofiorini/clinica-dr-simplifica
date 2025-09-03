@@ -1,0 +1,431 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<head lang="en">
+	<meta http-equiv="content-type" content="text/html;charset=utf-8">
+	<title>Clinic Management System Backend Documentation</title>
+	<!-- Framework CSS -->
+	<link rel="stylesheet" href="assets/blueprint-css/screen.css" type="text/css" media="screen, projection">
+	<link rel="stylesheet" href="assets/blueprint-css/print.css" type="text/css" media="print">
+	<!--[if lt IE 8]><link rel="stylesheet" href="assets/blueprint-css/ie.css" type="text/css" media="screen, projection"><![endif]-->
+	<link rel="stylesheet" href="assets/blueprint-css/plugins/fancy-type/screen.css" type="text/css" media="screen, projection">
+	<style type="text/css" media="screen">
+		p, table, hr, .box { margin-bottom:25px; }
+		.box p { margin-bottom:10px; }
+		.highlight { background-color: #f9f9f9; padding: 15px; border-left: 4px solid #3498db; }
+		.api-endpoint { background-color: #f0f8ff; padding: 10px; margin: 10px 0; border-radius: 4px; }
+		.tech-stack { background-color: #f5f5f5; padding: 15px; border-radius: 5px; }
+		.feature-list { background-color: #e8f5e8; padding: 15px; border-radius: 5px; }
+	</style>
+</head>
+
+<body>
+	<div class="container">
+	
+		<h3 class="center alt">&ldquo;Clinic Management System Backend&rdquo; Documentation v1.0</h3>
+		
+		<hr>
+		
+		<h1 class="center">&ldquo;ClinicPro Backend API&rdquo;</h1>
+		
+		<div class="borderTop">
+			<div class="span-6 colborder info prepend-1">
+				<p class="prepend-top">
+					<strong>
+					Created: 2024<br>
+					Project: Clinic Management System<br>
+					Technology: Node.js + TypeScript + MongoDB<br>
+					Version: 1.0.0<br>
+					Status: Production Ready
+					</strong>
+				</p>
+			</div><!-- end div .span-6 -->		
+	
+			<div class="span-12 last">
+				<p class="prepend-top append-0">This is a comprehensive backend API system for clinic management, built with modern technologies including Node.js, TypeScript, Express.js, and MongoDB. The system provides complete healthcare management capabilities including patient management, appointment scheduling, laboratory operations, inventory tracking, and financial management.</p>
+			</div>
+		</div><!-- end div .borderTop -->
+		
+		<hr>
+		
+		<h2 id="toc" class="alt">Table of Contents</h2>
+		<ol class="alpha">
+			<li><a href="#overview">Project Overview</a></li>
+			<li><a href="#features">Core Features & Modules</a></li>
+			<li><a href="#techStack">Technology Stack</a></li>
+			<li><a href="#architecture">System Architecture</a></li>
+			<li><a href="#apiEndpoints">API Endpoints</a></li>
+			<li><a href="#models">Database Models</a></li>
+			<li><a href="#authentication">Authentication & Security</a></li>
+			<li><a href="#installation">Installation Guide</a></li>
+			<li><a href="#configuration">Configuration</a></li>
+			<li><a href="#deployment">Deployment</a></li>
+		</ol>
+		
+		<hr>
+		
+		<h3 id="overview"><strong>A) Project Overview</strong> - <a href="#toc">top</a></h3>
+		
+		<div class="highlight">
+			<h4>ClinicPro Backend API</h4>
+			<p><strong>Description:</strong> A comprehensive backend API for clinic management system designed to handle all aspects of healthcare facility operations.</p>
+			<p><strong>Purpose:</strong> To provide a robust, scalable, and secure backend infrastructure for healthcare management applications.</p>
+			<p><strong>Target Users:</strong> Healthcare professionals, clinic administrators, laboratory technicians, and support staff.</p>
+		</div>
+
+		<p>The ClinicPro Backend API is a full-featured healthcare management system that provides RESTful APIs for managing every aspect of a modern clinic or healthcare facility. Built with TypeScript and modern Node.js practices, it ensures type safety, maintainability, and enterprise-grade reliability.</p>
+
+		<p>The system is designed with modularity in mind, allowing easy integration with frontend applications, mobile apps, and third-party healthcare systems. It follows industry best practices for healthcare data management and security compliance.</p>
+
+		<hr>
+
+		<h3 id="features"><strong>B) Core Features & Modules</strong> - <a href="#toc">top</a></h3>
+
+		<div class="feature-list">
+			<h4>Patient Management</h4>
+			<ul>
+				<li>Complete patient registration and profile management</li>
+				<li>Medical history tracking</li>
+				<li>Patient search and filtering capabilities</li>
+				<li>Contact information and demographics</li>
+			</ul>
+
+			<h4>Appointment System</h4>
+			<ul>
+				<li>Appointment scheduling and management</li>
+				<li>Calendar integration</li>
+				<li>Appointment status tracking</li>
+				<li>Automated reminders and notifications</li>
+			</ul>
+
+			<h4>Medical Records</h4>
+			<ul>
+				<li>Electronic health records (EHR)</li>
+				<li>Medical history documentation</li>
+				<li>Diagnosis and treatment tracking</li>
+				<li>Medical document storage</li>
+			</ul>
+
+			<h4>Laboratory Management</h4>
+			<ul>
+				<li>Laboratory test management</li>
+				<li>Test categories and methodologies</li>
+				<li>Sample type management</li>
+				<li>Test result reporting</li>
+				<li>Lab vendor management</li>
+				<li>Turnaround time tracking</li>
+			</ul>
+
+			<h4>Prescription Management</h4>
+			<ul>
+				<li>Digital prescription creation</li>
+				<li>Medication tracking</li>
+				<li>Dosage and instruction management</li>
+				<li>Prescription history</li>
+			</ul>
+
+			<h4>Inventory Management</h4>
+			<ul>
+				<li>Medical supplies tracking</li>
+				<li>Stock level monitoring</li>
+				<li>Automated reorder alerts</li>
+				<li>Supplier management</li>
+			</ul>
+
+			<h4>Financial Management</h4>
+			<ul>
+				<li>Invoice generation and management</li>
+				<li>Payment processing</li>
+				<li>Expense tracking</li>
+				<li>Financial reporting</li>
+			</ul>
+
+			<h4>Administrative Features</h4>
+			<ul>
+				<li>User and role management</li>
+				<li>Department management</li>
+				<li>Staff payroll system</li>
+				<li>Training and progress tracking</li>
+				<li>Lead management</li>
+				<li>Analytics and reporting</li>
+			</ul>
+		</div>
+
+		<hr>
+		
+		<h3 id="techStack"><strong>C) Technology Stack</strong> - <a href="#toc">top</a></h3>
+		
+		<div class="tech-stack">
+			<h4>Backend Technologies</h4>
+			<ul>
+				<li><strong>Runtime:</strong> Node.js (v14+)</li>
+				<li><strong>Language:</strong> TypeScript</li>
+				<li><strong>Framework:</strong> Express.js</li>
+				<li><strong>Database:</strong> MongoDB with Mongoose ODM</li>
+				<li><strong>Authentication:</strong> JWT (JSON Web Tokens)</li>
+				<li><strong>Validation:</strong> express-validator</li>
+				<li><strong>Security:</strong> Helmet, CORS, Rate Limiting</li>
+				<li><strong>Documentation:</strong> Swagger/OpenAPI 3.0</li>
+				<li><strong>Development:</strong> Nodemon, ts-node</li>
+			</ul>
+
+			<h4>Key Dependencies</h4>
+			<ul>
+				<li><strong>bcryptjs:</strong> Password hashing and security</li>
+				<li><strong>jsonwebtoken:</strong> JWT token management</li>
+				<li><strong>multer:</strong> File upload handling</li>
+				<li><strong>mongoose:</strong> MongoDB object modeling</li>
+				<li><strong>express-rate-limit:</strong> API rate limiting</li>
+				<li><strong>dotenv:</strong> Environment configuration</li>
+			</ul>
+		</div>
+
+		<hr>
+
+		<h3 id="architecture"><strong>D) System Architecture</strong> - <a href="#toc">top</a></h3>
+
+		<p>The system follows a layered architecture pattern with clear separation of concerns:</p>
+
+<pre>	src/
+	├── config/          # Configuration files (Database, Swagger)
+	├── controllers/     # Route handlers and business logic
+	├── middleware/      # Custom middleware (Auth, Validation)
+	├── models/         # Database models and schemas
+	├── routes/         # API route definitions
+	├── seeds/          # Database seeders for initial data
+	├── types/          # TypeScript type definitions
+	├── utils/          # Utility functions and helpers
+	└── server.ts       # Application entry point
+</pre>
+
+		<h4>Architecture Layers:</h4>
+		<ol>
+			<li><strong>Presentation Layer:</strong> Express.js routes and controllers</li>
+			<li><strong>Business Logic Layer:</strong> Service functions and validation</li>
+			<li><strong>Data Access Layer:</strong> Mongoose models and database operations</li>
+			<li><strong>Database Layer:</strong> MongoDB for data persistence</li>
+		</ol>
+
+		<hr>
+
+		<h3 id="apiEndpoints"><strong>E) API Endpoints</strong> - <a href="#toc">top</a></h3>
+
+		<p>The API provides comprehensive endpoints for all system modules. All endpoints are accessible at <code>http://localhost:3000/api/</code></p>
+
+		<div class="api-endpoint">
+			<h4>Authentication</h4>
+			<ul>
+				<li><code>POST /api/auth/login</code> - User authentication</li>
+				<li><code>POST /api/auth/register</code> - New user registration</li>
+			</ul>
+		</div>
+
+		<div class="api-endpoint">
+			<h4>Patient Management</h4>
+			<ul>
+				<li><code>GET /api/patients</code> - Get all patients</li>
+				<li><code>POST /api/patients</code> - Create new patient</li>
+				<li><code>GET /api/patients/:id</code> - Get patient by ID</li>
+				<li><code>PUT /api/patients/:id</code> - Update patient</li>
+				<li><code>DELETE /api/patients/:id</code> - Delete patient</li>
+			</ul>
+		</div>
+
+		<div class="api-endpoint">
+			<h4>Appointment Management</h4>
+			<ul>
+				<li><code>GET /api/appointments</code> - Get all appointments</li>
+				<li><code>POST /api/appointments</code> - Schedule new appointment</li>
+				<li><code>GET /api/appointments/:id</code> - Get appointment details</li>
+				<li><code>PUT /api/appointments/:id</code> - Update appointment</li>
+				<li><code>DELETE /api/appointments/:id</code> - Cancel appointment</li>
+			</ul>
+		</div>
+
+		<div class="api-endpoint">
+			<h4>Laboratory Management</h4>
+			<ul>
+				<li><code>GET /api/tests</code> - Get all laboratory tests</li>
+				<li><code>POST /api/tests</code> - Create new test</li>
+				<li><code>GET /api/test-reports</code> - Get test reports</li>
+				<li><code>GET /api/test-categories</code> - Get test categories</li>
+				<li><code>GET /api/sample-types</code> - Get sample types</li>
+				<li><code>GET /api/lab-vendors</code> - Get laboratory vendors</li>
+			</ul>
+		</div>
+
+		<div class="api-endpoint">
+			<h4>Financial Management</h4>
+			<ul>
+				<li><code>GET /api/invoices</code> - Get all invoices</li>
+				<li><code>POST /api/invoices</code> - Create new invoice</li>
+				<li><code>GET /api/payments</code> - Get payment records</li>
+				<li><code>POST /api/payments</code> - Process payment</li>
+			</ul>
+		</div>
+
+		<p><strong>Complete API Documentation:</strong> Available via Swagger UI at <code>http://localhost:3000/api/docs</code></p>
+
+		<hr>
+
+		<h3 id="models"><strong>F) Database Models</strong> - <a href="#toc">top</a></h3>
+
+		<p>The system includes comprehensive data models for all healthcare management aspects:</p>
+
+		<h4>Core Models:</h4>
+		<ul>
+			<li><strong>User:</strong> System users with role-based access</li>
+			<li><strong>Patient:</strong> Patient information and demographics</li>
+			<li><strong>Appointment:</strong> Appointment scheduling and management</li>
+			<li><strong>MedicalRecord:</strong> Electronic health records</li>
+			<li><strong>Department:</strong> Clinic departments and specializations</li>
+		</ul>
+
+		<h4>Laboratory Models:</h4>
+		<ul>
+			<li><strong>Test:</strong> Laboratory test definitions</li>
+			<li><strong>TestCategory:</strong> Test categorization</li>
+			<li><strong>TestMethodology:</strong> Testing methodologies</li>
+			<li><strong>TestReport:</strong> Test results and reports</li>
+			<li><strong>SampleType:</strong> Sample type management</li>
+			<li><strong>LabVendor:</strong> Laboratory vendor information</li>
+			<li><strong>TurnaroundTime:</strong> Test processing times</li>
+		</ul>
+
+		<h4>Financial Models:</h4>
+		<ul>
+			<li><strong>Invoice:</strong> Billing and invoice management</li>
+			<li><strong>Payment:</strong> Payment processing and tracking</li>
+			<li><strong>Expense:</strong> Expense tracking and management</li>
+			<li><strong>Payroll:</strong> Staff payroll management</li>
+		</ul>
+
+		<h4>Administrative Models:</h4>
+		<ul>
+			<li><strong>Inventory:</strong> Medical supplies and equipment</li>
+			<li><strong>Service:</strong> Clinic services and offerings</li>
+			<li><strong>Prescription:</strong> Digital prescription management</li>
+			<li><strong>Lead:</strong> Patient lead management</li>
+			<li><strong>Training:</strong> Staff training programs</li>
+			<li><strong>TrainingProgress:</strong> Training completion tracking</li>
+		</ul>
+
+		<hr>
+
+		<h3 id="authentication"><strong>G) Authentication & Security</strong> - <a href="#toc">top</a></h3>
+
+		<h4>Security Features:</h4>
+		<ul>
+			<li><strong>JWT Authentication:</strong> Secure token-based authentication</li>
+			<li><strong>Password Hashing:</strong> bcryptjs for secure password storage</li>
+			<li><strong>Rate Limiting:</strong> API request rate limiting to prevent abuse</li>
+			<li><strong>CORS Protection:</strong> Cross-origin request security</li>
+			<li><strong>Helmet Security:</strong> HTTP security headers</li>
+			<li><strong>Input Validation:</strong> Comprehensive request validation</li>
+			<li><strong>Role-based Access:</strong> User role and permission management</li>
+		</ul>
+
+		<h4>Authentication Flow:</h4>
+<pre>	1. User login with credentials
+	2. Server validates credentials
+	3. JWT token generated and returned
+	4. Client includes token in Authorization header
+	5. Server validates token for protected routes
+	6. Access granted based on user roles
+</pre>
+
+		<hr>
+
+		<h3 id="installation"><strong>H) Installation Guide</strong> - <a href="#toc">top</a></h3>
+
+		<h4>Prerequisites:</h4>
+		<ul>
+			<li>Node.js (version 14 or higher)</li>
+			<li>npm or yarn package manager</li>
+			<li>MongoDB (local or cloud instance)</li>
+			<li>Git version control</li>
+		</ul>
+
+		<h4>Installation Steps:</h4>
+<pre>	# 1. Clone the repository
+	git clone &lt;repository-url&gt;
+	cd backend
+
+	# 2. Install dependencies
+	npm install
+
+	# 3. Configure environment variables
+	cp .env.example .env
+	# Edit .env file with your configuration
+
+	# 4. Build the project
+	npm run build
+
+	# 5. Seed the database (optional)
+	npm run seed
+
+	# 6. Start the server
+	npm run dev
+</pre>
+
+		<hr>
+
+		<h3 id="configuration"><strong>I) Configuration</strong> - <a href="#toc">top</a></h3>
+
+		<h4>Environment Variables:</h4>
+<pre>	PORT=3000
+	MONGODB_URI=mongodb://localhost:27017/clinic-pro
+	NODE_ENV=development
+	JWT_SECRET=your_jwt_secret_here
+	JWT_EXPIRES_IN=7d
+</pre>
+
+		<h4>Available Scripts:</h4>
+		<ul>
+			<li><code>npm run build</code> - Compile TypeScript to JavaScript</li>
+			<li><code>npm run start</code> - Start production server</li>
+			<li><code>npm run dev</code> - Start development server with auto-reload</li>
+			<li><code>npm run seed</code> - Run database seeders</li>
+			<li><code>npm run seed:clear</code> - Clear and reseed database</li>
+		</ul>
+
+		<hr>
+
+		<h3 id="deployment"><strong>J) Deployment</strong> - <a href="#toc">top</a></h3>
+
+		<h4>Production Deployment:</h4>
+		<ol>
+			<li>Build the application: <code>npm run build</code></li>
+			<li>Set production environment variables</li>
+			<li>Configure MongoDB connection</li>
+			<li>Set up reverse proxy (nginx/Apache)</li>
+			<li>Configure SSL certificates</li>
+			<li>Start the application: <code>npm start</code></li>
+		</ol>
+
+		<h4>Recommended Production Setup:</h4>
+		<ul>
+			<li><strong>Server:</strong> Ubuntu/CentOS with Node.js</li>
+			<li><strong>Database:</strong> MongoDB Atlas or self-hosted MongoDB</li>
+			<li><strong>Reverse Proxy:</strong> Nginx for SSL and load balancing</li>
+			<li><strong>Process Manager:</strong> PM2 for process management</li>
+			<li><strong>Monitoring:</strong> Application monitoring and logging</li>
+		</ul>
+
+		<hr>
+		
+		<div class="highlight">
+			<h4>System Status</h4>
+			<p><strong>Version:</strong> 1.0.0</p>
+			<p><strong>Status:</strong> Production Ready</p>
+			<p><strong>Last Updated:</strong> 2024</p>
+			<p><strong>API Documentation:</strong> Available at /api/docs</p>
+		</div>
+
+		<p>This comprehensive clinic management system backend provides a robust foundation for healthcare applications with enterprise-grade security, scalability, and maintainability. The modular architecture ensures easy customization and integration with various frontend technologies.</p> 
+		
+		<p class="append-bottom alt large"><strong>ClinicPro Development Team</strong></p>
+		<p><a href="#toc">Go To Table of Contents</a></p>
+		
+		<hr class="space">
+	</div><!-- end div .container -->
+</body>
+</html> 
